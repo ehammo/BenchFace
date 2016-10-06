@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">HideTheFace</string>
+    <string name="app_name">HideThisFace</string>
+    <string name="time">TimePassed</string>
+    <string name="battery">BatterySpent</string>
+    <string name="status">Status</string>
+    <string name="hide">Hide faces</string>
+    <string name="hideDescription">Image with faces blurred</string>
+
 </resources>
