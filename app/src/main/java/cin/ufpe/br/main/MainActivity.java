@@ -2,8 +2,10 @@ package cin.ufpe.br.main;
 
 //android
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
@@ -267,8 +269,7 @@ public class MainActivity extends Activity {
         return batteryValue;
     }
 
-    @Override
-    public void onBackPressed() {
+    public void exportCsv(){
         Log.d(TAG,"teste");
         String columnString         =   "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\"";
         String combinedString       =   columnString + "\n" + dataString;
@@ -276,14 +277,43 @@ public class MainActivity extends Activity {
         Log.d(TAG,file.getAbsolutePath());
         try {
             FileOutputStream out    =   new FileOutputStream(file);
-            Toast.makeText(mContext, "Saved dsv with sucess in"+file.getAbsolutePath(),Toast.LENGTH_LONG);
             out.write(combinedString.getBytes());
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
             Log.e("BROKEN", "Could not write file " + e.getMessage());
-        }finally {
-            super.onBackPressed();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setMessage("Want to quit and export Csv file?").setTitle("Exit");
+
+
+        //Since the order that they appear is Neutral>Negative>Positive I change the content of each one
+        //So The negative is my neutral, the neutral is my positive and at last the positive is my negative
+        builder.setNegativeButton("Just Quit", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finish();
+            }
+        });
+        builder.setNeutralButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                exportCsv();
+                finish();
+            }
+        });
+        builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
     }
 }
