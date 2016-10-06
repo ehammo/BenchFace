@@ -59,10 +59,15 @@ public class MainActivity extends Activity {
 
     private Button btn;
     private Button btnG;
+    String dataString="";
+    private int id=0;
+    String timeText;
     private Bitmap originalImage;
     private ImageView imageView;
     private Long TimeStarted;
     private Double TotalTime;
+    private int faces;
+    private String resolution;
     private TextView time;
     private TextView battery;
     private TextView statusTextView;
@@ -148,7 +153,7 @@ public class MainActivity extends Activity {
 
                         //"cola" os rostos desfocados sobre a imagem original
                         imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
-
+                        faces = propsFaces.size();
                         statusTextView.setText("Detected "+propsFaces.size()+" faces");
 
                         imageView.setImageBitmap(imagemCorteDesfoque);
@@ -158,8 +163,11 @@ public class MainActivity extends Activity {
                         battery.setText("Battery level spent: " + batteryValue);
                         Log.d(TAG,""+TotalTime);
                         Log.d(TAG,"Time spent "+precision.format(TotalTime));
-                        String timeText = "Time spent "+precision.format(TotalTime)+"s";
+                        timeText = "Time spent "+precision.format(TotalTime)+"s";
                         time.setText(timeText);
+                        dataString += "\"" + id +"\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\""+ "??" +"\", \"" + "??" + "\"";
+                        dataString  += "\n";
+                        id++;
                     }
 
                     } catch (Exception e) {
@@ -238,6 +246,7 @@ public class MainActivity extends Activity {
             options.inSampleSize = 8;
             originalImage = BitmapFactory.decodeStream(in, null, options);
             imageView.setImageBitmap(originalImage);
+            resolution = originalImage.getWidth()+"x"+originalImage.getHeight();
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -256,5 +265,25 @@ public class MainActivity extends Activity {
         batteryValue = (init - (level / (float)10000));
         if (batteryValue<0) batteryValue*=-1;
         return batteryValue;
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG,"teste");
+        String columnString         =   "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\"";
+        String combinedString       =   columnString + "\n" + dataString;
+        File file                   =   new File(this.getExternalCacheDir()+ File.separator + "Data.csv");
+        Log.d(TAG,file.getAbsolutePath());
+        try {
+            FileOutputStream out    =   new FileOutputStream(file);
+            Toast.makeText(mContext, "Saved dsv with sucess in"+file.getAbsolutePath(),Toast.LENGTH_LONG);
+            out.write(combinedString.getBytes());
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("BROKEN", "Could not write file " + e.getMessage());
+        }finally {
+            super.onBackPressed();
+        }
     }
 }
