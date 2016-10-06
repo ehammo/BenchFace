@@ -13,16 +13,19 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+
+import android.text.format.Time;
 import java.text.DecimalFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 //code
@@ -41,7 +44,6 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.android.Utils;
@@ -50,6 +52,7 @@ import org.opencv.android.Utils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.TimeZone;
 
 
 public class MainActivity extends Activity {
@@ -167,7 +170,11 @@ public class MainActivity extends Activity {
                         Log.d(TAG,"Time spent "+precision.format(TotalTime));
                         timeText = "Time spent "+precision.format(TotalTime)+"s";
                         time.setText(timeText);
-                        dataString += "\"" + id +"\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\""+ "??" +"\", \"" + "??" + "\"";
+                        TimeZone tz = TimeZone.getDefault();
+                        Calendar calendar = new GregorianCalendar(tz);
+                        Date now = new Date();
+                        calendar.setTime(now);
+                        dataString += "\"" + id +"\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\""+ "??" +"\", \"" + now.toString() + "\"";
                         dataString  += "\n";
                         id++;
                     }
@@ -270,11 +277,11 @@ public class MainActivity extends Activity {
     }
 
     public void exportCsv(){
-        Log.d(TAG,"teste");
         String columnString         =   "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\"";
         String combinedString       =   columnString + "\n" + dataString;
         File file                   =   new File(this.getExternalCacheDir()+ File.separator + "Data.csv");
-        Log.d(TAG,file.getAbsolutePath());
+
+
         try {
             FileOutputStream out    =   new FileOutputStream(file);
             out.write(combinedString.getBytes());
