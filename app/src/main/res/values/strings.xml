@@ -4,6 +4,7 @@
     <string name="battery">BatterySpent</string>
     <string name="status">Status</string>
     <string name="hide">Hide faces</string>
+    <string name="getImage">Gallery</string>
     <string name="hideDescription">Image with faces blurred</string>
 
 </resources>

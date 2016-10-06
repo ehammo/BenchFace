@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 //code
@@ -57,9 +58,11 @@ public class MainActivity extends Activity {
     private CascadeClassifier cascadeClassifier;
 
     private Button btn;
+    private Button btnG;
+    private Bitmap originalImage;
     private ImageView imageView;
     private Long TimeStarted;
-    private Long TotalTime;
+    private Double TotalTime;
     private TextView time;
     private TextView battery;
     private TextView statusTextView;
@@ -68,7 +71,7 @@ public class MainActivity extends Activity {
     private String path;
     private Uri UriPath;
     private Context mContext;
-
+    private DecimalFormat precision = new DecimalFormat("0.0000");
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
     {
         @Override
@@ -81,7 +84,6 @@ public class MainActivity extends Activity {
                     Log.d(TAG, "OpenCV loaded successfully");
                     try {
                     // Load native library after(!) OpenCV initialization
-//                    System.loadLibrary("CPlusPlusLibrary");
                     InputStream is = getResources().openRawResource( R.raw.haarcascade_frontalface_alt_tree);
                     File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
                     mCascadeFile = new File(cascadeDir, "haarcascade_frontalface_alt_tree.xml");
@@ -101,15 +103,7 @@ public class MainActivity extends Activity {
 
                     Mat mat=new Mat();
 
-                    ContentResolver cr = getContentResolver();
-                    InputStream in = cr.openInputStream(UriPath);
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inSampleSize=8;
-                    Bitmap imOriginal = BitmapFactory.decodeStream(in,null,options);
-
-                   // Bitmap imOriginal = BitmapFactory.decodeResource(getResources(),R.drawable.chaves);
-                   // Bitmap imagemCorteDesfoque = BitmapFactory.decodeResource(getResources(),R.drawable.chaves);
-                    Utils.bitmapToMat(imOriginal,mat);
+                    Utils.bitmapToMat(originalImage,mat);
 
                     if(mat.empty()){
                        Log.d(TAG,"matriz de foto vazia");
@@ -153,16 +147,19 @@ public class MainActivity extends Activity {
                         statusTextView.setText("overlay");
 
                         //"cola" os rostos desfocados sobre a imagem original
-                        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, imOriginal);
+                        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
 
                         statusTextView.setText("Detected "+propsFaces.size()+" faces");
 
                         imageView.setImageBitmap(imagemCorteDesfoque);
 
-                        TotalTime = System.nanoTime() - TimeStarted;
+                        TotalTime = (double)(System.nanoTime() - TimeStarted)/1000000000.0;
                         batteryValue = calcBattery(batteryValue);
                         battery.setText("Battery level spent: " + batteryValue);
-                        time.setText("time spent " + TotalTime);
+                        Log.d(TAG,""+TotalTime);
+                        Log.d(TAG,"Time spent "+precision.format(TotalTime));
+                        String timeText = "Time spent "+precision.format(TotalTime)+"s";
+                        time.setText(timeText);
                     }
 
                     } catch (Exception e) {
@@ -191,6 +188,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btn = (Button)findViewById(R.id.btnHide);
+        btnG = (Button)findViewById(R.id.btnG);
         imageView = (ImageView) findViewById(R.id.imageView);
         time = (TextView) findViewById(R.id.textTime);
         battery = (TextView) findViewById(R.id.textBattery);
@@ -199,10 +197,17 @@ public class MainActivity extends Activity {
         batteryStatus = this.registerReceiver(null, ifilter);
         mContext=this;
 
-        btn.setOnClickListener(new View.OnClickListener() {
+        btnG.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 choosePic();
+            }
+        });
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                method();
             }
         });
 
@@ -214,7 +219,7 @@ public class MainActivity extends Activity {
            Uri path = data.getData();
            this.UriPath = path;
            this.path=path.getPath();
-           method(this.path);
+           setImage();
         }
 
     }
@@ -225,14 +230,23 @@ public class MainActivity extends Activity {
         startActivityForResult(intent, 1);
     }
 
-    public void method(String path){
+    public void setImage(){
+        try {
+            ContentResolver cr = getContentResolver();
+            InputStream in = cr.openInputStream(UriPath);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 8;
+            originalImage = BitmapFactory.decodeStream(in, null, options);
+            imageView.setImageBitmap(originalImage);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void method(){
         TimeStarted = System.nanoTime();
         batteryValue = calcBattery((float)0.0);
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_4,this,mLoaderCallback);
-
-
-
-
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0,this,mLoaderCallback);
     }
 
     public float calcBattery(float init){

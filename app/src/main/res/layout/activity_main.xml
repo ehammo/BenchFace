@@ -31,14 +31,30 @@
         android:text="@string/status"
         android:layout_below="@id/textBattery"/>
 
+
     <Button
         android:text="@string/hide"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:id="@+id/btnHide"
+        android:layout_alignBaseline="@+id/btnG"
+        android:layout_alignBottom="@+id/btnG"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="24dp"
+        android:layout_marginEnd="24dp" />
+
+    <Button
+        android:text="@string/getImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="27dp"
+        android:id="@+id/btnG"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="29dp"
-        android:id="@+id/btnHide" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="24dp"
+        android:layout_marginStart="24dp" />
 
     <ImageView
         android:layout_width="match_parent"
