@@ -16,8 +16,11 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 
@@ -34,6 +37,7 @@ import cin.ufpe.br.service.ServiceDesfoqueImagem;
 import cin.ufpe.br.service.ServiceDeteccaoFacesImagem;
 import cin.ufpe.br.model.PropriedadesFace;
 import cin.ufpe.br.service.ServiceSobreposicaoImagem;
+import cin.ufpe.br.service.TutorialOnFaceDetect1;
 
 //openCV
 import org.opencv.android.BaseLoaderCallback;
@@ -59,14 +63,16 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "log";
 
-    File mCascadeFile;
+    private File mCascadeFile;
+    private TutorialOnFaceDetect1 fd;
     private CascadeClassifier cascadeClassifier;
-
+    private int alg=0;
+    private String algorithm="";
     private Button btn;
     private Button btnG;
-    String dataString="";
+    private String dataString="";
     private int id=0;
-    String timeText;
+    private String timeText;
     private Bitmap originalImage;
     private ImageView imageView;
     private Long TimeStarted;
@@ -151,7 +157,7 @@ public class MainActivity extends Activity {
                         //desenha os retangulos
                         for (Rect rect : matOfRect.toArray()) {
                             Imgproc.rectangle(mat, new Point(rect.x - 1, rect.y - 1), new Point(rect.x + rect.width, rect.y + rect.height),
-                                    new Scalar(0, 255, 0), 3);
+                                    new Scalar(0, 255, 0), 33);
                         }
 
                         statusTextView.setText("overlay");
@@ -174,7 +180,7 @@ public class MainActivity extends Activity {
                         Calendar calendar = new GregorianCalendar(tz);
                         Date now = new Date();
                         calendar.setTime(now);
-                        dataString += "\"" + id +"\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\""+ "??" +"\", \"" + now.toString() + "\"";
+                        dataString += "\"" + id +"\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\""+ "??" +"\", \"" + now.toString() + "\", \"" + algorithm + "\"";
                         dataString  += "\n";
                         id++;
                     }
@@ -214,6 +220,39 @@ public class MainActivity extends Activity {
         batteryStatus = this.registerReceiver(null, ifilter);
         mContext=this;
 
+        fd = new TutorialOnFaceDetect1();
+
+        Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                Log.d(TAG,"entrei");
+                switch (pos){
+                    case 0:
+                        alg=0;
+                        algorithm="OpenCv";
+                        Log.d(TAG, ""+alg);
+                        break;
+                    case 1:
+                        alg=1;
+                        algorithm="FaceDetection built in android";
+                        Log.d(TAG, ""+alg);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
         btnG.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -252,7 +291,7 @@ public class MainActivity extends Activity {
             ContentResolver cr = getContentResolver();
             InputStream in = cr.openInputStream(UriPath);
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 8;
+            options.inSampleSize=2;
             originalImage = BitmapFactory.decodeStream(in, null, options);
             imageView.setImageBitmap(originalImage);
             resolution = originalImage.getWidth()+"x"+originalImage.getHeight();
@@ -264,20 +303,33 @@ public class MainActivity extends Activity {
     public void method(){
         TimeStarted = System.nanoTime();
         batteryValue = calcBattery((float)0.0);
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0,this,mLoaderCallback);
+        switch (alg){
+            case 0:
+                Log.d(TAG, "openCV");
+                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0,this,mLoaderCallback);
+                break;
+            case 1:
+                Log.d(TAG, "the other");
+                Bitmap b = fd.loadPhoto(R.drawable.chaves,mContext);
+                imageView.setImageBitmap(b);
+                originalImage = b;
+                break;
+            default:
+                break;
+        }
     }
 
     public float calcBattery(float init){
         float batteryValue;
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        batteryValue = (init - (level / (float)10000));
+        batteryValue = (init - (level / scale));
         if (batteryValue<0) batteryValue*=-1;
         return batteryValue;
     }
 
     public void exportCsv(){
-        String columnString         =   "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\"";
+        String columnString         =   "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\"";
         String combinedString       =   columnString + "\n" + dataString;
         File file                   =   new File(this.getExternalCacheDir()+ File.separator + "Data.csv");
 
