@@ -2,7 +2,6 @@
 <resources>
     <string-array name="photo_array">
         <item>chaves</item>
-        <item>group_14</item>
         <item>group_25</item>
         <item>group_35</item>
     </string-array>

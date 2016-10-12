@@ -14,11 +14,14 @@ import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -61,8 +64,9 @@ import java.util.TimeZone;
 
 public class MainActivity extends Activity {
 
-    private static final String TAG = "log";
+    private static final String TAG = "teste";
 
+    BitmapFactory.Options options;
     private File mCascadeFile;
     private TutorialOnFaceDetect1 fd;
     private CascadeClassifier cascadeClassifier;
@@ -198,7 +202,6 @@ public class MainActivity extends Activity {
                 }
                     default:
                 {
-                    Log.d(TAG,"3");
                     super.onManagerConnected(status);
                     Log.d(TAG,"failed");
                 } break;
@@ -211,8 +214,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btn = (Button)findViewById(R.id.btnHide);
-        btnG = (Button)findViewById(R.id.btnG);
         imageView = (ImageView) findViewById(R.id.imageView);
+        EditText etO = (EditText) findViewById(R.id.etO);
         time = (TextView) findViewById(R.id.textTime);
         battery = (TextView) findViewById(R.id.textBattery);
         statusTextView = (TextView) findViewById(R.id.textStatus);
@@ -220,6 +223,8 @@ public class MainActivity extends Activity {
         batteryStatus = this.registerReceiver(null, ifilter);
         mContext=this;
 
+        options = new BitmapFactory.Options();
+        options.inSampleSize=2;
         fd = new TutorialOnFaceDetect1();
 
         Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
@@ -227,10 +232,46 @@ public class MainActivity extends Activity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
+        Spinner photoSpinner = (Spinner) findViewById(R.id.spinnerPhoto);
+        ArrayAdapter<CharSequence> photoAdapter = ArrayAdapter.createFromResource(this, R.array.photo_array, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        photoSpinner.setAdapter(photoAdapter);
+
+        photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                switch(pos){
+                    case 0:
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves,options);
+                        resolution= "134Kb";
+                        imageView.setImageBitmap(originalImage);
+                        break;
+                    case 1:
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25,options);
+                        resolution= "343Kb";
+                        imageView.setImageBitmap(originalImage);
+                        break;
+                    case 2:
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35,options);
+                        resolution= "81Kb";
+                        imageView.setImageBitmap(originalImage);
+                        break;
+                    default:
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves);
+                        imageView.setImageBitmap(originalImage);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                Log.d(TAG,"entrei");
                 switch (pos){
                     case 0:
                         alg=0;
@@ -253,13 +294,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        btnG.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                choosePic();
-            }
-        });
-
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -267,9 +301,30 @@ public class MainActivity extends Activity {
             }
         });
 
+        etO.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                Log.d(TAG, "beforeText: "+charSequence);
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                Log.d(TAG, "onText: "+charSequence);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                Log.d(TAG, "afterText: "+editable.toString());
+                if(Integer.getInteger(editable.toString())!=null){
+                    options.inSampleSize=Integer.getInteger(editable.toString());
+                }
+            }
+        });
+
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+   /* protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode,resultCode,data);
         if(requestCode==1&&resultCode==RESULT_OK&&data!=null){
            Uri path = data.getData();
@@ -298,11 +353,12 @@ public class MainActivity extends Activity {
         }catch(Exception e){
             e.printStackTrace();
         }
-    }
+    }*/
 
     public void method(){
         TimeStarted = System.nanoTime();
         batteryValue = calcBattery((float)0.0);
+        statusTextView.setText("Processing");
         switch (alg){
             case 0:
                 Log.d(TAG, "openCV");
@@ -310,7 +366,7 @@ public class MainActivity extends Activity {
                 break;
             case 1:
                 Log.d(TAG, "the other");
-                Bitmap b = fd.loadPhoto(R.drawable.chaves,mContext);
+                Bitmap b = fd.loadPhoto(originalImage,mContext);
                 imageView.setImageBitmap(b);
                 originalImage = b;
                 break;

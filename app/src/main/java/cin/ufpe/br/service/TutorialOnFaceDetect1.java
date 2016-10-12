@@ -19,6 +19,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout.LayoutParams;
+
+import cin.ufpe.br.main.R;
 import cin.ufpe.br.model.MyImageView;
 
 public class TutorialOnFaceDetect1 {
@@ -31,11 +33,10 @@ public class TutorialOnFaceDetect1 {
 	private Boolean done = false;
 
 
-    public Bitmap loadPhoto(int drawable, Context c){
+    public Bitmap loadPhoto(Bitmap b, Context c){
         mIV = new MyImageView(c);
 
         // load the photo
-        Bitmap b = BitmapFactory.decodeResource(c.getResources(), drawable);
         mFaceBitmap = b.copy(Bitmap.Config.RGB_565, true);
         b.recycle();
 

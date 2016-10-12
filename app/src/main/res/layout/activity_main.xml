@@ -28,28 +28,41 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textStatus"
+        android:layout_marginBottom="10dp"
         android:text="@string/status"
         android:layout_below="@id/textBattery"/>
 
-    <Button
-        android:text="@string/getImage"
-        android:layout_width="wrap_content"
+    <EditText
+        android:text="1"
+        android:inputType="number"
+        android:background="@drawable/box"
+        android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="105dp"
-        android:id="@+id/btnG"
+        android:id="@+id/etO"
         android:layout_marginLeft="14dp"
         android:layout_marginStart="14dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/etLabel"
+        android:layout_alignLeft="@id/etO"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="sample size"
+        android:layout_above="@id/etO"/>
+
     <Button
         android:text="@string/hide"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btnHide"
-        android:layout_alignBaseline="@+id/btnG"
-        android:layout_alignBottom="@+id/btnG"
+        android:layout_alignBaseline="@+id/etO"
+        android:layout_alignBottom="@+id/etO"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
@@ -57,7 +70,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/spinnerAlg"
-        android:layout_alignRight="@id/btnG"
+        android:layout_alignRight="@id/etO"
         android:layout_marginBottom="54dp"
         android:layout_alignParentBottom="true" />
 
@@ -70,13 +83,14 @@
         android:layout_alignParentBottom="true" />
 
     <ImageView
+        android:background="@drawable/box"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:srcCompat="@android:color/background_dark"
         android:contentDescription="@string/hideDescription"
         android:id="@+id/imageView"
         android:layout_below="@+id/textStatus"
-        android:layout_above="@id/btnHide"
+        android:layout_above="@id/etLabel"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         />
