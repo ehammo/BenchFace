@@ -92,7 +92,7 @@ public class MyImageView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Log.d("log","oi");
+        Log.d("teste","oi");
         if (mBitmap != null) {
             canvas.drawBitmap(mBitmap, 0, 0, null);
 
@@ -109,10 +109,10 @@ public class MyImageView extends ImageView {
     }
 
     public Bitmap getBitmap(){
-        Log.d("log","dei o get");
+        Log.d("teste","dei o get");
         Canvas canvas = new Canvas(mBitmap);
         if (mBitmap != null) {
-            Log.d("log","vou dar draw");
+            Log.d("teste","vou dar draw");
             canvas.drawBitmap(mBitmap, 0, 0, null);
 
             if (mPX != null && mPY != null) {
@@ -123,6 +123,8 @@ public class MyImageView extends ImageView {
                         canvas.drawRect(mPX[i]-100,  mPY[i]-100, mPX[i]+100,  mPY[i]+100, mPaint);
                     }
                 }
+            }else{
+                Log.e("teste", "erro, sem pontos");
             }
         }
         return mBitmap;

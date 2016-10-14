@@ -28,10 +28,10 @@ public class TutorialOnFaceDetect1 {
 	private Bitmap mFaceBitmap;
 	private int mFaceWidth = 200;
 	private int mFaceHeight = 200;   
-	private static final int MAX_FACES = 10;
-	private static String TAG = "FaceDetect";
+	private static final int MAX_FACES = 100;
+	private static String TAG = "teste";
 	private Boolean done = false;
-
+    public int count;
 
     public Bitmap loadPhoto(Bitmap b, Context c){
         mIV = new MyImageView(c);
@@ -46,7 +46,7 @@ public class TutorialOnFaceDetect1 {
 
         //perform face detection and set the feature points
         setFace();
-        Log.d("log","Vou dar get");
+        Log.d(TAG,"Vou dar get");
         return mIV.getBitmap();
     }
 
@@ -56,11 +56,12 @@ public class TutorialOnFaceDetect1 {
 		PointF midpoint = new PointF();
 		int [] fpx = null;
 		int [] fpy = null;
-		int count = 0;
+		count = 0;
 
 		try {
 			fd = new FaceDetector(mFaceWidth, mFaceHeight, MAX_FACES);        
 			count = fd.findFaces(mFaceBitmap, faces);
+            Log.d(TAG, "found: "+count+" faces");
 		} catch (Exception e) {
 			Log.e(TAG, "setFace(): " + e.toString());
 			return;

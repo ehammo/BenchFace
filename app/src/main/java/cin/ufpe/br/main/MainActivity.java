@@ -78,6 +78,7 @@ public class MainActivity extends Activity {
     private int id=0;
     private String timeText;
     private Bitmap originalImage;
+    private Bitmap originalImageOCV;
     private ImageView imageView;
     private Long TimeStarted;
     private Double TotalTime;
@@ -92,6 +93,8 @@ public class MainActivity extends Activity {
     private Uri UriPath;
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
+
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
     {
         @Override
@@ -123,7 +126,7 @@ public class MainActivity extends Activity {
 
                     Mat mat=new Mat();
 
-                    Utils.bitmapToMat(originalImage,mat);
+                    Utils.bitmapToMat(originalImageOCV,mat);
 
                     if(mat.empty()){
                        Log.d(TAG,"matriz de foto vazia");
@@ -167,7 +170,7 @@ public class MainActivity extends Activity {
                         statusTextView.setText("overlay");
 
                         //"cola" os rostos desfocados sobre a imagem original
-                        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+                        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImageOCV);
                         faces = propsFaces.size();
                         statusTextView.setText("Detected "+propsFaces.size()+" faces");
 
@@ -242,19 +245,22 @@ public class MainActivity extends Activity {
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
                 switch(pos){
                     case 0:
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves,options);
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves,options);
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves);
                         resolution= "134Kb";
-                        imageView.setImageBitmap(originalImage);
+                        imageView.setImageBitmap(originalImageOCV);
                         break;
                     case 1:
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25,options);
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25,options);
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25);
                         resolution= "343Kb";
-                        imageView.setImageBitmap(originalImage);
+                        imageView.setImageBitmap(originalImageOCV);
                         break;
                     case 2:
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35,options);
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35,options);
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35);
                         resolution= "81Kb";
-                        imageView.setImageBitmap(originalImage);
+                        imageView.setImageBitmap(originalImageOCV);
                         break;
                     default:
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves);
@@ -367,8 +373,8 @@ public class MainActivity extends Activity {
             case 1:
                 Log.d(TAG, "the other");
                 Bitmap b = fd.loadPhoto(originalImage,mContext);
+                statusTextView.setText("detected "+fd.count+" faces");
                 imageView.setImageBitmap(b);
-                originalImage = b;
                 break;
             default:
                 break;
