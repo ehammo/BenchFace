@@ -3,17 +3,16 @@ package cin.ufpe.br.main;
 //android
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -27,7 +26,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 
-import android.text.format.Time;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -227,7 +227,7 @@ public class MainActivity extends Activity {
         mContext=this;
 
         options = new BitmapFactory.Options();
-        options.inSampleSize=2;
+        options.inSampleSize=24;
         fd = new TutorialOnFaceDetect1();
 
         Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
@@ -260,6 +260,18 @@ public class MainActivity extends Activity {
                         originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35,options);
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35);
                         resolution= "81Kb";
+                        imageView.setImageBitmap(originalImageOCV);
+                        break;
+                    case 3:
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.teste, options);
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.teste, options) ;
+                        resolution = "4mb";
+                        imageView.setImageBitmap(originalImage);
+                        break;
+                    case 4:
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16, options);
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16);
+                        resolution = "147kb";
                         imageView.setImageBitmap(originalImageOCV);
                         break;
                     default:
@@ -404,6 +416,45 @@ public class MainActivity extends Activity {
             e.printStackTrace();
             Log.e("BROKEN", "Could not write file " + e.getMessage());
         }
+    }
+
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+                                                         int reqWidth, int reqHeight) {
+
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeResource(res, resId, options);
+
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeResource(res, resId, options);
     }
 
     @Override
