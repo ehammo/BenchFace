@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
@@ -25,6 +26,11 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.appindexing.Thing;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -71,12 +77,12 @@ public class MainActivity extends Activity {
     private File mCascadeFile;
     private TutorialOnFaceDetect1 fd;
     private CascadeClassifier cascadeClassifier;
-    private int alg=0;
-    private String algorithm="";
+    private int alg = 0;
+    private String algorithm = "";
     private Button btn;
     private Button btnG;
-    private String dataString="";
-    private int id=0;
+    private String dataString = "";
+    private int id = 0;
     private String timeText;
     private Bitmap originalImage;
     private Bitmap originalImageOCV;
@@ -95,130 +101,132 @@ public class MainActivity extends Activity {
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
     private Bitmap original;
+    private ImageView image;
 
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
-    {
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
-        public void onManagerConnected(int status)
-        {
-            switch (status)
-            {
-                case LoaderCallbackInterface.SUCCESS:
-                {
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
                     Log.d(TAG, "OpenCV loaded successfully");
                     try {
-                    // Load native library after(!) OpenCV initialization
-                    InputStream is = getResources().openRawResource( R.raw.haarcascade_frontalface_alt_tree);
-                    File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                    mCascadeFile = new File(cascadeDir, "haarcascade_frontalface_alt_tree.xml");
-                    FileOutputStream os = new FileOutputStream(mCascadeFile);
-                    byte[] buffer = new byte[4096];
-                    int bytesRead;
-                    while ((bytesRead = is.read(buffer)) != -1) {
-                        os.write(buffer, 0, bytesRead);
-                    }
-                    is.close();
-                    os.close();
-                    cascadeClassifier =  new CascadeClassifier(  mCascadeFile.getAbsolutePath());
-                    cascadeClassifier.load(mCascadeFile.getAbsolutePath());
-                    Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
-                    Log.d(TAG,"\nRunning FaceDetector");
+                        // Load native library after(!) OpenCV initialization
+                        InputStream is = getResources().openRawResource(R.raw.haarcascade_frontalface_alt_tree);
+                        File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+                        mCascadeFile = new File(cascadeDir, "haarcascade_frontalface_alt_tree.xml");
+                        FileOutputStream os = new FileOutputStream(mCascadeFile);
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                            os.write(buffer, 0, bytesRead);
+                        }
+                        is.close();
+                        os.close();
+                        cascadeClassifier = new CascadeClassifier(mCascadeFile.getAbsolutePath());
+                        cascadeClassifier.load(mCascadeFile.getAbsolutePath());
+                        Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                        Log.d(TAG, "\nRunning FaceDetector");
 //                    Mat mat = Imgcodecs.imread(path);
 
-                    Mat mat=new Mat();
+                        Mat mat = new Mat();
 
-                    Utils.bitmapToMat(originalImageOCV,mat);
+                        Utils.bitmapToMat(originalImageOCV, mat);
 
-                    if(mat.empty()){
-                       Log.d(TAG,"matriz de foto vazia");
-                    }else {
-                        statusTextView.setText("\nRunning FaceDetector");
+                        if (mat.empty()) {
+                            Log.d(TAG, "matriz de foto vazia");
+                        } else {
+                            statusTextView.setText("\nRunning FaceDetector");
 
-                        //faz a detecção facial
-                        statusTextView.setText("Face detection");
-                        ServiceDeteccaoFacesImagem serviceExtractFaces = new ServiceDeteccaoFacesImagem();
-                        MatOfRect matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
+                            //faz a detecção facial
+                            statusTextView.setText("Face detection");
+                            ServiceDeteccaoFacesImagem serviceExtractFaces = new ServiceDeteccaoFacesImagem();
+                            MatOfRect matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
 
-                        statusTextView.setText("get data from face detection");
+                            statusTextView.setText("get data from face detection");
 
-                        //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-                        List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
+                            //obtem os dados de onde estão as faces (altura, largura, posição x e y)
+                            List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
 
-                        statusTextView.setText("blur");
+                            statusTextView.setText("blur");
 
-                        //desfoca a imagem
-                        ServiceDesfoqueImagem serviceBlur = new ServiceDesfoqueImagem();
-                        Bitmap imagemCorteDesfoque;
-                        imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-                        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
+                            //desfoca a imagem
+                            ServiceDesfoqueImagem serviceBlur = new ServiceDesfoqueImagem();
+                            Bitmap imagemCorteDesfoque;
+                            imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
+                            Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
 
-                        statusTextView.setText("cut blured image");
+                            statusTextView.setText("cut blured image");
 
-                        //corta os rostos da imagem desfocada,
-                        ServiceCorteImagem serviceCrop = new ServiceCorteImagem();
-                        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
+                            //corta os rostos da imagem desfocada,
+                            ServiceCorteImagem serviceCrop = new ServiceCorteImagem();
+                            propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
 
-                        ServiceSobreposicaoImagem serviceOverlay = new ServiceSobreposicaoImagem();
+                            ServiceSobreposicaoImagem serviceOverlay = new ServiceSobreposicaoImagem();
 
-                        statusTextView.setText("draw rect");
+                            statusTextView.setText("draw rect");
 
-                        //desenha os retangulos
-                        for (Rect rect : matOfRect.toArray()) {
-                            Imgproc.rectangle(mat, new Point(rect.x - 1, rect.y - 1), new Point(rect.x + rect.width, rect.y + rect.height),
-                                    new Scalar(0, 255, 0), 33);
+                            //desenha os retangulos
+                            for (Rect rect : matOfRect.toArray()) {
+                                Imgproc.rectangle(mat, new Point(rect.x - 1, rect.y - 1), new Point(rect.x + rect.width, rect.y + rect.height),
+                                        new Scalar(0, 255, 0), 33);
+                            }
+
+                            statusTextView.setText("overlay");
+
+                            //"cola" os rostos desfocados sobre a imagem original
+                            imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImageOCV);
+                            faces = propsFaces.size();
+                            statusTextView.setText("Detected " + propsFaces.size() + " faces");
+
+                            imageView.setImageBitmap(imagemCorteDesfoque);
+
+                            TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
+                            batteryValue = calcBattery(batteryValue);
+                            battery.setText("Battery level spent: " + batteryValue);
+                            Log.d(TAG, "" + TotalTime);
+                            Log.d(TAG, "Time spent " + precision.format(TotalTime));
+                            timeText = "Time spent " + precision.format(TotalTime) + "s";
+                            time.setText(timeText);
+                            TimeZone tz = TimeZone.getDefault();
+                            Calendar calendar = new GregorianCalendar(tz);
+                            Date now = new Date();
+                            calendar.setTime(now);
+                            dataString += "\"" + id + "\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\"";
+                            dataString += "\n";
+                            id++;
                         }
-
-                        statusTextView.setText("overlay");
-
-                        //"cola" os rostos desfocados sobre a imagem original
-                        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImageOCV);
-                        faces = propsFaces.size();
-                        statusTextView.setText("Detected "+propsFaces.size()+" faces");
-
-                        imageView.setImageBitmap(imagemCorteDesfoque);
-
-                        TotalTime = (double)(System.nanoTime() - TimeStarted)/1000000000.0;
-                        batteryValue = calcBattery(batteryValue);
-                        battery.setText("Battery level spent: " + batteryValue);
-                        Log.d(TAG,""+TotalTime);
-                        Log.d(TAG,"Time spent "+precision.format(TotalTime));
-                        timeText = "Time spent "+precision.format(TotalTime)+"s";
-                        time.setText(timeText);
-                        TimeZone tz = TimeZone.getDefault();
-                        Calendar calendar = new GregorianCalendar(tz);
-                        Date now = new Date();
-                        calendar.setTime(now);
-                        dataString += "\"" + id +"\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\""+ "??" +"\", \"" + now.toString() + "\", \"" + algorithm + "\"";
-                        dataString  += "\n";
-                        id++;
-                    }
 
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }finally{
+                    } finally {
                         if (cascadeClassifier.empty()) {
                             Log.e(TAG, "Failed to load cascade classifier");
                             cascadeClassifier = null;
                         }
 
-                        }
-                        break;
+                    }
+                    break;
                 }
-                    default:
-                {
+                default: {
                     super.onManagerConnected(status);
-                    Log.d(TAG,"failed");
-                } break;
+                    Log.d(TAG, "failed");
+                }
+                break;
             }
         }
     };
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        btn = (Button)findViewById(R.id.btnHide);
+        btn = (Button) findViewById(R.id.btnHide);
         imageView = (ImageView) findViewById(R.id.imageView);
         EditText etO = (EditText) findViewById(R.id.etO);
         time = (TextView) findViewById(R.id.textTime);
@@ -226,11 +234,11 @@ public class MainActivity extends Activity {
         statusTextView = (TextView) findViewById(R.id.textStatus);
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         batteryStatus = this.registerReceiver(null, ifilter);
-        mContext=this;
+        mContext = this;
 
         options = new BitmapFactory.Options();
         //options.inJustDecodeBounds = true;
-       // options.inSampleSize=2;
+        options.inSampleSize = 2;
         fd = new TutorialOnFaceDetect1();
 
         Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
@@ -246,7 +254,7 @@ public class MainActivity extends Activity {
         photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                switch(pos) {
+                switch (pos) {
                     case 0:
                         originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves, options);
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves);
@@ -266,13 +274,13 @@ public class MainActivity extends Activity {
                         imageView.setImageBitmap(originalImageOCV);
                         break;
                     case 3:
-                        options.inJustDecodeBounds = true;
-                        //originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
-                       // originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp);
+                        options.inSampleSize = 12;
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
                         resolution = "17mp";
                         imageView.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.group_125_17mp,
                                 100, 100));
-                        options.inJustDecodeBounds = false;
+                        options.inSampleSize = 2;
                         break;
                     case 4:
                         originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16, options);
@@ -282,10 +290,11 @@ public class MainActivity extends Activity {
                         break;
                     case 5:
                         options.inSampleSize = 8;
+                        resolution = "5mp";
                         originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16_5mp, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16_5mp);
-                        resolution = "147kb";
-                        imageView.setImageBitmap(originalImageOCV);
+                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16_5mp, options);
+                        imageView.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.group_16_5mp,
+                                100, 100));
                         options.inSampleSize = 2;
                         break;
                     default:
@@ -304,16 +313,16 @@ public class MainActivity extends Activity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                switch (pos){
+                switch (pos) {
                     case 0:
-                        alg=0;
-                        algorithm="OpenCv";
-                        Log.d(TAG, ""+alg);
+                        alg = 0;
+                        algorithm = "OpenCv";
+                        Log.d(TAG, "" + alg);
                         break;
                     case 1:
-                        alg=1;
-                        algorithm="FaceDetection built in android";
-                        Log.d(TAG, ""+alg);
+                        alg = 1;
+                        algorithm = "FaceDetection built in android";
+                        Log.d(TAG, "" + alg);
                         break;
                     default:
                         break;
@@ -336,24 +345,27 @@ public class MainActivity extends Activity {
         etO.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d(TAG, "beforeText: "+charSequence);
+                Log.d(TAG, "beforeText: " + charSequence);
 
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d(TAG, "onText: "+charSequence);
+                Log.d(TAG, "onText: " + charSequence);
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-                Log.d(TAG, "afterText: "+editable.toString());
-                if(Integer.getInteger(editable.toString())!=null){
-                    options.inSampleSize=Integer.getInteger(editable.toString());
+                Log.d(TAG, "afterText: " + editable.toString());
+                if (Integer.getInteger(editable.toString()) != null) {
+                    options.inSampleSize = Integer.getInteger(editable.toString());
                 }
             }
         });
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
    /* protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -387,19 +399,19 @@ public class MainActivity extends Activity {
         }
     }*/
 
-    public void method(){
+    public void method() {
         TimeStarted = System.nanoTime();
-        batteryValue = calcBattery((float)0.0);
+        batteryValue = calcBattery((float) 0.0);
         statusTextView.setText("Processing");
-        switch (alg){
+        switch (alg) {
             case 0:
                 Log.d(TAG, "openCV");
-                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0,this,mLoaderCallback);
+                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
                 break;
             case 1:
                 Log.d(TAG, "the other");
-                Bitmap b = fd.loadPhoto(originalImage,mContext);
-                statusTextView.setText("detected "+fd.count+" faces");
+                Bitmap b = fd.loadPhoto(originalImage, mContext);
+                statusTextView.setText("detected " + fd.count + " faces");
                 imageView.setImageBitmap(b);
                 break;
             default:
@@ -407,23 +419,23 @@ public class MainActivity extends Activity {
         }
     }
 
-    public float calcBattery(float init){
+    public float calcBattery(float init) {
         float batteryValue;
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
         batteryValue = (init - (level / scale));
-        if (batteryValue<0) batteryValue*=-1;
+        if (batteryValue < 0) batteryValue *= -1;
         return batteryValue;
     }
 
-    public void exportCsv(){
-        String columnString         =   "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\"";
-        String combinedString       =   columnString + "\n" + dataString;
-        File file                   =   new File(this.getExternalCacheDir()+ File.separator + "Data.csv");
+    public void exportCsv() {
+        String columnString = "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\"";
+        String combinedString = columnString + "\n" + dataString;
+        File file = new File(this.getExternalCacheDir() + File.separator + "Data.csv");
 
 
         try {
-            FileOutputStream out    =   new FileOutputStream(file);
+            FileOutputStream out = new FileOutputStream(file);
             out.write(combinedString.getBytes());
             out.close();
         } catch (Exception e) {
@@ -452,7 +464,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        Log.e("simpleSize", ""+inSampleSize);
+        Log.e("simpleSize", "" + inSampleSize);
         return inSampleSize;
     }
 
@@ -502,5 +514,41 @@ public class MainActivity extends Activity {
         AlertDialog dialog = builder.create();
         dialog.show();
 
+    }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
     }
 }
