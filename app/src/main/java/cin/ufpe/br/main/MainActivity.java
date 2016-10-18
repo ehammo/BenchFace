@@ -26,6 +26,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -91,6 +94,7 @@ public class MainActivity extends Activity {
     private Uri UriPath;
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
+    private Bitmap original;
 
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this)
@@ -225,7 +229,8 @@ public class MainActivity extends Activity {
         mContext=this;
 
         options = new BitmapFactory.Options();
-        options.inSampleSize=2;
+        //options.inJustDecodeBounds = true;
+       // options.inSampleSize=2;
         fd = new TutorialOnFaceDetect1();
 
         Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
@@ -241,32 +246,33 @@ public class MainActivity extends Activity {
         photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                switch(pos){
+                switch(pos) {
                     case 0:
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves,options);
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves, options);
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves);
-                        resolution= "134Kb";
+                        resolution = "134Kb";
                         imageView.setImageBitmap(originalImageOCV);
                         break;
                     case 1:
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25,options);
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25, options);
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25);
-                        resolution= "343Kb";
+                        resolution = "343Kb";
                         imageView.setImageBitmap(originalImageOCV);
                         break;
                     case 2:
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35,options);
+                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35, options);
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35);
-                        resolution= "81Kb";
+                        resolution = "81Kb";
                         imageView.setImageBitmap(originalImageOCV);
                         break;
                     case 3:
-                        options.inSampleSize = 24;
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options) ;
-                        resolution = "4mb";
-                        imageView.setImageBitmap(originalImage);
-                        options.inSampleSize=2;
+                        options.inJustDecodeBounds = true;
+                        //originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
+                       // originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp);
+                        resolution = "17mp";
+                        imageView.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.group_125_17mp,
+                                100, 100));
+                        options.inJustDecodeBounds = false;
                         break;
                     case 4:
                         originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16, options);
@@ -446,6 +452,7 @@ public class MainActivity extends Activity {
             }
         }
 
+        Log.e("simpleSize", ""+inSampleSize);
         return inSampleSize;
     }
 
