@@ -279,7 +279,7 @@ public class MainActivity extends Activity {
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
                         resolution = "17mp";
                         imageView.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.group_125_17mp,
-                                200, 200));
+                                100, 100));
                         options.inSampleSize = 2;
                         break;
                     case 4:
@@ -293,8 +293,9 @@ public class MainActivity extends Activity {
                         resolution = "5mp";
                         originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16_5mp, options);
                         originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16_5mp, options);
+                        //insimplesize sozinho
                         imageView.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.group_16_5mp,
-                                200, 200));
+                                100, 100));
                         options.inSampleSize = 2;
                         break;
                     default:
