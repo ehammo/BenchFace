@@ -3,7 +3,7 @@
     <string name="time">TimePassed</string>
     <string name="battery">BatterySpent</string>
     <string name="status">Status</string>
-    <string name="hide">Hide faces</string>
+    <string name="hide">Start</string>
     <string name="getImage">Gallery</string>
     <string name="hideDescription">Image with faces blurred</string>
 

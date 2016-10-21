@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="photo_array">
-        <item>chaves</item>
-        <item>group_25</item>
-        <item>group_35</item>
-        <item>group_125_17mp</item>
-        <item>group_16</item>
-        <item>group_16_5mp</item>
+        <item>75faces_1.5MP</item>
+        <item>75faces_3MP</item>
+        <item>75faces_6.5MP</item>
+        <item>75faces_8.5MP</item>
+        <item>75faces_13.5MP</item>
     </string-array>
 </resources>

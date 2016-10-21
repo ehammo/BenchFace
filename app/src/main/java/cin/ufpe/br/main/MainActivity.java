@@ -23,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -73,19 +74,16 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
 
-    BitmapFactory.Options options;
     private File mCascadeFile;
     private TutorialOnFaceDetect1 fd;
     private CascadeClassifier cascadeClassifier;
     private int alg = 0;
     private String algorithm = "";
     private Button btn;
-    private Button btnG;
     private String dataString = "";
     private int id = 0;
     private String timeText;
     private Bitmap originalImage;
-    private Bitmap originalImageOCV;
     private ImageView imageView;
     private Long TimeStarted;
     private Double TotalTime;
@@ -96,13 +94,8 @@ public class MainActivity extends Activity {
     private TextView statusTextView;
     private Intent batteryStatus;
     private float batteryValue;
-    private String path;
-    private Uri UriPath;
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
-    private Bitmap original;
-    private ImageView image;
-
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -131,24 +124,16 @@ public class MainActivity extends Activity {
 
                         Mat mat = new Mat();
 
-                        Utils.bitmapToMat(originalImageOCV, mat);
+                        Utils.bitmapToMat(originalImage, mat);
 
                         if (mat.empty()) {
                             Log.d(TAG, "matriz de foto vazia");
                         } else {
-                            statusTextView.setText("\nRunning FaceDetector");
-
-                            //faz a detecção facial
-                            statusTextView.setText("Face detection");
                             ServiceDeteccaoFacesImagem serviceExtractFaces = new ServiceDeteccaoFacesImagem();
                             MatOfRect matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
 
-                            statusTextView.setText("get data from face detection");
-
                             //obtem os dados de onde estão as faces (altura, largura, posição x e y)
                             List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
-
-                            statusTextView.setText("blur");
 
                             //desfoca a imagem
                             ServiceDesfoqueImagem serviceBlur = new ServiceDesfoqueImagem();
@@ -156,26 +141,14 @@ public class MainActivity extends Activity {
                             imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
                             Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
 
-                            statusTextView.setText("cut blured image");
-
                             //corta os rostos da imagem desfocada,
                             ServiceCorteImagem serviceCrop = new ServiceCorteImagem();
                             propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
 
                             ServiceSobreposicaoImagem serviceOverlay = new ServiceSobreposicaoImagem();
 
-                            statusTextView.setText("draw rect");
-
-                            //desenha os retangulos
-                            for (Rect rect : matOfRect.toArray()) {
-                                Imgproc.rectangle(mat, new Point(rect.x - 1, rect.y - 1), new Point(rect.x + rect.width, rect.y + rect.height),
-                                        new Scalar(0, 255, 0), 33);
-                            }
-
-                            statusTextView.setText("overlay");
-
                             //"cola" os rostos desfocados sobre a imagem original
-                            imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImageOCV);
+                            imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
                             faces = propsFaces.size();
                             statusTextView.setText("Detected " + propsFaces.size() + " faces");
 
@@ -220,7 +193,7 @@ public class MainActivity extends Activity {
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
-    private GoogleApiClient client;
+   private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,7 +201,6 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         btn = (Button) findViewById(R.id.btnHide);
         imageView = (ImageView) findViewById(R.id.imageView);
-        EditText etO = (EditText) findViewById(R.id.etO);
         time = (TextView) findViewById(R.id.textTime);
         battery = (TextView) findViewById(R.id.textBattery);
         statusTextView = (TextView) findViewById(R.id.textStatus);
@@ -236,10 +208,9 @@ public class MainActivity extends Activity {
         batteryStatus = this.registerReceiver(null, ifilter);
         mContext = this;
 
-        options = new BitmapFactory.Options();
-        //options.inJustDecodeBounds = true;
-        options.inSampleSize = 2;
         fd = new TutorialOnFaceDetect1();
+
+        ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
 
         Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
@@ -256,51 +227,27 @@ public class MainActivity extends Activity {
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
                 switch (pos) {
                     case 0:
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves);
-                        resolution = "134Kb";
-                        imageView.setImageBitmap(originalImageOCV);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
+                        resolution = "1.5MP";
                         break;
                     case 1:
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_25);
-                        resolution = "343Kb";
-                        imageView.setImageBitmap(originalImageOCV);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200,200);
+                        resolution = "3MP";
                         break;
                     case 2:
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_35);
-                        resolution = "81Kb";
-                        imageView.setImageBitmap(originalImageOCV);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200,200);
+                        resolution = "6MP";
                         break;
                     case 3:
-                        options.inSampleSize = 12;
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_125_17mp, options);
-                        resolution = "17mp";
-                        imageView.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.group_125_17mp,
-                                100, 100));
-                        options.inSampleSize = 2;
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200,200);
+                        resolution = "8.5MP";
                         break;
                     case 4:
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16);
-                        resolution = "147kb";
-                        imageView.setImageBitmap(originalImageOCV);
-                        break;
-                    case 5:
-                        options.inSampleSize = 8;
-                        resolution = "5mp";
-                        originalImageOCV = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16_5mp, options);
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.group_16_5mp, options);
-                        //insimplesize sozinho
-                        imageView.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.group_16_5mp,
-                                100, 100));
-                        options.inSampleSize = 2;
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200,200);
+                        resolution = "13.5MP";
                         break;
                     default:
-                        originalImage = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.chaves);
-                        imageView.setImageBitmap(originalImage);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
                         break;
                 }
             }
@@ -340,27 +287,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 method();
-            }
-        });
-
-        etO.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d(TAG, "beforeText: " + charSequence);
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Log.d(TAG, "onText: " + charSequence);
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                Log.d(TAG, "afterText: " + editable.toString());
-                if (Integer.getInteger(editable.toString()) != null) {
-                    options.inSampleSize = Integer.getInteger(editable.toString());
-                }
             }
         });
 
@@ -411,9 +337,9 @@ public class MainActivity extends Activity {
                 break;
             case 1:
                 Log.d(TAG, "the other");
-                Bitmap b = fd.loadPhoto(originalImage, mContext);
-                statusTextView.setText("detected " + fd.count + " faces");
-                imageView.setImageBitmap(b);
+                //Bitmap b = fd.loadPhoto(originalImage, mContext);
+                //statusTextView.setText("detected " + fd.count + " faces");
+                //imageView.setImageBitmap(b);
                 break;
             default:
                 break;
@@ -465,24 +391,40 @@ public class MainActivity extends Activity {
             }
         }
 
-        Log.e("simpleSize", "" + inSampleSize);
+        Log.d(TAG,"sampleSize: " + inSampleSize);
         return inSampleSize;
     }
 
-    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-                                                         int reqWidth, int reqHeight) {
+    public void decodeSampledBitmapFromResource(Resources pRes, int pResId,
+                                                         int pReqWidth, int pReqHeight) {
+        final Resources res = pRes;
+        final int resId = pResId;
+        final int reqWidth = pReqWidth;
+        final int reqHeight = pReqHeight;
+        new Thread() {
+            @Override
+            public void run() {
+                final BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeResource(res, resId, options);
 
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(res, resId, options);
+                // Calculate inSampleSize
+                options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
 
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+                // Decode bitmap with inSampleSize set
+                options.inJustDecodeBounds = false;
+                originalImage = BitmapFactory.decodeResource(res, resId, options);
+                runOnUiThread(new Runnable(){
+                    public void run() {
+                        // First decode with inJustDecodeBounds=true to check dimensions
+                        imageView.setImageBitmap(originalImage);
+                    }
+                });
+            }
+        }.start();
 
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeResource(res, resId, options);
+
+
     }
 
     @Override
@@ -515,6 +457,36 @@ public class MainActivity extends Activity {
         AlertDialog dialog = builder.create();
         dialog.show();
 
+    }
+
+    public void onRadioButtonClicked(View view) {
+        // Is the button now checked?
+        RadioButton clicked = ((RadioButton) view);
+        RadioButton nuvem = ((RadioButton)findViewById(R.id.RBnuvem));
+        RadioButton local = ((RadioButton)findViewById(R.id.RBlocal));
+        // Check which radio button was clicked
+        switch(view.getId()) {
+            case R.id.RBlocal:
+                if (clicked.isChecked()&&nuvem.isChecked()) {
+                    Log.d(TAG, "entrei no 1.1 if");
+                    //variavel ondeexecutar=local
+                    nuvem.setChecked(false);
+                }else if(clicked.isChecked()){
+                    Log.d(TAG, "entrei no 1.2 if");
+                    //variavel ondeexecutar=local
+                }
+                    break;
+            case R.id.RBnuvem:
+                if (clicked.isChecked()&&local.isChecked()){
+                    Log.d(TAG, "entrei no 2.1 if");
+                    local.setChecked(false);
+                    //variavel ondeexecutar=nuvem
+                }else if(clicked.isChecked()){
+                    Log.d(TAG, "entrei no 2.2 if");
+                    //variavel ondeexecutar=nuvem
+                }
+                    break;
+        }
     }
 
     /**
