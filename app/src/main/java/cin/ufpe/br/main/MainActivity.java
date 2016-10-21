@@ -56,10 +56,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.android.Utils;
 
@@ -88,6 +84,7 @@ public class MainActivity extends Activity {
     private Long TimeStarted;
     private Double TotalTime;
     private int faces;
+    private String Originalresolution;
     private String resolution;
     private TextView time;
     private TextView battery;
@@ -120,11 +117,12 @@ public class MainActivity extends Activity {
                         cascadeClassifier.load(mCascadeFile.getAbsolutePath());
                         Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
                         Log.d(TAG, "\nRunning FaceDetector");
-//                    Mat mat = Imgcodecs.imread(path);
 
                         Mat mat = new Mat();
-
+                        int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
+                        resolution = value+"MP";
                         Utils.bitmapToMat(originalImage, mat);
+                        //mat = Utils.loadResource(mContext,R.drawable.facedetection_13_5mp);
 
                         if (mat.empty()) {
                             Log.d(TAG, "matriz de foto vazia");
@@ -165,7 +163,7 @@ public class MainActivity extends Activity {
                             Calendar calendar = new GregorianCalendar(tz);
                             Date now = new Date();
                             calendar.setTime(now);
-                            dataString += "\"" + id + "\",\"" + faces + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\"";
+                            dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\"";
                             dataString += "\n";
                             id++;
                         }
@@ -228,23 +226,23 @@ public class MainActivity extends Activity {
                 switch (pos) {
                     case 0:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
-                        resolution = "1.5MP";
+                        Originalresolution = "1.5MP";
                         break;
                     case 1:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200,200);
-                        resolution = "3MP";
+                        Originalresolution = "3MP";
                         break;
                     case 2:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200,200);
-                        resolution = "6MP";
+                        Originalresolution = "6MP";
                         break;
                     case 3:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200,200);
-                        resolution = "8.5MP";
+                        Originalresolution = "8.5MP";
                         break;
                     case 4:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200,200);
-                        resolution = "13.5MP";
+                        Originalresolution = "13.5MP";
                         break;
                     default:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
@@ -356,7 +354,7 @@ public class MainActivity extends Activity {
     }
 
     public void exportCsv() {
-        String columnString = "\"Name\",\"Quantity of faces\",\"Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\"";
+        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\"";
         String combinedString = columnString + "\n" + dataString;
         File file = new File(this.getExternalCacheDir() + File.separator + "Data.csv");
 
@@ -387,7 +385,7 @@ public class MainActivity extends Activity {
             // height and width larger than the requested height and width.
             while ((halfHeight / inSampleSize) >= reqHeight
                     && (halfWidth / inSampleSize) >= reqWidth) {
-                inSampleSize *= 2;
+                inSampleSize += 1;
             }
         }
 
