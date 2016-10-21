@@ -55,16 +55,32 @@
         android:layout_centerHorizontal="true"
         />
 
+    <Spinner
+        android:layout_width="wrap_content"
+        android:id="@+id/spinnerPhoto"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        />
 
-
-
+    <TextView
+        android:text="Selecione a foto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/selecionarFoto"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/spinnerPhoto"
+        android:layout_marginBottom="5dp" />
 
     <Spinner
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/spinnerAlg"
-        android:layout_alignParentBottom="true"
-       android:layout_marginBottom="20dp"
+        android:layout_alignBottom="@id/spinnerPhoto"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         />
 
     <TextView
@@ -74,26 +90,8 @@
         android:id="@+id/SelecionarAlgoritmo"
         android:layout_above="@id/spinnerAlg"
         android:layout_alignBottom="@+id/selecionarFoto"
-        android:layout_alignLeft="@+id/imageView"
-        android:layout_alignStart="@+id/imageView" />
-
-
-    <Spinner
-        android:layout_width="wrap_content"
-        android:id="@+id/spinnerPhoto"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
-        android:text="Selecione a foto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/selecionarFoto"
-        android:layout_alignLeft="@id/spinnerPhoto"
-        android:layout_above="@+id/spinnerPhoto"
-        android:layout_marginBottom="5dp" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <RadioButton
         android:text="Executar na nuvem"

@@ -217,7 +217,7 @@ public class MainActivity extends Activity {
 
         Spinner photoSpinner = (Spinner) findViewById(R.id.spinnerPhoto);
         ArrayAdapter<CharSequence> photoAdapter = ArrayAdapter.createFromResource(this, R.array.photo_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        photoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         photoSpinner.setAdapter(photoAdapter);
 
         photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
