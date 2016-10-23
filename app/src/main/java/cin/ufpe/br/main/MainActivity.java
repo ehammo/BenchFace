@@ -80,10 +80,10 @@ public class MainActivity extends Activity {
     private int id = 0;
     private String timeText;
     private Bitmap originalImage;
+    private Mat mat;
     private ImageView imageView;
     private Long TimeStarted;
     private Double TotalTime;
-    private int faces;
     private String Originalresolution;
     private String resolution;
     private TextView time;
@@ -100,11 +100,11 @@ public class MainActivity extends Activity {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
                     Log.d(TAG, "OpenCV loaded successfully");
-                    try {
-                        // Load native library after(!) OpenCV initialization
-                        InputStream is = getResources().openRawResource(R.raw.haarcascade_frontalface_alt_tree);
+                    // Load native library after(!) OpenCV initialization
+                    try{
+                        InputStream is = getResources().openRawResource(alg);
                         File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                        mCascadeFile = new File(cascadeDir, "haarcascade_frontalface_alt_tree.xml");
+                        mCascadeFile = new File(cascadeDir, algorithm);
                         FileOutputStream os = new FileOutputStream(mCascadeFile);
                         byte[] buffer = new byte[4096];
                         int bytesRead;
@@ -118,66 +118,56 @@ public class MainActivity extends Activity {
                         Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
                         Log.d(TAG, "\nRunning FaceDetector");
 
-                        Mat mat = new Mat();
+                        mat = new Mat();
                         int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
                         resolution = value+"MP";
                         Utils.bitmapToMat(originalImage, mat);
                         //mat = Utils.loadResource(mContext,R.drawable.facedetection_13_5mp);
+                        ServiceDeteccaoFacesImagem serviceExtractFaces = new ServiceDeteccaoFacesImagem();
+                        MatOfRect matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
 
-                        if (mat.empty()) {
-                            Log.d(TAG, "matriz de foto vazia");
-                        } else {
-                            ServiceDeteccaoFacesImagem serviceExtractFaces = new ServiceDeteccaoFacesImagem();
-                            MatOfRect matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
+                        //obtem os dados de onde estão as faces (altura, largura, posição x e y)
+                        List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
 
-                            //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-                            List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
+                        //desfoca a imagem
+                        ServiceDesfoqueImagem serviceBlur = new ServiceDesfoqueImagem();
+                        Bitmap imagemCorteDesfoque;
+                        imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
+                        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
 
-                            //desfoca a imagem
-                            ServiceDesfoqueImagem serviceBlur = new ServiceDesfoqueImagem();
-                            Bitmap imagemCorteDesfoque;
-                            imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-                            Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
+                        //corta os rostos da imagem desfocada,
+                        ServiceCorteImagem serviceCrop = new ServiceCorteImagem();
+                        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
 
-                            //corta os rostos da imagem desfocada,
-                            ServiceCorteImagem serviceCrop = new ServiceCorteImagem();
-                            propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
+                        ServiceSobreposicaoImagem serviceOverlay = new ServiceSobreposicaoImagem();
 
-                            ServiceSobreposicaoImagem serviceOverlay = new ServiceSobreposicaoImagem();
-
-                            //"cola" os rostos desfocados sobre a imagem original
-                            imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
-                            faces = propsFaces.size();
-                            statusTextView.setText("Detected " + propsFaces.size() + " faces");
-
-                            imageView.setImageBitmap(imagemCorteDesfoque);
-
-                            TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
-                            batteryValue = calcBattery(batteryValue);
-                            battery.setText("Battery level spent: " + batteryValue);
-                            Log.d(TAG, "" + TotalTime);
-                            Log.d(TAG, "Time spent " + precision.format(TotalTime));
-                            timeText = "Time spent " + precision.format(TotalTime) + "s";
-                            time.setText(timeText);
-                            TimeZone tz = TimeZone.getDefault();
-                            Calendar calendar = new GregorianCalendar(tz);
-                            Date now = new Date();
-                            calendar.setTime(now);
-                            dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\"";
-                            dataString += "\n";
-                            id++;
-                        }
-
+                        //"cola" os rostos desfocados sobre a imagem original
+                        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+                        statusTextView.setText("Detected " + propsFaces.size() + " faces");
+                        imageView.setImageBitmap(imagemCorteDesfoque);
+                        TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
+                        batteryValue = calcBattery(batteryValue);
+                        battery.setText("Battery level spent: " + batteryValue);
+                        Log.d(TAG, "" + TotalTime);
+                        Log.d(TAG, "Time spent " + precision.format(TotalTime));
+                        timeText = "Time spent " + precision.format(TotalTime) + "s";
+                        time.setText(timeText);
+                        TimeZone tz = TimeZone.getDefault();
+                        Calendar calendar = new GregorianCalendar(tz);
+                        Date now = new Date();
+                        calendar.setTime(now);
+                        dataString += "\"" + id + "\",\"" + propsFaces.size() + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\"";
+                        dataString += "\n";
+                        id++;
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
                         if (cascadeClassifier.empty()) {
                             Log.e(TAG, "Failed to load cascade classifier");
                             cascadeClassifier = null;
+                            break;
                         }
-
                     }
-                    break;
                 }
                 default: {
                     super.onManagerConnected(status);
@@ -261,13 +251,13 @@ public class MainActivity extends Activity {
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
                 switch (pos) {
                     case 0:
-                        alg = 0;
-                        algorithm = "OpenCv";
+                        alg = R.raw.haarcascade_frontalface_alt_tree;
+                        algorithm = "haarcascade_frontalface_alt_tree";
                         Log.d(TAG, "" + alg);
                         break;
                     case 1:
-                        alg = 1;
-                        algorithm = "FaceDetection built in android";
+                        alg = R.raw.haarcascade_frontalface_alt;
+                        algorithm = "haarcascade_frontalface_alt";
                         Log.d(TAG, "" + alg);
                         break;
                     default:
@@ -293,55 +283,11 @@ public class MainActivity extends Activity {
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-   /* protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        super.onActivityResult(requestCode,resultCode,data);
-        if(requestCode==1&&resultCode==RESULT_OK&&data!=null){
-           Uri path = data.getData();
-           this.UriPath = path;
-           this.path=path.getPath();
-           setImage();
-        }
-
-    }
-
-
-    public void choosePic(){
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, 1);
-    }
-
-    public void setImage(){
-        try {
-            ContentResolver cr = getContentResolver();
-            InputStream in = cr.openInputStream(UriPath);
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize=2;
-            originalImage = BitmapFactory.decodeStream(in, null, options);
-            imageView.setImageBitmap(originalImage);
-            resolution = originalImage.getWidth()+"x"+originalImage.getHeight();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }*/
-
     public void method() {
         TimeStarted = System.nanoTime();
         batteryValue = calcBattery((float) 0.0);
         statusTextView.setText("Processing");
-        switch (alg) {
-            case 0:
-                Log.d(TAG, "openCV");
-                OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
-                break;
-            case 1:
-                Log.d(TAG, "the other");
-                //Bitmap b = fd.loadPhoto(originalImage, mContext);
-                //statusTextView.setText("detected " + fd.count + " faces");
-                //imageView.setImageBitmap(b);
-                break;
-            default:
-                break;
-        }
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
 
     public float calcBattery(float init) {

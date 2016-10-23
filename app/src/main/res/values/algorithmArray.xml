@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="algorithm_array">
-        <item>ViolaJones/OpenCv</item>
-        <item>Built-in/Android</item>
+        <item>Using haar cascade</item>
+        <item>Eigenfaces</item>
     </string-array>
 </resources>
