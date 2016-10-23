@@ -252,6 +252,16 @@ public class MainActivity extends Activity {
                         algorithm = "haarcascade_frontalface_alt";
                         Log.d(TAG, "" + alg);
                         break;
+                    case 2:
+                        alg = R.raw.haarcascade_frontalface_alt2;
+                        algorithm = "haarcascade_frontalface_alt2";
+                        Log.d(TAG, "" + alg);
+                        break;
+                    case 3:
+                        alg = R.raw.haarcascade_frontalface_default;
+                        algorithm = "haarcascade_frontalface_default";
+                        Log.d(TAG, "" + alg);
+                        break;
                     default:
                         break;
                 }
