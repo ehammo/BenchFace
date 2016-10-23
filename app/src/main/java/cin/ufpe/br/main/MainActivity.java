@@ -87,10 +87,7 @@ public class MainActivity extends Activity {
     private String Originalresolution;
     private String resolution;
     private TextView time;
-    private TextView battery;
     private TextView statusTextView;
-    private Intent batteryStatus;
-    private float batteryValue;
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
 
@@ -146,8 +143,6 @@ public class MainActivity extends Activity {
                         statusTextView.setText("Detected " + propsFaces.size() + " faces");
                         imageView.setImageBitmap(imagemCorteDesfoque);
                         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
-                        batteryValue = calcBattery(batteryValue);
-                        battery.setText("Battery level spent: " + batteryValue);
                         Log.d(TAG, "" + TotalTime);
                         Log.d(TAG, "Time spent " + precision.format(TotalTime));
                         timeText = "Time spent " + precision.format(TotalTime) + "s";
@@ -190,10 +185,7 @@ public class MainActivity extends Activity {
         btn = (Button) findViewById(R.id.btnHide);
         imageView = (ImageView) findViewById(R.id.imageView);
         time = (TextView) findViewById(R.id.textTime);
-        battery = (TextView) findViewById(R.id.textBattery);
         statusTextView = (TextView) findViewById(R.id.textStatus);
-        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        batteryStatus = this.registerReceiver(null, ifilter);
         mContext = this;
 
         fd = new TutorialOnFaceDetect1();
@@ -285,19 +277,18 @@ public class MainActivity extends Activity {
 
     public void method() {
         TimeStarted = System.nanoTime();
-        batteryValue = calcBattery((float) 0.0);
         statusTextView.setText("Processing");
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
 
-    public float calcBattery(float init) {
-        float batteryValue;
-        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        batteryValue = (init - (level / scale));
-        if (batteryValue < 0) batteryValue *= -1;
-        return batteryValue;
-    }
+//    public float calcBattery(float init) {
+//        float batteryValue;
+//        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+//        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+//        batteryValue = (init - (level / scale));
+//        if (batteryValue < 0) batteryValue *= -1;
+//        return batteryValue;
+//    }
 
     public void exportCsv() {
         String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\"";
