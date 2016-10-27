@@ -5,40 +5,24 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
-import android.net.Uri;
-import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,12 +33,12 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 //code
+import br.ufc.mdcc.mpos.config.MposConfig;
 import cin.ufpe.br.service.ServiceCorteImagem;
 import cin.ufpe.br.service.ServiceDesfoqueImagem;
 import cin.ufpe.br.service.ServiceDeteccaoFacesImagem;
 import cin.ufpe.br.model.PropriedadesFace;
 import cin.ufpe.br.service.ServiceSobreposicaoImagem;
-import cin.ufpe.br.service.TutorialOnFaceDetect1;
 
 //openCV
 import org.opencv.android.BaseLoaderCallback;
@@ -71,13 +55,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.TimeZone;
 
-
-public class MainActivity extends Activity implements metodos {
+@MposConfig
+public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
 
     private File mCascadeFile;
-    private TutorialOnFaceDetect1 fd;
     private CascadeClassifier cascadeClassifier;
     private int alg = 0;
     private String algorithm = "";
@@ -98,7 +81,7 @@ public class MainActivity extends Activity implements metodos {
     private TextView statusTextView;
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
-    int counter = 0;
+    private boolean quit;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -181,11 +164,6 @@ public class MainActivity extends Activity implements metodos {
             }
         }
     };
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-   private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -196,8 +174,6 @@ public class MainActivity extends Activity implements metodos {
         time = (TextView) findViewById(R.id.textTime);
         statusTextView = (TextView) findViewById(R.id.textStatus);
         mContext = this;
-
-        fd = new TutorialOnFaceDetect1();
 
         ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
 
@@ -289,10 +265,13 @@ public class MainActivity extends Activity implements metodos {
                // salvarImagem();
             }
         });
+        quit=false;
+        //MposFramework.getInstance().start(this);
+    }
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    protected void onDestroy(){
+        super.onDestroy();
+        //if(quit) MposFramework.getInstance().stop();
     }
 
     public void method() {
@@ -301,20 +280,10 @@ public class MainActivity extends Activity implements metodos {
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
 
-//    public float calcBattery(float init) {
-//        float batteryValue;
-//        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-//        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-//        batteryValue = (init - (level / scale));
-//        if (batteryValue < 0) batteryValue *= -1;
-//        return batteryValue;
-//    }
-
     public void exportCsv() {
         String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\",\"Execution\"";
         String combinedString = columnString + "\n" + dataString;
         File file = new File(this.getExternalCacheDir() + File.separator + "Data.csv");
-
 
         try {
             FileOutputStream out = new FileOutputStream(file);
@@ -382,10 +351,9 @@ public class MainActivity extends Activity implements metodos {
     }
 
     private void salvarImagem(){
-        counter= counter+1;
         String path = Environment.getExternalStorageDirectory().toString();
         OutputStream fOutputStream = null;
-        File file = new File(path, "faces.jpg"+counter);
+        File file = new File(path, "faces_"+algorithm+"_"+Originalresolution+".jpg");
         try {
                 fOutputStream = new FileOutputStream(file);
 
@@ -412,7 +380,7 @@ public class MainActivity extends Activity implements metodos {
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setMessage("Want to quit and export Csv file?").setTitle("Exit");
-
+        quit=true;
 
         //Since the order that they appear is Neutral>Negative>Positive I change the content of each one
         //So The negative is my neutral, the neutral is my positive and at last the positive is my negative
@@ -432,6 +400,7 @@ public class MainActivity extends Activity implements metodos {
         builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                quit=false;
                 dialogInterface.cancel();
             }
         });
@@ -480,44 +449,4 @@ public class MainActivity extends Activity implements metodos {
         }
     }
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("Main Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
-    }
-
-    @Override
-    public void onManagerConnected(int status) {
-
-    }
 }
