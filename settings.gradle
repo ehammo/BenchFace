@@ -1,3 +1,2 @@
 include ':app', ':app'
 include ':openCVLibrary310'
-include ':mpOSAPI'
