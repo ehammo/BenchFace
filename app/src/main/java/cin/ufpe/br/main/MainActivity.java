@@ -87,6 +87,7 @@ public class MainActivity extends Activity implements metodos {
     private int id = 0;
     private String timeText;
     private Bitmap originalImage;
+    private Bitmap imagemCorteDesfoque;
     private Mat mat;
     private ImageView imageView;
     private Long TimeStarted;
@@ -135,7 +136,7 @@ public class MainActivity extends Activity implements metodos {
 
                         //desfoca a imagem
                         ServiceDesfoqueImagem serviceBlur = new ServiceDesfoqueImagem();
-                        Bitmap imagemCorteDesfoque;
+
                         imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
                         Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
 
@@ -388,7 +389,7 @@ public class MainActivity extends Activity implements metodos {
         try {
                 fOutputStream = new FileOutputStream(file);
 
-            originalImage.compress(Bitmap.CompressFormat.JPEG, 100, fOutputStream);
+            imagemCorteDesfoque.compress(Bitmap.CompressFormat.JPEG, 100, fOutputStream);
 
             fOutputStream.flush();
             fOutputStream.close();
