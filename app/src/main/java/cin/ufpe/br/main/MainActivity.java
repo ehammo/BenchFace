@@ -33,6 +33,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 //code
+import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.config.MposConfig;
 import cin.ufpe.br.service.ServiceCorteImagem;
 import cin.ufpe.br.service.ServiceDesfoqueImagem;
@@ -266,12 +267,17 @@ public class MainActivity extends Activity {
             }
         });
         quit=false;
-        //MposFramework.getInstance().start(this);
+
+        MposFramework.getInstance().start(this);
+        Log.d(TAG,"middleware started");
     }
 
     protected void onDestroy(){
         super.onDestroy();
-        //if(quit) MposFramework.getInstance().stop();
+        if(quit) {
+            MposFramework.getInstance().stop();
+            Log.d(TAG,"middleware ended");
+        }
     }
 
     public void method() {
