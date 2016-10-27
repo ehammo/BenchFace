@@ -60,12 +60,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.TimeZone;
 
-//Mpos
-import br.ufc.mdcc.mpos.MposFramework;
-import br.ufc.mdcc.mpos.config.Inject;
-import br.ufc.mdcc.mpos.config.MposConfig;
 
-@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
@@ -90,7 +85,6 @@ public class MainActivity extends Activity {
     private TextView time;
     private TextView statusTextView;
     private Context mContext;
-    private boolean quit;
     private DecimalFormat precision = new DecimalFormat("0.0000");
 
 
@@ -175,6 +169,11 @@ public class MainActivity extends Activity {
             }
         }
     };
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+   private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -277,15 +276,9 @@ public class MainActivity extends Activity {
             }
         });
 
-        quit=false;
-        MposFramework.getInstance().start(this);
-
-    }
-
-    protected void onDestroy(){
-        super.onDestroy();
-        if(quit) MposFramework.getInstance().stop();
-
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public void method() {
@@ -293,6 +286,15 @@ public class MainActivity extends Activity {
         statusTextView.setText("Processing");
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
     }
+
+//    public float calcBattery(float init) {
+//        float batteryValue;
+//        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+//        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+//        batteryValue = (init - (level / scale));
+//        if (batteryValue < 0) batteryValue *= -1;
+//        return batteryValue;
+//    }
 
     public void exportCsv() {
         String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\",\"Execution\"";
@@ -310,7 +312,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    public static int calculateInSampleSize( BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
@@ -333,7 +336,8 @@ public class MainActivity extends Activity {
         return inSampleSize;
     }
 
-    public void decodeSampledBitmapFromResource(Resources pRes, int pResId, int pReqWidth, int pReqHeight) {
+    public void decodeSampledBitmapFromResource(Resources pRes, int pResId,
+                                                         int pReqWidth, int pReqHeight) {
         final Resources res = pRes;
         final int resId = pResId;
         final int reqWidth = pReqWidth;
@@ -388,6 +392,7 @@ public class MainActivity extends Activity {
 
     }
 
+
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -399,7 +404,6 @@ public class MainActivity extends Activity {
         builder.setNegativeButton("Just Quit", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                quit=true;
                 finish();
             }
         });
@@ -407,7 +411,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 exportCsv();
-                quit=true;
                 finish();
             }
         });
@@ -462,5 +465,40 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction() {
+        Thing object = new Thing.Builder()
+                .setName("Main Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        AppIndex.AppIndexApi.start(client, getIndexApiAction());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client, getIndexApiAction());
+        client.disconnect();
+    }
 
 }
