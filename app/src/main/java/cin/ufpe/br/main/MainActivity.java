@@ -14,6 +14,8 @@ import android.media.Image;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -24,8 +26,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.google.android.gms.appindexing.Action;
@@ -35,7 +39,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -66,7 +72,7 @@ import java.io.InputStream;
 import java.util.TimeZone;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements metodos {
 
     private static final String TAG = "teste";
 
@@ -91,6 +97,7 @@ public class MainActivity extends Activity {
     private TextView statusTextView;
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
+    int counter = 0;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -140,6 +147,7 @@ public class MainActivity extends Activity {
 
                         //"cola" os rostos desfocados sobre a imagem original
                         imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+                        salvarImagem();
                         statusTextView.setText("Detected " + propsFaces.size() + " faces");
                         imageView.setImageBitmap(imagemCorteDesfoque);
                         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
@@ -277,6 +285,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 method();
+               // salvarImagem();
             }
         });
 
@@ -362,15 +371,41 @@ public class MainActivity extends Activity {
                 runOnUiThread(new Runnable(){
                     public void run() {
                         // First decode with inJustDecodeBounds=true to check dimensions
+                        //setImageBitmap(originalImage, imageView);
                         imageView.setImageBitmap(originalImage);
+
                     }
                 });
             }
         }.start();
+    }
 
+    private void salvarImagem(){
+        counter= counter+1;
+        String path = Environment.getExternalStorageDirectory().toString();
+        OutputStream fOutputStream = null;
+        File file = new File(path, "faces.jpg"+counter);
+        try {
+                fOutputStream = new FileOutputStream(file);
 
+            originalImage.compress(Bitmap.CompressFormat.JPEG, 100, fOutputStream);
+
+            fOutputStream.flush();
+            fOutputStream.close();
+
+            MediaStore.Images.Media.insertImage(getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Falha ao salvar", Toast.LENGTH_SHORT).show();
+            return;
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Falha ao salvar", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
     }
+
 
     @Override
     public void onBackPressed() {
@@ -478,5 +513,10 @@ public class MainActivity extends Activity {
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         AppIndex.AppIndexApi.end(client, getIndexApiAction());
         client.disconnect();
+    }
+
+    @Override
+    public void onManagerConnected(int status) {
+
     }
 }
