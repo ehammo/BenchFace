@@ -11,22 +11,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="cin.ufpe.br.main.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textTime"
-        android:text="@string/time"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="20dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textStatus"
-        android:layout_marginBottom="10dp"
-        android:text="@string/status"
-        android:layout_below="@id/textTime" />
-
 
     <Spinner
         android:layout_width="wrap_content"
@@ -66,16 +50,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <RadioButton
-        android:text="LocalBased Execution"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@id/textStatus"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:id="@+id/RBlocal"
-        android:onClick="onRadioButtonClicked"/>
-
     <Button
         android:text="@string/hide"
         android:layout_width="wrap_content"
@@ -83,7 +57,8 @@
         android:id="@+id/btnHide"
         android:layout_above="@+id/SelecionarAlgoritmo"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="36dp" />
+         />
+
 
     <ImageView
         android:background="@android:color/black"
@@ -92,21 +67,70 @@
         app:srcCompat="@android:color/background_light"
         android:contentDescription="@string/hideDescription"
         android:id="@+id/imageView"
-        android:layout_below="@+id/RBlocal"
+        android:layout_below="@+id/RBdynamic"
         android:layout_above="@id/btnHide"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
 
     <RadioButton
-        android:text="CloudBased Execution"
+        android:text="Dynamic Execution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/RBdynamic"
+        android:onClick="onRadioButtonClicked"
+        android:textSize="11sp"
+        android:layout_below="@+id/textStatus"
+        android:layout_alignRight="@+id/imageView"
+        android:layout_alignEnd="@+id/imageView" />
+
+    <RadioButton
+        android:text="Local Execution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/RBlocal"
+        android:onClick="onRadioButtonClicked"
+        android:textSize="11sp"
+        android:layout_above="@+id/imageView"
+        android:layout_toLeftOf="@+id/RBdynamic"
+        android:layout_toStartOf="@+id/RBdynamic" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textStatus"
+        android:text="@string/status"
+        android:textSize="18sp"
+        android:layout_alignBaseline="@+id/textTime"
+        android:layout_alignBottom="@+id/textTime"
+        android:layout_alignLeft="@+id/selecionarFoto"
+        android:layout_alignStart="@+id/selecionarFoto"
+        android:layout_marginLeft="19dp"
+        android:layout_marginStart="19dp"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioButton
+        android:text="Cloud Execution"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/RBnuvem"
         android:onClick="onRadioButtonClicked"
-        android:layout_alignBaseline="@+id/textTime"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:textSize="11sp"
+        android:layout_alignBaseline="@+id/RBlocal"
+        android:layout_alignBottom="@+id/RBlocal"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="9dp"
+        android:layout_marginStart="9dp" />
 
-
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textTime"
+        android:text="@string/time"
+        android:textSize="18sp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="8dp"
+        android:layout_alignLeft="@+id/RBnuvem"
+        android:layout_alignStart="@+id/RBnuvem" />
 
 </RelativeLayout>

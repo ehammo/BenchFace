@@ -75,6 +75,7 @@ public class MainActivity extends Activity {
     private CascadeClassifier cascadeClassifier;
     private int alg = 0;
     private String algorithm = "";
+    private String execution = "";
     private Button btn;
     private String dataString = "";
     private int id = 0;
@@ -112,9 +113,8 @@ public class MainActivity extends Activity {
                         os.close();
                         cascadeClassifier = new CascadeClassifier(mCascadeFile.getAbsolutePath());
                         cascadeClassifier.load(mCascadeFile.getAbsolutePath());
-                        Log.i(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                        Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
                         Log.d(TAG, "\nRunning FaceDetector");
-
                         mat = new Mat();
                         int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
                         resolution = value+"MP";
@@ -151,7 +151,7 @@ public class MainActivity extends Activity {
                         Calendar calendar = new GregorianCalendar(tz);
                         Date now = new Date();
                         calendar.setTime(now);
-                        dataString += "\"" + id + "\",\"" + propsFaces.size() + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\"";
+                        dataString += "\"" + id + "\",\"" + propsFaces.size() + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
                         dataString += "\n";
                         id++;
                     } catch (Exception e) {
@@ -301,7 +301,7 @@ public class MainActivity extends Activity {
 //    }
 
     public void exportCsv() {
-        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\"";
+        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\",\"Execution\"";
         String combinedString = columnString + "\n" + dataString;
         File file = new File(this.getExternalCacheDir() + File.separator + "Data.csv");
 
@@ -413,22 +413,19 @@ public class MainActivity extends Activity {
         switch(view.getId()) {
             case R.id.RBlocal:
                 if (clicked.isChecked()&&nuvem.isChecked()) {
-                    Log.d(TAG, "entrei no 1.1 if");
-                    //variavel ondeexecutar=local
+                    execution = "LocalBased Execution";
                     nuvem.setChecked(false);
                 }else if(clicked.isChecked()){
                     Log.d(TAG, "entrei no 1.2 if");
-                    //variavel ondeexecutar=local
+                    execution = "LocalBased Execution";
                 }
                     break;
             case R.id.RBnuvem:
                 if (clicked.isChecked()&&local.isChecked()){
-                    Log.d(TAG, "entrei no 2.1 if");
+                    execution = "CloudBased Execution";
                     local.setChecked(false);
-                    //variavel ondeexecutar=nuvem
                 }else if(clicked.isChecked()){
-                    Log.d(TAG, "entrei no 2.2 if");
-                    //variavel ondeexecutar=nuvem
+                    execution = "CloudBased Execution";
                 }
                     break;
         }
