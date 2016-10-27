@@ -81,7 +81,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/RBdynamic"
         android:onClick="onRadioButtonClicked"
-        android:textSize="11sp"
+        android:textSize="15sp"
         android:layout_below="@+id/textStatus"
         android:layout_alignRight="@+id/imageView"
         android:layout_alignEnd="@+id/imageView" />
@@ -92,7 +92,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/RBlocal"
         android:onClick="onRadioButtonClicked"
-        android:textSize="11sp"
+        android:textSize="15sp"
         android:layout_above="@+id/imageView"
         android:layout_centerHorizontal="true" />
 
@@ -116,7 +116,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/RBnuvem"
         android:onClick="onRadioButtonClicked"
-        android:textSize="11sp"
+        android:textSize="15sp"
         android:layout_alignBaseline="@+id/RBlocal"
         android:layout_alignBottom="@+id/RBlocal"
         android:layout_alignParentLeft="true"
