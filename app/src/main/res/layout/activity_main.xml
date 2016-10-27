@@ -12,43 +12,7 @@
     tools:context="cin.ufpe.br.main.MainActivity">
 
 
-    <Spinner
-        android:layout_width="wrap_content"
-        android:id="@+id/spinnerPhoto"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        />
 
-    <TextView
-        android:text="Selecione a foto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/selecionarFoto"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_above="@+id/spinnerPhoto"
-        android:layout_marginBottom="5dp" />
-
-    <Spinner
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/spinnerAlg"
-        android:layout_alignBottom="@id/spinnerPhoto"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        />
-
-    <TextView
-        android:text="Selecione o treinamento"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/SelecionarAlgoritmo"
-        android:layout_above="@id/spinnerAlg"
-        android:layout_alignBottom="@+id/selecionarFoto"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
     <Button
         android:text="@string/hide"
@@ -72,8 +36,47 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"/>
 
+    <TextView
+        android:text="Selecione a foto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/selecionarFoto"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/spinnerPhoto"
+        android:layout_marginBottom="5dp" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:id="@+id/spinnerPhoto"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@id/selecionarFoto"
+        android:layout_alignEnd="@id/selecionarFoto"
+        />
+
+    <TextView
+        android:text="Selecione o treinamento"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/SelecionarAlgoritmo"
+        android:layout_alignBottom="@+id/selecionarFoto"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Spinner
+        android:layout_width="100sp"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinnerAlg"
+        android:layout_alignBottom="@id/spinnerPhoto"
+        android:layout_alignLeft="@id/SelecionarAlgoritmo"
+        android:layout_alignStart="@id/SelecionarAlgoritmo"
+        />
+
+
+
     <RadioButton
-        android:text="Dynamic Execution"
+        android:text="Dynamic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/RBdynamic"
@@ -84,15 +87,14 @@
         android:layout_alignEnd="@+id/imageView" />
 
     <RadioButton
-        android:text="Local Execution"
+        android:text="Local"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/RBlocal"
         android:onClick="onRadioButtonClicked"
         android:textSize="11sp"
         android:layout_above="@+id/imageView"
-        android:layout_toLeftOf="@+id/RBdynamic"
-        android:layout_toStartOf="@+id/RBdynamic" />
+        android:layout_centerHorizontal="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -109,7 +111,7 @@
         android:layout_marginBottom="8dp"/>
 
     <RadioButton
-        android:text="Cloud Execution"
+        android:text="Cloud"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/RBnuvem"

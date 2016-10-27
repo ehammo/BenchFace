@@ -409,25 +409,38 @@ public class MainActivity extends Activity {
         RadioButton clicked = ((RadioButton) view);
         RadioButton nuvem = ((RadioButton)findViewById(R.id.RBnuvem));
         RadioButton local = ((RadioButton)findViewById(R.id.RBlocal));
+        RadioButton dynamic = ((RadioButton)findViewById(R.id.RBdynamic));
         // Check which radio button was clicked
         switch(view.getId()) {
             case R.id.RBlocal:
-                if (clicked.isChecked()&&nuvem.isChecked()) {
+                if (clicked.isChecked()&&(nuvem.isChecked()||dynamic.isChecked())) {
                     execution = "LocalBased Execution";
                     nuvem.setChecked(false);
+                    dynamic.setChecked(false);
                 }else if(clicked.isChecked()){
                     Log.d(TAG, "entrei no 1.2 if");
                     execution = "LocalBased Execution";
                 }
                     break;
             case R.id.RBnuvem:
-                if (clicked.isChecked()&&local.isChecked()){
+                if (clicked.isChecked()&&(local.isChecked()||dynamic.isChecked())){
                     execution = "CloudBased Execution";
                     local.setChecked(false);
+                    dynamic.setChecked(false);
                 }else if(clicked.isChecked()){
                     execution = "CloudBased Execution";
                 }
                     break;
+            case R.id.RBdynamic:
+                if (clicked.isChecked()&&(local.isChecked()||nuvem.isChecked())) {
+                    execution = "LocalBased Execution";
+                    nuvem.setChecked(false);
+                    local.setChecked(false);
+                }else if(clicked.isChecked()){
+                    Log.d(TAG, "entrei no 1.2 if");
+                    execution = "LocalBased Execution";
+                }
+                break;
         }
     }
 
