@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/HideTheFaceAndroid.iml" filepath="$PROJECT_DIR$/HideTheFaceAndroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/HideThisFace.iml" filepath="$PROJECT_DIR$/HideThisFace.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mpOSAPI/mpOSAPI.iml" filepath="$PROJECT_DIR$/mpOSAPI/mpOSAPI.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary310/openCVLibrary310.iml" filepath="$PROJECT_DIR$/openCVLibrary310/openCVLibrary310.iml" />
     </modules>
   </component>

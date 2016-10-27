@@ -5,28 +5,20 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.net.Uri;
-import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,8 +29,6 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,7 +44,6 @@ import cin.ufpe.br.service.ServiceDesfoqueImagem;
 import cin.ufpe.br.service.ServiceDeteccaoFacesImagem;
 import cin.ufpe.br.model.PropriedadesFace;
 import cin.ufpe.br.service.ServiceSobreposicaoImagem;
-import cin.ufpe.br.service.TutorialOnFaceDetect1;
 
 //openCV
 import org.opencv.android.BaseLoaderCallback;
@@ -72,12 +61,11 @@ import java.io.InputStream;
 import java.util.TimeZone;
 
 
-public class MainActivity extends Activity implements metodos {
+public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
 
     private File mCascadeFile;
-    private TutorialOnFaceDetect1 fd;
     private CascadeClassifier cascadeClassifier;
     private int alg = 0;
     private String algorithm = "";
@@ -98,7 +86,7 @@ public class MainActivity extends Activity implements metodos {
     private TextView statusTextView;
     private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
-    int counter = 0;
+
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -196,8 +184,6 @@ public class MainActivity extends Activity implements metodos {
         time = (TextView) findViewById(R.id.textTime);
         statusTextView = (TextView) findViewById(R.id.textStatus);
         mContext = this;
-
-        fd = new TutorialOnFaceDetect1();
 
         ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
 
@@ -382,10 +368,9 @@ public class MainActivity extends Activity implements metodos {
     }
 
     private void salvarImagem(){
-        counter= counter+1;
         String path = Environment.getExternalStorageDirectory().toString();
         OutputStream fOutputStream = null;
-        File file = new File(path, "faces.jpg"+counter);
+        File file = new File(path, "faces_"+alg+"_"+Originalresolution+".jpg");
         try {
                 fOutputStream = new FileOutputStream(file);
 
@@ -516,8 +501,4 @@ public class MainActivity extends Activity implements metodos {
         client.disconnect();
     }
 
-    @Override
-    public void onManagerConnected(int status) {
-
-    }
 }
