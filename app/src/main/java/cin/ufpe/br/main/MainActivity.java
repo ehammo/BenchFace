@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -56,6 +57,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.TimeZone;
 
+//@MposConfig(endpointSecondary = "192.168.25.7")
 @MposConfig
 public class MainActivity extends Activity {
 
