@@ -5,12 +5,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -35,12 +33,14 @@ import java.util.List;
 
 //code
 import br.ufc.mdcc.mpos.MposFramework;
+import br.ufc.mdcc.mpos.config.Inject;
 import br.ufc.mdcc.mpos.config.MposConfig;
-import cin.ufpe.br.service.ServiceCorteImagem;
-import cin.ufpe.br.service.ServiceDesfoqueImagem;
-import cin.ufpe.br.service.ServiceDeteccaoFacesImagem;
+import cin.ufpe.br.Interfaces.*;
+import cin.ufpe.br.Interfaces.Cascade;
+import cin.ufpe.br.Interfaces.MainInterface;
+import cin.ufpe.br.service.*;
 import cin.ufpe.br.model.PropriedadesFace;
-import cin.ufpe.br.service.ServiceSobreposicaoImagem;
+import cin.ufpe.br.service.DetectFacesService;
 
 //openCV
 import org.opencv.android.BaseLoaderCallback;
@@ -63,28 +63,61 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
 
+    //OpenCv-Related
     private File mCascadeFile;
     private CascadeClassifier cascadeClassifier;
-    private int alg = 0;
+    private Mat mat;
+    private BlurImage desfoqueLocal;
+    private CutImage corteLocal;
+    private DetectFaces detectLocal;
+    private Overlay overlayLocal;
+    private Cascade cascadeLocal;
+    private MainInterface mainLocal;
+
+    //@Inject(BlurImageService.class)
+    private CloudletBlurImage desfoqueNuvem;
+
+    //@Inject(CutImageService.class)
+    private CloudletCutImage corteNuvem;
+
+    //@Inject(DetectFacesService.class)
+    private CloudletDetectFaces detectNuvem;
+
+  //  @Inject(OverlayService.class)
+    private CloudletOverlay overlayNuvem;
+
+    @Inject(CascadeService.class)
+    private CloudletCascade cascadeNuvem;
+
+   // @Inject(MainService.class)
+    private CloudletMain mainNuvem;
+
+    //CSV-Related
+    private int alg;
     private String algorithm = "";
     private String execution = "";
-    private Button btn;
+    private int id;
     private String dataString = "";
-    private int id = 0;
-    private String timeText;
-    private Bitmap originalImage;
-    private Bitmap imagemCorteDesfoque;
-    private Mat mat;
-    private ImageView imageView;
-    private Long TimeStarted;
-    private Double TotalTime;
     private String Originalresolution;
     private String resolution;
+
+    //Android-Related
+    private Button btn;
+    private String timeText;
+    private ImageView imageView;
+    private Context mContext;
+
+    //Others
+    private Bitmap originalImage;
+    private Bitmap imagemCorteDesfoque;
+    private Long TimeStarted;
+    private Double TotalTime;
     private TextView time;
     private TextView statusTextView;
-    private Context mContext;
     private DecimalFormat precision = new DecimalFormat("0.0000");
     private boolean quit;
+    private int config;
+    private int faces;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -94,61 +127,37 @@ public class MainActivity extends Activity {
                     Log.d(TAG, "OpenCV loaded successfully");
                     // Load native library after(!) OpenCV initialization
                     try{
-                        InputStream is = getResources().openRawResource(alg);
-                        File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-                        mCascadeFile = new File(cascadeDir, algorithm);
-                        FileOutputStream os = new FileOutputStream(mCascadeFile);
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = is.read(buffer)) != -1) {
-                            os.write(buffer, 0, bytesRead);
+                        switch (config){
+                            case 0:
+                                cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
+                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                                Log.d(TAG, "\nRunning FaceDetector");
+                                imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal,overlayLocal,cascadeClassifier);
+                                faces = mainLocal.faces;
+                                break;
+                            case 1:
+                                cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
+                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                                Log.d(TAG, "\nRunning FaceDetector");
+                                imagemCorteDesfoque = mainNuvem.start(originalImage, detectNuvem, desfoqueNuvem, corteNuvem,overlayNuvem,cascadeClassifier);
+                                faces = mainNuvem.faces;
+                                break;
+                            case 2:
+                                cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
+                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                                Log.d(TAG, "\nRunning FaceDetector");
+                                imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal,overlayLocal,cascadeClassifier);
+                                faces = mainLocal.faces;
+                                break;
+                            default:
+                                cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
+                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
+                                Log.d(TAG, "\nRunning FaceDetector");
+                                imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal,overlayLocal,cascadeClassifier);
+                                faces = mainLocal.faces;
+                                break;
                         }
-                        is.close();
-                        os.close();
-                        cascadeClassifier = new CascadeClassifier(mCascadeFile.getAbsolutePath());
-                        cascadeClassifier.load(mCascadeFile.getAbsolutePath());
-                        Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
-                        Log.d(TAG, "\nRunning FaceDetector");
-                        mat = new Mat();
-                        int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
-                        resolution = value+"MP";
-                        Utils.bitmapToMat(originalImage, mat);
-                        //mat = Utils.loadResource(mContext,R.drawable.facedetection_13_5mp);
-                        ServiceDeteccaoFacesImagem serviceExtractFaces = new ServiceDeteccaoFacesImagem();
-                        MatOfRect matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
-
-                        //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-                        List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
-
-                        //desfoca a imagem
-                        ServiceDesfoqueImagem serviceBlur = new ServiceDesfoqueImagem();
-
-                        imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-                        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
-
-                        //corta os rostos da imagem desfocada,
-                        ServiceCorteImagem serviceCrop = new ServiceCorteImagem();
-                        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
-
-                        ServiceSobreposicaoImagem serviceOverlay = new ServiceSobreposicaoImagem();
-
-                        //"cola" os rostos desfocados sobre a imagem original
-                        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
-                        salvarImagem();
-                        statusTextView.setText("Detected " + propsFaces.size() + " faces");
-                        imageView.setImageBitmap(imagemCorteDesfoque);
-                        TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
-                        Log.d(TAG, "" + TotalTime);
-                        Log.d(TAG, "Time spent " + precision.format(TotalTime));
-                        timeText = "Time spent " + precision.format(TotalTime) + "s";
-                        time.setText(timeText);
-                        TimeZone tz = TimeZone.getDefault();
-                        Calendar calendar = new GregorianCalendar(tz);
-                        Date now = new Date();
-                        calendar.setTime(now);
-                        dataString += "\"" + id + "\",\"" + propsFaces.size() + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
-                        dataString += "\n";
-                        id++;
+                        changeCSV();
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
@@ -177,6 +186,7 @@ public class MainActivity extends Activity {
         time = (TextView) findViewById(R.id.textTime);
         statusTextView = (TextView) findViewById(R.id.textStatus);
         mContext = this;
+        quit=false;
 
         ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
 
@@ -268,7 +278,21 @@ public class MainActivity extends Activity {
                // salvarImagem();
             }
         });
-        quit=false;
+
+        cascadeLocal = new CascadeService();
+        cascadeNuvem = new CascadeService();
+        desfoqueLocal = new BlurImageService();
+        desfoqueNuvem = new BlurImageService();
+        corteLocal = new CutImageService();
+        corteNuvem = new CutImageService();
+        detectLocal = new DetectFacesService();
+        detectNuvem = new DetectFacesService();
+        overlayLocal = new OverlayService();
+        overlayNuvem = new OverlayService();
+        mainLocal = new MainService();
+        mainNuvem = new MainService();
+
+
 
         MposFramework.getInstance().start(this);
         Log.d(TAG,"middleware started");
@@ -359,9 +383,8 @@ public class MainActivity extends Activity {
     }
 
     private void salvarImagem(){
-        String path = Environment.getExternalStorageDirectory().toString();
         OutputStream fOutputStream = null;
-        File file = new File(path, "faces_"+algorithm+"_"+Originalresolution+".jpg");
+        File file = new File(this.getExternalCacheDir() + File.separator + "faces_"+algorithm+"_"+Originalresolution+".jpg");
         try {
                 fOutputStream = new FileOutputStream(file);
 
@@ -417,6 +440,26 @@ public class MainActivity extends Activity {
 
     }
 
+    public void changeCSV(){
+        int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
+        resolution = value+"MP";
+        salvarImagem();
+        statusTextView.setText("Detected " + faces + " faces");
+        imageView.setImageBitmap(imagemCorteDesfoque);
+        TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
+        Log.d(TAG, "" + TotalTime);
+        Log.d(TAG, "Time spent " + precision.format(TotalTime));
+        timeText = "Time spent " + precision.format(TotalTime) + "s";
+        time.setText(timeText);
+        TimeZone tz = TimeZone.getDefault();
+        Calendar calendar = new GregorianCalendar(tz);
+        Date now = new Date();
+        calendar.setTime(now);
+        dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
+        dataString += "\n";
+        id++;
+    }
+
     public void onRadioButtonClicked(View view) {
         // Is the button now checked?
         RadioButton clicked = ((RadioButton) view);
@@ -430,9 +473,12 @@ public class MainActivity extends Activity {
                     execution = "LocalBased Execution";
                     nuvem.setChecked(false);
                     dynamic.setChecked(false);
+                    config = 0;
                 }else if(clicked.isChecked()){
                     Log.d(TAG, "entrei no 1.2 if");
                     execution = "LocalBased Execution";
+                    config = 0;
+
                 }
                     break;
             case R.id.RBnuvem:
@@ -440,8 +486,11 @@ public class MainActivity extends Activity {
                     execution = "CloudBased Execution";
                     local.setChecked(false);
                     dynamic.setChecked(false);
+                    config = 1;
+
                 }else if(clicked.isChecked()){
                     execution = "CloudBased Execution";
+                    config = 1;
                 }
                     break;
             case R.id.RBdynamic:
@@ -449,9 +498,11 @@ public class MainActivity extends Activity {
                     execution = "LocalBased Execution";
                     nuvem.setChecked(false);
                     local.setChecked(false);
+                    config = 2;
                 }else if(clicked.isChecked()){
                     Log.d(TAG, "entrei no 1.2 if");
                     execution = "LocalBased Execution";
+                    config = 2;
                 }
                 break;
         }

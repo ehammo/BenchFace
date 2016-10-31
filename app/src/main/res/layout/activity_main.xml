@@ -104,11 +104,9 @@
         android:textSize="18sp"
         android:layout_alignBaseline="@+id/textTime"
         android:layout_alignBottom="@+id/textTime"
-        android:layout_alignLeft="@+id/selecionarFoto"
-        android:layout_alignStart="@+id/selecionarFoto"
-        android:layout_marginLeft="19dp"
-        android:layout_marginStart="19dp"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="8dp"
+        android:layout_alignLeft="@+id/RBdynamic"
+        android:layout_alignStart="@+id/RBdynamic" />
 
     <RadioButton
         android:text="Cloud"

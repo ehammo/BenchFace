@@ -5,9 +5,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 
 import java.util.List;
+
+import cin.ufpe.br.Interfaces.CloudletOverlay;
 import cin.ufpe.br.model.PropriedadesFace;
 
-public class ServiceSobreposicaoImagem {
+public class OverlayService implements CloudletOverlay {
 	
 	public Bitmap juntarImagens(List<PropriedadesFace> dados, Bitmap imagemPrincipal){
 		
@@ -19,7 +21,7 @@ public class ServiceSobreposicaoImagem {
 		
 	}
 
-	public static Bitmap juntarUmaImage(Bitmap imagemPrincipal, Bitmap imagemCortada, int x, int y) {
+	public Bitmap juntarUmaImage(Bitmap imagemPrincipal, Bitmap imagemCortada, int x, int y) {
 		Bitmap overlayBitmap = Bitmap.createBitmap(imagemPrincipal.getWidth(), imagemPrincipal.getHeight(), imagemPrincipal.getConfig());
 		Canvas canvas = new Canvas(overlayBitmap);
         canvas.drawBitmap(imagemPrincipal,0,0,null);

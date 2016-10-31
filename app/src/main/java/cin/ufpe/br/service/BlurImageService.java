@@ -1,15 +1,13 @@
 package cin.ufpe.br.service;
 
-import android.graphics.Bitmap;
-
 
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import org.opencv.android.Utils;
+import cin.ufpe.br.Interfaces.CloudletBlurImage;
 
-public class ServiceDesfoqueImagem {
+public class BlurImageService implements CloudletBlurImage {
 	
 	public Mat DesfocarImagem(Mat mat){
 		
@@ -18,7 +16,7 @@ public class ServiceDesfoqueImagem {
 		return mat;
 	}
 	
-	private Mat Desfocar(Mat image){
+	public Mat Desfocar(Mat image){
 			      
 		Mat destination = new Mat(image.rows(),image.cols(),image.type());
 			      

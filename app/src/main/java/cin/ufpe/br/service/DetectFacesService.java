@@ -1,5 +1,7 @@
 package cin.ufpe.br.service;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
+import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /***
@@ -15,8 +18,8 @@ import cin.ufpe.br.model.PropriedadesFace;
  * @author Rafael Guinho
  *
  */
-public class ServiceExtracaoFacesImagem {
-	
+public class DetectFacesService implements CloudletDetectFaces {
+	private static final String TAG="log";
 	/***
 	 * 
 	 * @param cascadeClassifier
@@ -27,7 +30,8 @@ public class ServiceExtracaoFacesImagem {
 		
 		MatOfRect matOfRect = new MatOfRect();
 		cascadeClassifier.detectMultiScale(mat, matOfRect);
-		
+        Log.d(TAG, "Detected "+matOfRect.toArray().length+" faces");
+
 		return matOfRect;
 	}
 	
