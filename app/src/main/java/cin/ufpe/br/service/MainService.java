@@ -50,8 +50,14 @@ public class MainService implements CloudletMain{
 
         //"cola" os rostos desfocados sobre a imagem original
         imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+        Log.d("teste","deu tudo certo");
+        Log.d("teste","qtd de faces: "+propsFaces.size());
         faces = propsFaces.size();
         return imagemCorteDesfoque;
+    }
+
+    public int getNumFaces(){
+        return faces;
     }
 
 }

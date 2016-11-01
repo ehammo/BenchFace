@@ -9,6 +9,7 @@ import org.opencv.objdetect.CascadeClassifier;
  */
 
 public interface CloudletMain extends MainInterface {
-    int faces=0;
-    public Bitmap start(Bitmap originalImage, cin.ufpe.br.Interfaces.DetectFaces serviceExtractFaces, BlurImage serviceBlur, CutImage serviceCrop, Overlay serviceOverlay, CascadeClassifier cascadeClassifier);
+    int getNumFaces();
+
+    Bitmap start(Bitmap originalImage, cin.ufpe.br.Interfaces.DetectFaces serviceExtractFaces, BlurImage serviceBlur, CutImage serviceCrop, Overlay serviceOverlay, CascadeClassifier cascadeClassifier);
 }

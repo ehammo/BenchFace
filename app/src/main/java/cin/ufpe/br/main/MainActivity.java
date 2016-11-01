@@ -57,7 +57,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.TimeZone;
 
-//@MposConfig(endpointSecondary = "192.168.25.7")
+//@MposConfig(endpointSecondary = "192.168.2.104")
 @MposConfig
 public class MainActivity extends Activity {
 
@@ -127,50 +127,59 @@ public class MainActivity extends Activity {
                     Log.d(TAG, "OpenCV loaded successfully");
                     // Load native library after(!) OpenCV initialization
                     try{
+                        Log.d(TAG, "config: "+config);
                         switch (config){
                             case 0:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
-                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
-                                Log.d(TAG, "\nRunning FaceDetector");
-                                imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal,overlayLocal,cascadeClassifier);
-                                faces = mainLocal.faces;
+                                if(cascadeClassifier!=null) {
+                                    Log.d(TAG, "Loaded cascade classifier");
+                                    imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier);
+                                    faces = mainLocal.getNumFaces();
+                                }
                                 break;
                             case 1:
                                 cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
-                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
-                                Log.d(TAG, "\nRunning FaceDetector");
-                                imagemCorteDesfoque = mainNuvem.start(originalImage, detectNuvem, desfoqueNuvem, corteNuvem,overlayNuvem,cascadeClassifier);
-                                faces = mainNuvem.faces;
+                                if(cascadeClassifier!=null){
+                                    Log.d(TAG, "Loaded cascade classifier");
+                                    imagemCorteDesfoque = mainNuvem.start(originalImage, detectNuvem, desfoqueNuvem, corteNuvem,overlayNuvem,cascadeClassifier);
+                                    faces = mainNuvem.getNumFaces();
+                                }
                                 break;
                             case 2:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
-                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
-                                Log.d(TAG, "\nRunning FaceDetector");
-                                imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal,overlayLocal,cascadeClassifier);
-                                faces = mainLocal.faces;
+                                if(cascadeClassifier!=null) {
+                                    Log.d(TAG, "Loaded cascade classifier");
+                                    imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier);
+                                    faces = mainLocal.getNumFaces();
+                                }
                                 break;
                             default:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
-                                Log.d(TAG, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
-                                Log.d(TAG, "\nRunning FaceDetector");
-                                imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal,overlayLocal,cascadeClassifier);
-                                faces = mainLocal.faces;
+                                if(cascadeClassifier!=null) {
+                                    Log.d(TAG, "Loaded cascade classifier");
+                                    imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier);
+                                    faces = mainLocal.getNumFaces();
+                                }
                                 break;
                         }
                         changeCSV();
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
-                        if (cascadeClassifier.empty()) {
+                        if (cascadeClassifier==null||cascadeClassifier.empty()) {
                             Log.e(TAG, "Failed to load cascade classifier");
                             cascadeClassifier = null;
+                            statusTextView.setText("failed");
                             break;
                         }
                     }
                 }
                 default: {
                     super.onManagerConnected(status);
-                    Log.d(TAG, "failed");
+                    if(status!=LoaderCallbackInterface.SUCCESS){
+                        Log.d(TAG, "failed");
+                    }
+
                 }
                 break;
             }
@@ -447,7 +456,6 @@ public class MainActivity extends Activity {
         statusTextView.setText("Detected " + faces + " faces");
         imageView.setImageBitmap(imagemCorteDesfoque);
         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
-        Log.d(TAG, "" + TotalTime);
         Log.d(TAG, "Time spent " + precision.format(TotalTime));
         timeText = "Time spent " + precision.format(TotalTime) + "s";
         time.setText(timeText);
@@ -475,10 +483,8 @@ public class MainActivity extends Activity {
                     dynamic.setChecked(false);
                     config = 0;
                 }else if(clicked.isChecked()){
-                    Log.d(TAG, "entrei no 1.2 if");
                     execution = "LocalBased Execution";
                     config = 0;
-
                 }
                     break;
             case R.id.RBnuvem:
@@ -500,7 +506,6 @@ public class MainActivity extends Activity {
                     local.setChecked(false);
                     config = 2;
                 }else if(clicked.isChecked()){
-                    Log.d(TAG, "entrei no 1.2 if");
                     execution = "LocalBased Execution";
                     config = 2;
                 }

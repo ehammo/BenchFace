@@ -9,7 +9,8 @@ import org.opencv.objdetect.CascadeClassifier;
  */
 
 public interface MainInterface {
-    int faces=0;
+
+    public int getNumFaces();
 
     public Bitmap start(Bitmap originalImage, cin.ufpe.br.Interfaces.DetectFaces serviceExtractFaces, BlurImage serviceBlur, CutImage serviceCrop, Overlay serviceOverlay, CascadeClassifier cascadeClassifier);
 }
