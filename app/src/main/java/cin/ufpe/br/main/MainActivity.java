@@ -128,6 +128,7 @@ public class MainActivity extends Activity {
                     // Load native library after(!) OpenCV initialization
                     try{
                         Log.d(TAG, "config: "+config);
+                        cascadeClassifier=null;
                         switch (config){
                             case 0:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
@@ -164,6 +165,7 @@ public class MainActivity extends Activity {
                         }
                         changeCSV();
                     } catch (Exception e) {
+                        statusTextView.setText("Failed");
                         e.printStackTrace();
                     } finally {
                         if (cascadeClassifier==null||cascadeClassifier.empty()) {
