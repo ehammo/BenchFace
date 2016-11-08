@@ -12,6 +12,6 @@ import br.ufc.mdcc.mpos.offload.Remotable;
 
 public interface CloudletCascade extends Cascade {
 
-    @Remotable(value = Remotable.Offload.STATIC, status = true)
+    //@Remotable(value = Remotable.Offload.STATIC, status = true)
     CascadeClassifier loadCascade(int alg, String algorithm, Context mContext) throws Exception;
 }

@@ -2,6 +2,7 @@ package cin.ufpe.br.service;
 
 import android.graphics.Bitmap;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import cin.ufpe.br.Interfaces.CloudletCutImage;
@@ -16,5 +17,10 @@ public class CutImageService implements CloudletCutImage {
 		}
 		
 		return dados;
+	}
+
+	public byte[] soma(int x, int y){
+		byte[] data = ByteBuffer.allocate(4).putInt(x).array();
+        return data;
 	}
 }
