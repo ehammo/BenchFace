@@ -8,8 +8,8 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,17 +29,15 @@ import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
 
 //code
 import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.config.Inject;
 import br.ufc.mdcc.mpos.config.MposConfig;
+import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.*;
 import cin.ufpe.br.Interfaces.Cascade;
-import cin.ufpe.br.Interfaces.MainInterface;
 import cin.ufpe.br.service.*;
-import cin.ufpe.br.model.PropriedadesFace;
 import cin.ufpe.br.service.DetectFacesService;
 
 //openCV
@@ -47,14 +45,11 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfRect;
 import org.opencv.objdetect.CascadeClassifier;
-import org.opencv.android.Utils;
 
 //file_related
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.util.TimeZone;
 
 //@MposConfig(endpointSecondary = "192.168.2.104")
@@ -72,12 +67,11 @@ public class MainActivity extends Activity {
     private DetectFaces detectLocal;
     private Overlay overlayLocal;
     private Cascade cascadeLocal;
-    private MainInterface mainLocal;
 
     //@Inject(BlurImageService.class)
     private CloudletBlurImage desfoqueNuvem;
 
-    //@Inject(CutImageService.class)
+    @Inject(CutImageService.class)
     private CloudletCutImage corteNuvem;
 
     //@Inject(DetectFacesService.class)
@@ -86,11 +80,8 @@ public class MainActivity extends Activity {
   //  @Inject(OverlayService.class)
     private CloudletOverlay overlayNuvem;
 
-    @Inject(CascadeService.class)
+    //@Inject(CascadeService.class)
     private CloudletCascade cascadeNuvem;
-
-   // @Inject(MainService.class)
-    private CloudletMain mainNuvem;
 
     //CSV-Related
     private int alg;
@@ -134,36 +125,33 @@ public class MainActivity extends Activity {
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null) {
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier);
-                                    faces = mainLocal.getNumFaces();
+                                    new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
                                 }
                                 break;
                             case 1:
                                 cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null){
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    imagemCorteDesfoque = mainNuvem.start(originalImage, detectNuvem, desfoqueNuvem, corteNuvem,overlayNuvem,cascadeClassifier);
-                                    faces = mainNuvem.getNumFaces();
+                                    new MainService(originalImage, detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
                                 }
                                 break;
                             case 2:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null) {
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier);
-                                    faces = mainLocal.getNumFaces();
+                                    new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
                                 break;
                             default:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null) {
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    imagemCorteDesfoque = mainLocal.start(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier);
-                                    faces = mainLocal.getNumFaces();
+                                    new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
                                 break;
                         }
-                        changeCSV();
                     } catch (Exception e) {
                         statusTextView.setText("Failed");
                         e.printStackTrace();
@@ -184,6 +172,19 @@ public class MainActivity extends Activity {
 
                 }
                 break;
+            }
+        }
+    };
+
+    private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
+        @Override
+        public void completedTask(Bitmap obj) {
+            if (obj != null) {
+                imagemCorteDesfoque = obj;
+                changeCSV();
+            } else {
+                TextView tv_status = (TextView) findViewById(R.id.textStatus);
+                tv_status.setText("Status: Algum Error na transmissão!");
             }
         }
     };
@@ -300,8 +301,6 @@ public class MainActivity extends Activity {
         detectNuvem = new DetectFacesService();
         overlayLocal = new OverlayService();
         overlayNuvem = new OverlayService();
-        mainLocal = new MainService();
-        mainNuvem = new MainService();
 
 
 
@@ -404,7 +403,7 @@ public class MainActivity extends Activity {
             fOutputStream.flush();
             fOutputStream.close();
 
-            MediaStore.Images.Media.insertImage(getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
+           // MediaStore.Images.Media.insertImage(getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             Toast.makeText(this, "Falha ao salvar", Toast.LENGTH_SHORT).show();
