@@ -4,6 +4,7 @@
 //
 package org.opencv.objdetect;
 
+import java.io.Serializable;
 import java.lang.String;
 import java.util.ArrayList;
 import org.opencv.core.Mat;
@@ -14,7 +15,9 @@ import org.opencv.core.Size;
 
 // C++: class CascadeClassifier
 //javadoc: CascadeClassifier
-public class CascadeClassifier {
+public class CascadeClassifier implements Serializable{
+    private static final long serialVersionUID = -3076977522780308455L;
+
 
     protected final long nativeObj;
     protected CascadeClassifier(long addr) { nativeObj = addr; }

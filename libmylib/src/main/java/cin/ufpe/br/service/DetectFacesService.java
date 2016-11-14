@@ -1,6 +1,5 @@
 package cin.ufpe.br.service;
 
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ public class DetectFacesService implements CloudletDetectFaces {
 		Mat mat = i.getMat();
 		MatOfRect matOfRect = new MatOfRect();
 		cascadeClassifier.detectMultiScale(mat, matOfRect);
-        Log.d(TAG, "Detected "+matOfRect.toArray().length+" faces");
+ //       Log.d(TAG, "Detected "+matOfRect.toArray().length+" faces");
 
 		return matOfRect;
 	}

@@ -10,8 +10,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/mpOSAPI" />
+            <option value="$PROJECT_DIR$/libmylib" />
+            <option value="$PROJECT_DIR$/mpOS" />
             <option value="$PROJECT_DIR$/openCVLibrary310" />
+            <option value="$PROJECT_DIR$/opencv310" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

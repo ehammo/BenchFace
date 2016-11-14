@@ -74,7 +74,7 @@ public class MainActivity extends Activity {
     @Inject(CutImageService.class)
     private CloudletCutImage corteNuvem;
 
-    //@Inject(DetectFacesService.class)
+    @Inject(DetectFacesService.class)
     private CloudletDetectFaces detectNuvem;
 
   //  @Inject(OverlayService.class)
