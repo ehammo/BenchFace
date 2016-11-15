@@ -1,11 +1,16 @@
 package org.opencv.core;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
 
-public class MatOfRect extends Mat {
-    // 32SC4
+public class MatOfRect extends Mat implements Serializable{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3980770466427441301L;
+	// 32SC4
     private static final int _depth = CvType.CV_32S;
     private static final int _channels = 4;
 
