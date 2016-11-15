@@ -16,6 +16,7 @@ import cin.ufpe.br.Interfaces.BlurImage;
 import cin.ufpe.br.Interfaces.CutImage;
 import cin.ufpe.br.Interfaces.DetectFaces;
 import cin.ufpe.br.Interfaces.Overlay;
+import cin.ufpe.br.Util.Input;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**
@@ -59,7 +60,7 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
         Mat mat = new Mat();
         Utils.bitmapToMat(originalImage, mat);
         //mat = Utils.loadResource(mContext,R.drawable.facedetection_13_5mp);
-        MatOfRect matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
+        MatOfRect matOfRect = serviceExtractFaces.detectarFaces(new Input(cascadeClassifier, mat));
 
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
         List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);

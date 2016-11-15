@@ -13,8 +13,7 @@ import cin.ufpe.br.model.PropriedadesFace;
  * Created by eduardo on 31/10/2016.
  */
 
-public interface DetectFaces {
-
+public interface CloudletDetectFaces extends DetectFaces {
     MatOfRect detectarFaces(Input i);
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
 }

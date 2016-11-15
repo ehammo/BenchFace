@@ -1,10 +1,29 @@
 package org.opencv.core;
 
+import java.io.IOException;
+import java.io.Serializable;
+
 // C++: class Mat
 //javadoc: Mat
-public class Mat {
+public class Mat implements Serializable{
 
-    public final long nativeObj;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1675646570625902640L;
+	public final long nativeObj;
+    public long aux;
+
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeLong(nativeObj);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        aux = (Long) stream.readLong();
+        this.setTo(new Mat(aux));
+    }
 
     public Mat(long addr)
     {
