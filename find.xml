@@ -1,7 +1,7 @@
 <application>
   <component name="FindSettings">
-    <option name="customScope" value="Project 'HideTheFaceAndroid'" />
-    <option name="defaultScopeName" value="Project 'HideTheFaceAndroid'" />
-    <option name="SEARCH_SCOPE" value="Project 'HideTheFaceAndroid'" />
+    <option name="customScope" value="Directory 'C:\HideTheFaceAndroid'" />
+    <option name="defaultScopeName" value="Directory 'C:\HideTheFaceAndroid'" />
+    <option name="SEARCH_SCOPE" value="Directory 'C:\HideTheFaceAndroid'" />
   </component>
 </application>
