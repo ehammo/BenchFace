@@ -1,7 +1,0 @@
-<application>
-  <component name="GithubSettings">
-    <option name="LOGIN" value="bjcCin" />
-    <option name="HOST" value="https://github.com/ehammo/HideTheFaceAndroid.git" />
-    <option name="AUTH_TYPE" value="BASIC" />
-  </component>
-</application>
