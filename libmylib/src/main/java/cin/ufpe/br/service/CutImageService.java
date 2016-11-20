@@ -18,8 +18,7 @@ public class CutImageService implements CloudletCutImage {
 //		return dados;
 //	}
 
-	public byte[] soma(int x, int y){
-		byte[] data = ByteBuffer.allocate(4).putInt(x).array();
-        return data;
+	public int soma(int x, int y){
+		return x+y;
 	}
 }
