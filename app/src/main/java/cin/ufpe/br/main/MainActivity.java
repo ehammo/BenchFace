@@ -52,8 +52,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.TimeZone;
 
-@MposConfig(endpointSecondary = "192.168.2.103")
-//@MposConfig
+//@MposConfig(endpointSecondary = "192.168.2.103")
+@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
     //@Inject(BlurImageService.class)
     private CloudletBlurImage desfoqueNuvem;
 
-    @Inject(CutImageService.class)
+    //@Inject(CutImageService.class)
     private CloudletCutImage corteNuvem;
 
     @Inject(DetectFacesService.class)

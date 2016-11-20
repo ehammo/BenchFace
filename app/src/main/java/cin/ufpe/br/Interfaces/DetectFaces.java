@@ -6,7 +6,6 @@ import org.opencv.objdetect.CascadeClassifier;
 
 import java.util.List;
 
-import cin.ufpe.br.Util.Input;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**
@@ -14,7 +13,7 @@ import cin.ufpe.br.model.PropriedadesFace;
  */
 
 public interface DetectFaces {
-
-    MatOfRect detectarFaces(Input i);
+    MatOfRect detectarFaces(String c, byte[] mat);
+    MatOfRect detectarFaces(CascadeClassifier cascadeClassifier, Mat mat);
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
 }

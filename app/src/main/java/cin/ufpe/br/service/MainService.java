@@ -9,14 +9,15 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.objdetect.CascadeClassifier;
 
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.BlurImage;
+import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.Interfaces.CutImage;
 import cin.ufpe.br.Interfaces.DetectFaces;
 import cin.ufpe.br.Interfaces.Overlay;
-import cin.ufpe.br.Util.Input;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**
@@ -60,8 +61,15 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
         Mat mat = new Mat();
         Utils.bitmapToMat(originalImage, mat);
         //mat = Utils.loadResource(mContext,R.drawable.facedetection_13_5mp);
-        MatOfRect matOfRect = serviceExtractFaces.detectarFaces(new Input(cascadeClassifier, mat));
-
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        this.originalImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        MatOfRect matOfRect;
+        if(serviceExtractFaces instanceof CloudletDetectFaces) {
+            matOfRect = serviceExtractFaces.detectarFaces("haarcascade_frontalface_alt_tree", byteArray);
+        }else {
+            matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
+        }
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
         List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
 
@@ -71,8 +79,6 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
 
         //corta os rostos da imagem desfocada,
        // serviceCrop = new CutImageService();
-        byte[] z = serviceCrop.soma(1,1);
-        Log.d(TAG, ""+z);
         propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
 
         serviceOverlay = new OverlayService();

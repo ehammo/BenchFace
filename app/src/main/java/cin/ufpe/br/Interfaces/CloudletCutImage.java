@@ -15,6 +15,6 @@ public interface CloudletCutImage extends CutImage {
 
     byte[] soma(int x, int y);
 
-    @Remotable(value = Remotable.Offload.STATIC, status = true) 
+    //@Remotable(value = Remotable.Offload.STATIC, status = true)
     List<PropriedadesFace> CortarImagem(List<PropriedadesFace> dados, Bitmap imagem);
 }

@@ -40,6 +40,7 @@ public class DetectFacesService implements CloudletDetectFaces {
 			BufferedImage originalImage = ImageIO.read(in);
 			Mat mat = converterParaMat(originalImage);
 			cascadeClassifier.detectMultiScale(mat, matOfRect);
+			System.out.print("\nEle executou todo na nuvem e detectou "+matOfRect.size()+" faces\n");
 		}catch(Exception e){
             System.out.println(e.getStackTrace());
 		}
