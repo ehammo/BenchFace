@@ -1,5 +1,9 @@
 *.iml
 .gradle
+.idea
+/mpOS
+/opencv310
+/openCVLibrary310
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
