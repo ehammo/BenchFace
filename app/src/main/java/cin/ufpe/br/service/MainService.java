@@ -7,6 +7,7 @@ import android.util.Log;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
+import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.ByteArrayOutputStream;
@@ -64,14 +65,17 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         this.originalImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
         byte[] byteArray = stream.toByteArray();
-        MatOfRect matOfRect;
+        MatOfRect matOfRect = new MatOfRect();
+        List<PropriedadesFace> propsFaces=null;
+        //obtem os dados de onde estão as faces (altura, largura, posição x e y)
         if(serviceExtractFaces instanceof CloudletDetectFaces) {
-            matOfRect = serviceExtractFaces.detectarFaces("haarcascade_frontalface_alt_tree", byteArray);
+            propsFaces = serviceExtractFaces.detectarFaces("haarcascade_frontalface_alt_tree", byteArray);
+            Log.d(TAG, "faces detected1 "+propsFaces.size());
         }else {
             matOfRect = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
+            Log.d(TAG, "faces detected2 "+matOfRect.toArray().length);
         }
-        //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-        List<PropriedadesFace> propsFaces = serviceExtractFaces.obterDadosFaces(matOfRect);
+        Log.d(TAG, "faces detected3 "+propsFaces.size());
 
         //desfoca a imagem
         Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);

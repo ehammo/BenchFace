@@ -25,9 +25,10 @@ import cin.ufpe.br.model.PropriedadesFace;
 public class DetectFacesService implements CloudletDetectFaces {
 	private static final String TAG="log";
 
-	public MatOfRect detectarFaces(String s, byte[] image){
+	public List<PropriedadesFace> detectarFaces(String s, byte[] image){
 		MatOfRect matOfRect = new MatOfRect();
 		try {
+			Log.d(TAG,"nao era pra eu entrar aki");
 			ByteArrayInputStream in = new ByteArrayInputStream(image);
 			Mat mat = new Mat();
 			Utils.bitmapToMat(BitmapFactory.decodeStream(in), mat);
@@ -37,7 +38,7 @@ public class DetectFacesService implements CloudletDetectFaces {
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally {
-			return matOfRect;
+			return obterDadosFaces(matOfRect);
 		}
 	}
 

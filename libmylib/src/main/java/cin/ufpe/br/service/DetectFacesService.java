@@ -30,8 +30,8 @@ import sun.rmi.runtime.Log;
 public class DetectFacesService implements CloudletDetectFaces {
 	private static final String TAG="log";
 
-	public MatOfRect detectarFaces(String alg, byte[] originalImageBytes){
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    public List<PropriedadesFace> detectarFaces(String alg, byte[] originalImageBytes){
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         MatOfRect matOfRect = new MatOfRect();
 		try {
             CascadeService cascadeService = new CascadeService();
@@ -45,7 +45,8 @@ public class DetectFacesService implements CloudletDetectFaces {
             System.out.println(e.getStackTrace());
 		}
 		finally {
-			return matOfRect;
+			System.out.print("\nEle executou todo na nuvem e detectou2 "+matOfRect.size()+" faces\n");
+			return obterDadosFaces(matOfRect);
 		}
 	}
 	

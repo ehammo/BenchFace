@@ -2,6 +2,7 @@ package cin.ufpe.br.service;
 
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class OverlayService implements CloudletOverlay {
 	public Bitmap juntarImagens(List<PropriedadesFace> dados, Bitmap imagemPrincipal){
 		
 		for(PropriedadesFace dado: dados){
-			imagemPrincipal = juntarUmaImage(imagemPrincipal, dado.getImageCortada(),dado.getX(),dado.getY());
+			imagemPrincipal = juntarUmaImage(imagemPrincipal, BitmapFactory.decodeByteArray(dado.getImageCortada(),0,dado.getImageCortada().length),dado.getX(),dado.getY());
 		}
 		
 		return imagemPrincipal;

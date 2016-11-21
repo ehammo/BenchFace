@@ -1,14 +1,17 @@
 package cin.ufpe.br.model;
 
 
-import android.graphics.Bitmap;
 
-public class PropriedadesFace {
+import java.io.Serializable;
+
+public class PropriedadesFace implements Serializable{
+	private static final long serialVersionUID = 8407202047971608648L;
+
 	private int x;
 	private int y;
 	private int width;
 	private int height;
-	private Bitmap imageCortada;
+	private byte[] imageCortada;
 
 	public int getX() {
 		return x;
@@ -34,10 +37,10 @@ public class PropriedadesFace {
 	public void setHeight(int height) {
 		this.height = height;
 	}
-	public Bitmap getImageCortada() {
+	public byte[] getImageCortada() {
 		return imageCortada;
 	}
-	public void setImageCortada(Bitmap imageCortada) {
+	public void setImageCortada(byte[] imageCortada) {
 		this.imageCortada = imageCortada;
 	}
 }
