@@ -11,6 +11,6 @@ import cin.ufpe.br.model.PropriedadesFace;
  */
 
 public interface CutImage {
-    byte[] soma(int x, int y);
+    List<PropriedadesFace> CortarImagem(List<PropriedadesFace> dados, byte[] imagem);
     List<PropriedadesFace> CortarImagem(List<PropriedadesFace> dados, Bitmap imagem);
 }

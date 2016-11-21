@@ -49,12 +49,7 @@ public class DetectFacesService implements CloudletDetectFaces {
 			return obterDadosFaces(matOfRect);
 		}
 	}
-	
-	/***
-	 * 
-	 * @param matOfRect
-	 * @return
-	 */
+
 	public List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect){
 		
 		List<PropriedadesFace> dados = new ArrayList<PropriedadesFace>();

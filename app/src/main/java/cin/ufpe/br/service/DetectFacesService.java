@@ -17,16 +17,11 @@ import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
 
-/***
- * 
- * @author Rafael Guinho
- *
- */
 public class DetectFacesService implements CloudletDetectFaces {
 	private static final String TAG="log";
 
 	public List<PropriedadesFace> detectarFaces(String s, byte[] image){
-		MatOfRect matOfRect = new MatOfRect();
+		List<PropriedadesFace> dados = null;
 		try {
 			Log.d(TAG,"nao era pra eu entrar aki");
 			ByteArrayInputStream in = new ByteArrayInputStream(image);
@@ -34,27 +29,22 @@ public class DetectFacesService implements CloudletDetectFaces {
 			Utils.bitmapToMat(BitmapFactory.decodeStream(in), mat);
 			CascadeService cs = new CascadeService();
 			CascadeClassifier c = cs.loadCascade(0,s,null);
-			matOfRect = detectarFaces(c, mat);
+			dados = detectarFaces(c, mat);
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally {
-			return obterDadosFaces(matOfRect);
+			return dados;
 		}
 	}
 
-	public MatOfRect detectarFaces(CascadeClassifier cascadeClassifier, Mat mat){
+	public List<PropriedadesFace> detectarFaces(CascadeClassifier cascadeClassifier, Mat mat){
 		MatOfRect matOfRect = new MatOfRect();
 		cascadeClassifier.detectMultiScale(mat, matOfRect);
         Log.d(TAG, "Detected "+matOfRect.toArray().length+" faces");
 
-		return matOfRect;
+		return obterDadosFaces(matOfRect);
 	}
-	
-	/***
-	 * 
-	 * @param matOfRect
-	 * @return
-	 */
+
 	public List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect){
 		
 		List<PropriedadesFace> dados = new ArrayList<PropriedadesFace>();

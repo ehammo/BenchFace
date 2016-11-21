@@ -12,9 +12,5 @@ import cin.ufpe.br.model.PropriedadesFace;
  */
 
 public interface CloudletCutImage extends CutImage {
-
-    byte[] soma(int x, int y);
-
-    //@Remotable(value = Remotable.Offload.STATIC, status = true)
-    List<PropriedadesFace> CortarImagem(List<PropriedadesFace> dados, Bitmap imagem);
+    List<PropriedadesFace> CortarImagem(List<PropriedadesFace> dados, byte[] imagem);
 }
