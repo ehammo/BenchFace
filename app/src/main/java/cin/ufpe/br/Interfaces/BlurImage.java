@@ -12,7 +12,7 @@ public interface BlurImage {
 
     Mat Desfocar(Mat image);
 
-    byte[] DesfocarImagem(byte[] mat);
+    byte[] DesfocarImagem(byte[] image,int height, int width,int type);
 
-    byte[] Desfocar(byte[] image);
+    byte[] Desfocar(byte[] image,int height, int width,int type);
 }

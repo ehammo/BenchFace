@@ -29,5 +29,16 @@ public class OverlayService implements CloudletOverlay {
         canvas.drawBitmap(imagemCortada,x,y,null);
         return overlayBitmap;
     }
-	
+
+	public byte[] juntarImagens(List<PropriedadesFace> dados, byte[] imagemPrincipal){
+
+		return null;
+
+	}
+
+	public byte[] juntarUmaImage(byte[] imagemPrincipal, byte[] imagemCortada, int x, int y) {
+
+		return null;
+	}
+
 }

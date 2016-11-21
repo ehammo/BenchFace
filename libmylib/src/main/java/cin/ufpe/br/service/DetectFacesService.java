@@ -20,13 +20,7 @@ import javax.imageio.ImageIO;
 
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.model.PropriedadesFace;
-import sun.rmi.runtime.Log;
 
-/***
- * 
- * @author Rafael Guinho
- *
- */
 public class DetectFacesService implements CloudletDetectFaces {
 	private static final String TAG="log";
 

@@ -7,6 +7,6 @@ import org.opencv.core.Mat;
  */
 
 public interface CloudletBlurImage extends BlurImage {
-    byte[] DesfocarImagem(byte[] mat);
-    byte[] Desfocar(byte[] image);
+    byte[] DesfocarImagem(byte[] image,int height, int width,int type);
+    byte[] Desfocar(byte[] image,int height, int width,int type);
 }

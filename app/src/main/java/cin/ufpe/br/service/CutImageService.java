@@ -23,9 +23,9 @@ public class CutImageService implements CloudletCutImage {
 		
 		return dados;
 	}
+	public List<PropriedadesFace> CortarImagem(List<PropriedadesFace> dados, byte[] imagem){
 
-	public byte[] soma(int x, int y){
-		byte[] data = ByteBuffer.allocate(4).putInt(x).array();
-        return data;
+		return null;
 	}
+
 }
