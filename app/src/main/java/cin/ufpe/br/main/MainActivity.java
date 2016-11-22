@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
     private Cascade cascadeLocal;
     private MainService main;
     private MainServiceNuvem mainNuvem;
+    int teste;
     //@Inject(BlurImageService.class)
     private CloudletBlurImage desfoqueNuvem;
 
@@ -477,7 +478,9 @@ public class MainActivity extends Activity {
     public byte[] Bitmap2Byte(Bitmap b){
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         b.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        teste =2;
         return stream.toByteArray();
+
     }
 
     public void onRadioButtonClicked(View view) {
