@@ -18,7 +18,7 @@ public interface CloudletDetectFaces extends DetectFaces {
 
 
     @Remotable(value = Remotable.Offload.STATIC, status = true)
-    List<PropriedadesFace> detectarFaces(String cascadeClassifier, byte[] originalImage);
+    PropriedadesFace detectarFaces(String cascadeClassifier, byte[] originalImage);
 
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
 }

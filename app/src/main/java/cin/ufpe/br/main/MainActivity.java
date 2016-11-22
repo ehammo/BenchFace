@@ -135,11 +135,7 @@ public class MainActivity extends Activity {
                             case 1:
                                 TimeStarted = System.nanoTime();
                                 //cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
-                                if (cascadeClassifier != null) {
-                                    Log.d(TAG, "Loaded cascade classifier");
-                                    mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
-                                }
+                                mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 break;
                             case 2:
                                 TimeStarted = System.nanoTime();

@@ -4,6 +4,7 @@ package cin.ufpe.br.service;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,27 +21,52 @@ import javax.imageio.ImageIO;
 
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.model.PropriedadesFace;
+import cin.ufpe.br.model.PropriedadesFace2;
 
 public class DetectFacesService implements CloudletDetectFaces {
 	private static final String TAG="log";
 
-    public List<PropriedadesFace> detectarFaces(String alg, byte[] originalImageBytes){
+    public PropriedadesFace detectarFaces(String alg, byte[] originalImageBytes){
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        MatOfRect matOfRect = new MatOfRect();
+		PropriedadesFace ret = new PropriedadesFace();
 		try {
             CascadeService cascadeService = new CascadeService();
             CascadeClassifier cascadeClassifier = cascadeService.loadCascade(alg);
 			ByteArrayInputStream in = new ByteArrayInputStream(originalImageBytes);
 			BufferedImage originalImage = ImageIO.read(in);
 			Mat mat = converterParaMat(originalImage);
+            MatOfRect matOfRect = new MatOfRect();
 			cascadeClassifier.detectMultiScale(mat, matOfRect);
 			System.out.print("\nEle executou todo na nuvem e detectou "+matOfRect.size()+" faces\n");
+
+
+			BlurImageService serviceBlur = new BlurImageService();
+
+			//desfoca a imagem
+			BufferedImage imagemBorrada = serviceBlur.DesfocarImagem(mat);
+
+			//corta os rostos da imagem desfocada,
+			CutImageService serviceCrop = new CutImageService();
+			List<PropriedadesFace2> propsFaces = serviceCrop.CortarImagem(obterDadosFaces(matOfRect), imagemBorrada);
+			OverlayService serviceOverlay = new OverlayService();
+
+			//"cola" os rostos desfocados sobre a imagem original
+			BufferedImage imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+			ret.setFaces(propsFaces.size());
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write( imagemCorteDesfoque, "jpg", baos );
+            baos.flush();
+            byte[] imageInByte = baos.toByteArray();
+            baos.close();
+
+            ret.setImagemFinal(imageInByte);
+
 		}catch(Exception e){
             System.out.println(e.getStackTrace());
 		}
 		finally {
-			System.out.print("\nEle executou todo na nuvem e detectou2 "+matOfRect.size()+" faces\n");
-			return obterDadosFaces(matOfRect);
+			return ret;
 		}
 	}
 
