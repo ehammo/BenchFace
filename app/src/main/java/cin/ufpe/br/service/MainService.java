@@ -11,6 +11,7 @@ import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
@@ -37,6 +38,7 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
     CascadeClassifier cascadeClassifier;
     TaskResultAdapter taskResultAdapter;
     Bitmap result;
+    private DecimalFormat precision = new DecimalFormat("0.0000");
 
     public MainService(Bitmap originalImage, cin.ufpe.br.Interfaces.DetectFaces serviceExtractFaces, BlurImage serviceBlur, CutImage serviceCrop, Overlay serviceOverlay, CascadeClassifier cascadeClassifier, TaskResultAdapter taskAdapter){
         this.originalImage=originalImage;
@@ -61,38 +63,27 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
         Log.d(TAG, "\nRunning FaceDetector");
         Mat mat = new Mat();
         Utils.bitmapToMat(originalImage, mat);
-        //mat = Utils.loadResource(mContext,R.drawable.facedetection_13_5mp);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        this.originalImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-        MatOfRect matOfRect = new MatOfRect();
         List<PropriedadesFace> propsFaces=null;
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-        if(serviceExtractFaces instanceof CloudletDetectFaces) {
-            propsFaces = serviceExtractFaces.detectarFaces("haarcascade_frontalface_alt_tree", byteArray);
-            Log.d(TAG, "faces detected1 "+propsFaces.size());
-        }else {
-            propsFaces = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
-            Log.d(TAG, "faces detected2 "+matOfRect.toArray().length);
-        }
-        Log.d(TAG, "faces detected3 "+propsFaces.size());
-
-        //desfoca a imagem
-        Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
-
-        //corta os rostos da imagem desfocada,
-       // serviceCrop = new CutImageService();
-        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
-
-        serviceOverlay = new OverlayService();
-
-        //"cola" os rostos desfocados sobre a imagem original
-        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
-        Log.d("teste","deu tudo certo");
-        Log.d("teste","qtd de faces: "+propsFaces.size());
+        propsFaces = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
+//        Log.d(TAG, "faces detected3 "+propsFaces.size());
+//
+//        //desfoca a imagem
+//        Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
+//        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
+//
+//        //corta os rostos da imagem desfocada,
+//       // serviceCrop = new CutImageService();
+//        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
+//
+//        serviceOverlay = new OverlayService();
+//
+//        //"cola" os rostos desfocados sobre a imagem original
+//        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+//        Log.d("teste","deu tudo certo");
+//        Log.d("teste","qtd de faces: "+propsFaces.size());
         faces = propsFaces.size();
-        return imagemCorteDesfoque;
+        return this.originalImage;
     }
 
     public int getNumFaces(){

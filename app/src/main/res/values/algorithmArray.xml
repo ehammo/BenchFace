@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="algorithm_array">
-        <item>frontalface_alt_tree</item>
-        <item>frontalface_alt</item>
-        <item>frontalface_alt2</item>
-        <item>frontalface_default</item>
+        <item>alt_tree</item>
+        <item>alt</item>
+        <item>alt2</item>
+        <item>default</item>
     </string-array>
 </resources>
