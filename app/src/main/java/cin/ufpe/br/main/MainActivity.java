@@ -121,13 +121,13 @@ public class MainActivity extends Activity {
                     // Load native library after(!) OpenCV initialization
                     try{
                         Log.d(TAG, "config: "+config);
-                        TimeStarted = System.nanoTime();
-                        cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
-                        main = new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter);
                         mainNuvem = new MainServiceNuvem(Bitmap2Byte(originalImage), detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,algorithm,taskAdapter);
-                        switch (config){
+                        switch (config) {
                             case 0:
-                                if(cascadeClassifier!=null) {
+                                TimeStarted = System.nanoTime();
+                                cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
+                                main = new MainService(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier, taskAdapter);
+                                if (cascadeClassifier != null) {
                                     Log.d(TAG, "Loaded cascade classifier");
                                     main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
@@ -135,22 +135,17 @@ public class MainActivity extends Activity {
                             case 1:
                                 TimeStarted = System.nanoTime();
                                 //cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
-                                if(cascadeClassifier!=null){
+                                if (cascadeClassifier != null) {
                                     Log.d(TAG, "Loaded cascade classifier");
                                     mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
                                 }
                                 break;
                             case 2:
-                                cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
-                                if(cascadeClassifier!=null) {
-                                    Log.d(TAG, "Loaded cascade classifier");
-                                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                }
-                                break;
-                            default:
-                                cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
-                                if(cascadeClassifier!=null) {
+                                TimeStarted = System.nanoTime();
+                                cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
+                                main = new MainService(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier, taskAdapter);
+                                if (cascadeClassifier != null) {
                                     Log.d(TAG, "Loaded cascade classifier");
                                     main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
