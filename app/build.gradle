@@ -7,8 +7,8 @@ android {
         applicationId "cin.ufpe.br.main"
         minSdkVersion 14
         targetSdkVersion 24
-        versionCode 19
-        versionName "1.1.8"
+        versionCode 20
+        versionName "1.1.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

@@ -121,19 +121,20 @@ public class MainActivity extends Activity {
                     // Load native library after(!) OpenCV initialization
                     try{
                         Log.d(TAG, "config: "+config);
-                        cascadeClassifier=null;
+                        TimeStarted = System.nanoTime();
+                        cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                         main = new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter);
                         mainNuvem = new MainServiceNuvem(Bitmap2Byte(originalImage), detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,algorithm,taskAdapter);
                         switch (config){
                             case 0:
-                                cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null) {
                                     Log.d(TAG, "Loaded cascade classifier");
                                     main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
                                 break;
                             case 1:
-                                cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
+                                TimeStarted = System.nanoTime();
+                                //cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null){
                                     Log.d(TAG, "Loaded cascade classifier");
                                     mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);

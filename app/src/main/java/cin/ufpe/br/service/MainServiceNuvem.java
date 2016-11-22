@@ -1,6 +1,7 @@
 package cin.ufpe.br.service;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -10,6 +11,7 @@ import org.opencv.core.MatOfRect;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
@@ -36,6 +38,7 @@ public final class MainServiceNuvem extends AsyncTask<Void, String, Bitmap> {
     String cascadeClassifier;
     TaskResultAdapter taskResultAdapter;
     Bitmap result;
+    private DecimalFormat precision = new DecimalFormat("0.0000");
 
     public MainServiceNuvem(byte[] originalImage, DetectFaces serviceExtractFaces, BlurImage serviceBlur, CutImage serviceCrop, Overlay serviceOverlay, String cascadeClassifier, TaskResultAdapter taskAdapter){
         this.originalImage=originalImage;
@@ -62,25 +65,29 @@ public final class MainServiceNuvem extends AsyncTask<Void, String, Bitmap> {
         List<PropriedadesFace> propsFaces=null;
 
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-        propsFaces = serviceExtractFaces.detectarFaces("haarcascade_frontalface_alt_tree", this.originalImage);
-        Log.d(TAG, "faces detected3 "+propsFaces.size());
+        propsFaces = serviceExtractFaces.detectarFaces(this.cascadeClassifier, this.originalImage);
 
-        //desfoca a imagem
-        Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
+
+//        //desfoca a imagem
+//        Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
+//        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
 
         //corta os rostos da imagem desfocada,
        // serviceCrop = new CutImageService();
-        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
-
-        serviceOverlay = new OverlayService();
-
-        //"cola" os rostos desfocados sobre a imagem original
-       // imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
-        Log.d("teste","deu tudo certo");
-        Log.d("teste","qtd de faces: "+propsFaces.size());
+//        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
+//        serviceOverlay = new OverlayService();
+//
+//        //"cola" os rostos desfocados sobre a imagem original
+//       // imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+//        Log.d("teste","deu tudo certo");
+//        Log.d("teste","qtd de faces: "+propsFaces.size());
         faces = propsFaces.size();
-        return imagemCorteDesfoque;
+        long timeB = System.nanoTime();
+        Bitmap b = BitmapFactory.decodeByteArray(this.originalImage,0,this.originalImage.length);
+        long tt = System.nanoTime();
+        double tempo = (tt-timeB)/ 1000000000.0;
+        Log.d(TAG, "tempo de decode: "+precision.format(tempo));
+        return b;
     }
 
     public int getNumFaces(){
