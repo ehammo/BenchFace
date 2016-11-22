@@ -20,18 +20,12 @@ import javax.imageio.ImageIO;
 
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.model.PropriedadesFace;
-import sun.rmi.runtime.Log;
 
-/***
- * 
- * @author Rafael Guinho
- *
- */
 public class DetectFacesService implements CloudletDetectFaces {
 	private static final String TAG="log";
 
-	public MatOfRect detectarFaces(String alg, byte[] originalImageBytes){
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    public List<PropriedadesFace> detectarFaces(String alg, byte[] originalImageBytes){
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         MatOfRect matOfRect = new MatOfRect();
 		try {
             CascadeService cascadeService = new CascadeService();
@@ -40,19 +34,16 @@ public class DetectFacesService implements CloudletDetectFaces {
 			BufferedImage originalImage = ImageIO.read(in);
 			Mat mat = converterParaMat(originalImage);
 			cascadeClassifier.detectMultiScale(mat, matOfRect);
+			System.out.print("\nEle executou todo na nuvem e detectou "+matOfRect.size()+" faces\n");
 		}catch(Exception e){
             System.out.println(e.getStackTrace());
 		}
 		finally {
-			return matOfRect;
+			System.out.print("\nEle executou todo na nuvem e detectou2 "+matOfRect.size()+" faces\n");
+			return obterDadosFaces(matOfRect);
 		}
 	}
-	
-	/***
-	 * 
-	 * @param matOfRect
-	 * @return
-	 */
+
 	public List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect){
 		
 		List<PropriedadesFace> dados = new ArrayList<PropriedadesFace>();

@@ -13,4 +13,6 @@ import cin.ufpe.br.model.PropriedadesFace;
 public interface Overlay {
     Bitmap juntarImagens(List<PropriedadesFace> dados, Bitmap imagemPrincipal);
     Bitmap juntarUmaImage(Bitmap imagemPrincipal, Bitmap imagemCortada, int x, int y);
+    byte[] juntarImagens(List<PropriedadesFace> dados, byte[] imagemPrincipal);
+    byte[] juntarUmaImage(byte[] imagemPrincipal, byte[] imagemCortada, int x, int y);
 }

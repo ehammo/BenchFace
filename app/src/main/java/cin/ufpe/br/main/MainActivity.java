@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -52,8 +53,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.TimeZone;
 
-@MposConfig(endpointSecondary = "192.168.2.103")
-//@MposConfig
+//@MposConfig(endpointSecondary = "192.168.2.103")
+@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
@@ -67,11 +68,12 @@ public class MainActivity extends Activity {
     private DetectFaces detectLocal;
     private Overlay overlayLocal;
     private Cascade cascadeLocal;
-
+    private MainService main;
+    private MainServiceNuvem mainNuvem;
     //@Inject(BlurImageService.class)
     private CloudletBlurImage desfoqueNuvem;
 
-    @Inject(CutImageService.class)
+    //@Inject(CutImageService.class)
     private CloudletCutImage corteNuvem;
 
     @Inject(DetectFacesService.class)
@@ -120,20 +122,21 @@ public class MainActivity extends Activity {
                     try{
                         Log.d(TAG, "config: "+config);
                         cascadeClassifier=null;
+                        main = new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter);
+                        mainNuvem = new MainServiceNuvem(Bitmap2Byte(originalImage), detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,algorithm,taskAdapter);
                         switch (config){
                             case 0:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null) {
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
+                                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
                                 break;
                             case 1:
                                 cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null){
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    new MainService(originalImage, detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                    mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
                                 }
                                 break;
@@ -141,14 +144,14 @@ public class MainActivity extends Activity {
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null) {
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
                                 break;
                             default:
                                 cascadeClassifier = cascadeLocal.loadCascade(alg,algorithm,mContext);
                                 if(cascadeClassifier!=null) {
                                     Log.d(TAG, "Loaded cascade classifier");
-                                    new MainService(originalImage, detectLocal, desfoqueLocal,corteLocal, overlayLocal, cascadeClassifier,taskAdapter).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 }
                                 break;
                         }
@@ -181,6 +184,12 @@ public class MainActivity extends Activity {
         public void completedTask(Bitmap obj) {
             if (obj != null) {
                 imagemCorteDesfoque = obj;
+                if(config==1){
+                    faces = mainNuvem.getNumFaces();
+                }else{
+                    faces = main.getNumFaces();
+                }
+
                 changeCSV();
             } else {
                 TextView tv_status = (TextView) findViewById(R.id.textStatus);
@@ -467,6 +476,12 @@ public class MainActivity extends Activity {
         dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
         dataString += "\n";
         id++;
+    }
+
+    public byte[] Bitmap2Byte(Bitmap b){
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        b.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        return stream.toByteArray();
     }
 
     public void onRadioButtonClicked(View view) {

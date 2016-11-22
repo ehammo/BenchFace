@@ -7,7 +7,6 @@ import android.util.Log;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
-import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.ByteArrayOutputStream;
@@ -25,20 +24,20 @@ import cin.ufpe.br.model.PropriedadesFace;
  * Created by eduardo on 31/10/2016.
  */
 
-public final class MainService extends AsyncTask<Void, String, Bitmap> {
+public final class MainServiceNuvem extends AsyncTask<Void, String, Bitmap> {
 
     private String TAG = "teste";
     public int faces;
-    Bitmap originalImage;
+    byte[] originalImage;
     DetectFaces serviceExtractFaces;
     BlurImage serviceBlur;
     CutImage serviceCrop;
     Overlay serviceOverlay;
-    CascadeClassifier cascadeClassifier;
+    String cascadeClassifier;
     TaskResultAdapter taskResultAdapter;
     Bitmap result;
 
-    public MainService(Bitmap originalImage, cin.ufpe.br.Interfaces.DetectFaces serviceExtractFaces, BlurImage serviceBlur, CutImage serviceCrop, Overlay serviceOverlay, CascadeClassifier cascadeClassifier, TaskResultAdapter taskAdapter){
+    public MainServiceNuvem(byte[] originalImage, DetectFaces serviceExtractFaces, BlurImage serviceBlur, CutImage serviceCrop, Overlay serviceOverlay, String cascadeClassifier, TaskResultAdapter taskAdapter){
         this.originalImage=originalImage;
         this.serviceBlur=serviceBlur;
         this.serviceCrop=serviceCrop;
@@ -60,21 +59,10 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
     public Bitmap begin(){
         Log.d(TAG, "\nRunning FaceDetector");
         Mat mat = new Mat();
-        Utils.bitmapToMat(originalImage, mat);
-        //mat = Utils.loadResource(mContext,R.drawable.facedetection_13_5mp);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        this.originalImage.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
-        MatOfRect matOfRect = new MatOfRect();
         List<PropriedadesFace> propsFaces=null;
+
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-        if(serviceExtractFaces instanceof CloudletDetectFaces) {
-            propsFaces = serviceExtractFaces.detectarFaces("haarcascade_frontalface_alt_tree", byteArray);
-            Log.d(TAG, "faces detected1 "+propsFaces.size());
-        }else {
-            propsFaces = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
-            Log.d(TAG, "faces detected2 "+matOfRect.toArray().length);
-        }
+        propsFaces = serviceExtractFaces.detectarFaces("haarcascade_frontalface_alt_tree", this.originalImage);
         Log.d(TAG, "faces detected3 "+propsFaces.size());
 
         //desfoca a imagem
@@ -88,7 +76,7 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
         serviceOverlay = new OverlayService();
 
         //"cola" os rostos desfocados sobre a imagem original
-        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
+       // imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
         Log.d("teste","deu tudo certo");
         Log.d("teste","qtd de faces: "+propsFaces.size());
         faces = propsFaces.size();

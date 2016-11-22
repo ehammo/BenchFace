@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 import cin.ufpe.br.Interfaces.CloudletCascade;
+import cin.ufpe.br.main.MainActivity;
 
 /**
  * Created by eduardo on 31/10/2016.
@@ -38,5 +39,6 @@ public class CascadeService implements CloudletCascade {
             cascadeClassifier.load(mCascadeFile.getAbsolutePath());
             return  cascadeClassifier;
     }
+
 
 }

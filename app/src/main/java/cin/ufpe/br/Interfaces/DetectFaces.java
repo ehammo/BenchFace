@@ -2,11 +2,11 @@ package cin.ufpe.br.Interfaces;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
+import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.util.List;
 
-import cin.ufpe.br.Util.Input;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**
@@ -14,7 +14,7 @@ import cin.ufpe.br.model.PropriedadesFace;
  */
 
 public interface DetectFaces {
-
-    MatOfRect detectarFaces(Input i);
+    List<PropriedadesFace> detectarFaces(String cascadeClassifier, byte[] originalImage);
+    List<PropriedadesFace> detectarFaces(CascadeClassifier cascadeClassifier, Mat mat);
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
 }

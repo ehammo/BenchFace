@@ -1,6 +1,7 @@
 package cin.ufpe.br.service;
 
 
+import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -23,6 +24,17 @@ public class BlurImageService implements CloudletBlurImage {
 		Imgproc.GaussianBlur(image, destination,new Size(45,45), 0);
 		
 		return destination;
+	}
+
+	public byte[] DesfocarImagem(byte[] im,int x, int y, int z){
+
+		return null;
+	}
+
+	public byte[] Desfocar(byte[] image,int x, int y, int z){
+
+
+		return null;
 	}
 	
 }

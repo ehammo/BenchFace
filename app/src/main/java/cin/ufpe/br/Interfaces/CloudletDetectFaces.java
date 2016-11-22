@@ -2,12 +2,12 @@ package cin.ufpe.br.Interfaces;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
+import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.util.List;
 
 import br.ufc.mdcc.mpos.offload.Remotable;
-import cin.ufpe.br.Util.Input;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**
@@ -18,6 +18,7 @@ public interface CloudletDetectFaces extends DetectFaces {
 
 
     @Remotable(value = Remotable.Offload.STATIC, status = true)
-    MatOfRect detectarFaces(Input i);
+    List<PropriedadesFace> detectarFaces(String cascadeClassifier, byte[] originalImage);
+
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
 }
