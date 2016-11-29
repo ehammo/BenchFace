@@ -65,29 +65,10 @@ public final class MainServiceNuvem extends AsyncTask<Void, String, Bitmap> {
         List<PropriedadesFace> propsFaces=null;
 
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-        propsFaces = serviceExtractFaces.detectarFaces(this.cascadeClassifier, this.originalImage);
-
-
-//        //desfoca a imagem
-//        Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-//        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
-
-        //corta os rostos da imagem desfocada,
-       // serviceCrop = new CutImageService();
-//        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
-//        serviceOverlay = new OverlayService();
-//
-//        //"cola" os rostos desfocados sobre a imagem original
-//       // imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
-//        Log.d("teste","deu tudo certo");
-//        Log.d("teste","qtd de faces: "+propsFaces.size());
-        faces = propsFaces.size();
-        long timeB = System.nanoTime();
-        Bitmap b = BitmapFactory.decodeByteArray(this.originalImage,0,this.originalImage.length);
-        long tt = System.nanoTime();
-        double tempo = (tt-timeB)/ 1000000000.0;
-        Log.d(TAG, "tempo de decode: "+precision.format(tempo));
-        return b;
+        PropriedadesFace b = serviceExtractFaces.detectarFaces(this.cascadeClassifier, this.originalImage);
+        faces = b.getFaces();
+        Bitmap ret = BitmapFactory.decodeByteArray(b.getImagemFinal(),0,b.getImagemFinal().length);
+        return ret;
     }
 
     public int getNumFaces(){

@@ -16,11 +16,12 @@ import org.opencv.objdetect.CascadeClassifier;
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
+import cin.ufpe.br.model.PropriedadesFace2;
 
 public class DetectFacesService implements CloudletDetectFaces {
 	private static final String TAG="log";
 
-	public List<PropriedadesFace> detectarFaces(String s, byte[] image){
+	public PropriedadesFace detectarFaces(String s, byte[] image){
 		List<PropriedadesFace> dados = null;
 		try {
 			Log.d(TAG,"nao era pra eu entrar aki");
@@ -30,10 +31,12 @@ public class DetectFacesService implements CloudletDetectFaces {
 			CascadeService cs = new CascadeService();
 			CascadeClassifier c = cs.loadCascade(0,s,null);
 			dados = detectarFaces(c, mat);
+
+
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally {
-			return dados;
+			return null;
 		}
 	}
 

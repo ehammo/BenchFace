@@ -4,7 +4,7 @@ package cin.ufpe.br.model;
 
 import java.io.Serializable;
 
-public class PropriedadesFace implements Serializable{
+public class PropriedadesFace2 extends PropriedadesFace implements Serializable{
 	private static final long serialVersionUID = 8407202047971608648L;
 
 	private int x;
@@ -13,7 +13,6 @@ public class PropriedadesFace implements Serializable{
 	private int height;
 	private int faces;
 	private byte[] imagemFinal;
-	private byte[] imageCortada;
 
     public int getX() {
         return x;
@@ -51,10 +50,5 @@ public class PropriedadesFace implements Serializable{
 	public void setHeight(int height) {
 		this.height = height;
 	}
-	public byte[] getImageCortada() {
-		return imageCortada;
-	}
-	public void setImageCortada(byte[] imageCortada) {
-		this.imageCortada = imageCortada;
-	}
+
 }

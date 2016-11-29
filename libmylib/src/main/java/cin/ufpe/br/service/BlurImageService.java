@@ -9,30 +9,31 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
-import cin.ufpe.br.Interfaces.CloudletBlurImage;
+import javax.imageio.ImageIO;
 
-public class BlurImageService implements CloudletBlurImage {
-	
-	public byte[] DesfocarImagem(byte[] mat,int height, int width,int type){
-		
-		mat = Desfocar(mat,height, width,type);
+public class BlurImageService {
 
-		return mat;
-	}
-	
-	public byte[] Desfocar(byte[] image,int height, int width, int type){
+	public BufferedImage DesfocarImagem(Mat mat){
 
+		mat = Desfocar(mat);
 
-		Mat destination = new Mat(height,width,type);
-
-		Imgproc.GaussianBlur(converterParaMat(image,height,width), destination,new Size(45,45), 0);
-		
-		return converterParaImage(destination);
+		return converterParaImage(mat);
 	}
 
-	public static byte[] converterParaImage(Mat image){
+	private Mat Desfocar(Mat image){
+
+		Mat destination = new Mat(image.rows(),image.cols(),image.type());
+
+		Imgproc.GaussianBlur(image, destination,new Size(45,45), 0);
+
+		return destination;
+	}
+
+	public static BufferedImage converterParaImage(Mat image){
 
 		MatOfByte bytemat = new MatOfByte();
 
@@ -40,7 +41,17 @@ public class BlurImageService implements CloudletBlurImage {
 
 		byte[] bytes = bytemat.toArray();
 
-		return bytes;
+		ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+
+		BufferedImage img=null;
+
+		try {
+			img = ImageIO.read(in);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return img;
 	}
 
 	public static Mat converterParaMat(byte[] pixels,int height, int width) {

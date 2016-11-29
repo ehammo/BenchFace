@@ -14,7 +14,7 @@ import cin.ufpe.br.model.PropriedadesFace;
  */
 
 public interface DetectFaces {
-    List<PropriedadesFace> detectarFaces(String cascadeClassifier, byte[] originalImage);
+    PropriedadesFace detectarFaces(String cascadeClassifier, byte[] originalImage);
     List<PropriedadesFace> detectarFaces(CascadeClassifier cascadeClassifier, Mat mat);
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
 }

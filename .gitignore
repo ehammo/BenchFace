@@ -9,5 +9,12 @@
 /.idea/libraries
 .DS_Store
 /build
+/_windows
+diff.xml
+gradle.run.settings.xml
+debugger.xml
+IntelliLang.xml
+ignore.xml
+web-browsers.xml
 /captures
 .externalNativeBuild

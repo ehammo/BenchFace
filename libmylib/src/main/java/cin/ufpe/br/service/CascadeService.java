@@ -13,7 +13,7 @@ import java.io.InputStream;
 public class CascadeService {
 
     public CascadeClassifier loadCascade(String algorithm) throws Exception{
-       System.out.print("oie2");
+       System.out.print("Creating Cascade Classifier");
        CascadeClassifier cascadeClassifier = new CascadeClassifier(System.getProperty("user.dir") + "\\" +algorithm+".xml");
        return  cascadeClassifier;
     }

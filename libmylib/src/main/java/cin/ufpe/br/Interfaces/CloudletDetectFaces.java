@@ -11,7 +11,7 @@ import cin.ufpe.br.model.PropriedadesFace;
  */
 
 public interface CloudletDetectFaces {
-    List<PropriedadesFace> detectarFaces(String cascadeClassifier, byte[] originalImage);
+    PropriedadesFace detectarFaces(String cascadeClassifier, byte[] originalImage);
 
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
 }
