@@ -7,8 +7,8 @@ android {
         applicationId "cin.ufpe.br.main"
         minSdkVersion 14
         targetSdkVersion 24
-        versionCode 21
-        versionName "1.2.1"
+        versionCode 22
+        versionName "1.2.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -28,6 +28,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.google.android.gms:play-services-appindexing:8.4.0'
-    compile project(':mpOS')
     compile project(':openCVLibrary310')
+    compile project(':mpOSCripto')
 }

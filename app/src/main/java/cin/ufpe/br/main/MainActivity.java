@@ -105,6 +105,7 @@ public class MainActivity extends Activity {
     private Bitmap originalImage;
     private Bitmap imagemCorteDesfoque;
     private Long TimeStarted;
+    private Double TotalTimeBenchmarking=(double)0;
     private Double TotalTime;
     private TextView time;
     private TextView statusTextView;
@@ -112,6 +113,7 @@ public class MainActivity extends Activity {
     private boolean quit;
     private int config;
     private int faces;
+    private int benchmarking=32;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -152,7 +154,7 @@ public class MainActivity extends Activity {
                         statusTextView.setText("Failed");
                         e.printStackTrace();
                     } finally {
-                        if (cascadeClassifier==null||cascadeClassifier.empty()) {
+                        if ((cascadeClassifier==null||cascadeClassifier.empty())&&config!=1) {
                             Log.e(TAG, "Failed to load cascade classifier");
                             cascadeClassifier = null;
                             statusTextView.setText("failed");
@@ -181,9 +183,26 @@ public class MainActivity extends Activity {
                     faces = mainNuvem.getNumFaces();
                 }else{
                     faces = main.getNumFaces();
-                }
 
+                }
                 changeCSV();
+                if(benchmarking<30){
+                    benchmarking++;
+                    time.setText("Time: ");
+                    statusTextView.setText("Processing ["+benchmarking+"/30]");
+                    imageView.setImageBitmap(originalImage);
+                    OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
+                }else if(benchmarking==30){
+                    timeText = precision.format(TotalTimeBenchmarking) + "s";
+                    TimeZone tz = TimeZone.getDefault();
+                    Calendar calendar = new GregorianCalendar(tz);
+                    Date now = new Date();
+                    calendar.setTime(now);
+                    dataString += "\"" + id + "\",\"" + 0 + "\",\"" + "Todos" + "\",\"" + "" + "\",\"" + timeText + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
+                    dataString += "\n";
+                    id++;
+                    benchmarking=1;
+                }
             } else {
                 TextView tv_status = (TextView) findViewById(R.id.textStatus);
                 tv_status.setText("Status: Algum Error na transmissão!");
@@ -258,22 +277,33 @@ public class MainActivity extends Activity {
                         alg = R.raw.haarcascade_frontalface_alt_tree;
                         algorithm = "haarcascade_frontalface_alt_tree";
                         Log.d(TAG, "" + alg);
+                        benchmarking=32;
                         break;
                     case 1:
                         alg = R.raw.haarcascade_frontalface_alt;
                         algorithm = "haarcascade_frontalface_alt";
                         Log.d(TAG, "" + alg);
+                        benchmarking=32;
                         break;
                     case 2:
                         alg = R.raw.haarcascade_frontalface_alt2;
                         algorithm = "haarcascade_frontalface_alt2";
                         Log.d(TAG, "" + alg);
+                        benchmarking=32;
                         break;
                     case 3:
                         alg = R.raw.haarcascade_frontalface_default;
                         algorithm = "haarcascade_frontalface_default";
                         Log.d(TAG, "" + alg);
+                        benchmarking=32;
                         break;
+                    case 4:
+                        alg = R.raw.haarcascade_frontalface_default;
+                        algorithm = "haarcascade_frontalface_default";
+                        Log.d(TAG, "" + alg);
+                        benchmarking=1;
+                        break;
+
                     default:
                         break;
                 }
@@ -320,12 +350,15 @@ public class MainActivity extends Activity {
 
     public void method() {
         TimeStarted = System.nanoTime();
-        statusTextView.setText("Processing");
+        imageView.setImageBitmap(originalImage);
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+        time.setText("Time: ");
+        statusTextView.setText("Processing");
+        if(benchmarking!=32) statusTextView.setText("Processing ["+benchmarking+"/30]");
     }
 
     public void exportCsv() {
-        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"Ilumination\",\"TimeSpent\",\"Battery\",\"Time\",\"Algorithm\",\"Execution\"";
+        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"TimeSpent\",\"Time\",\"Algorithm\",\"Execution\"";
         String combinedString = columnString + "\n" + dataString;
         File file = new File(this.getExternalCacheDir() + File.separator + "Data.csv");
 
@@ -456,17 +489,18 @@ public class MainActivity extends Activity {
         int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
         resolution = value+"MP";
         salvarImagem();
-        statusTextView.setText("Detected " + faces + " faces");
+        statusTextView.setText(faces + " faces");
         imageView.setImageBitmap(imagemCorteDesfoque);
         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
         Log.d(TAG, "Time spent " + precision.format(TotalTime));
-        timeText = "Time spent " + precision.format(TotalTime) + "s";
+        timeText = precision.format(TotalTime) + "s";
+        TotalTimeBenchmarking += TotalTime;
         time.setText(timeText);
         TimeZone tz = TimeZone.getDefault();
         Calendar calendar = new GregorianCalendar(tz);
         Date now = new Date();
         calendar.setTime(now);
-        dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + "??" + "\",\"" + timeText + "\",\"" + "??" + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
+        dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + timeText + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
         dataString += "\n";
         id++;
     }

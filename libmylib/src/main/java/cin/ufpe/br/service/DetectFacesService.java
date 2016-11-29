@@ -36,6 +36,7 @@ public class DetectFacesService implements CloudletDetectFaces {
 			BufferedImage originalImage = ImageIO.read(in);
 			Mat mat = converterParaMat(originalImage);
             MatOfRect matOfRect = new MatOfRect();
+            System.out.print("Detecting faces");
 			cascadeClassifier.detectMultiScale(mat, matOfRect);
 			System.out.print("\nEle executou todo na nuvem e detectou "+matOfRect.size()+" faces\n");
 
@@ -43,17 +44,21 @@ public class DetectFacesService implements CloudletDetectFaces {
 			BlurImageService serviceBlur = new BlurImageService();
 
 			//desfoca a imagem
+            System.out.print("Bluring image");
 			BufferedImage imagemBorrada = serviceBlur.DesfocarImagem(mat);
 
 			//corta os rostos da imagem desfocada,
 			CutImageService serviceCrop = new CutImageService();
+            System.out.print("Cutting blurred faces");
 			List<PropriedadesFace2> propsFaces = serviceCrop.CortarImagem(obterDadosFaces(matOfRect), imagemBorrada);
 			OverlayService serviceOverlay = new OverlayService();
 
 			//"cola" os rostos desfocados sobre a imagem original
+            System.out.print("Overlaying");
 			BufferedImage imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
 			ret.setFaces(propsFaces.size());
 
+            System.out.print("Transforming to bytes");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write( imagemCorteDesfoque, "jpg", baos );
             baos.flush();
