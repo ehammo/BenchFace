@@ -1,16 +1,25 @@
 package cin.ufpe.br.main;
 
 //android
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -22,10 +31,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,8 +65,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.TimeZone;
 
-//@MposConfig(endpointSecondary = "192.168.2.103")
-@MposConfig
+@MposConfig(endpointSecondary = "150.161.70.205")
+//@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
@@ -100,6 +112,7 @@ public class MainActivity extends Activity {
     private String timeText;
     private ImageView imageView;
     private Context mContext;
+    private Toolbar toolbar;                              // Declaring the Toolbar Object
 
     //Others
     private Bitmap originalImage;
@@ -114,6 +127,12 @@ public class MainActivity extends Activity {
     private int config;
     private int faces;
     private int benchmarking=32;
+
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -220,6 +239,11 @@ public class MainActivity extends Activity {
         statusTextView = (TextView) findViewById(R.id.textStatus);
         mContext = this;
         quit=false;
+
+//        getSupportActionBar().hide();
+//        toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
+//        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
+
 
         ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
 
@@ -333,8 +357,11 @@ public class MainActivity extends Activity {
         detectNuvem = new DetectFacesService();
         overlayLocal = new OverlayService();
         overlayNuvem = new OverlayService();
+        verifyStoragePermissions(this);
 
-
+        MenuInflater menuInflater = getMenuInflater();
+        //Menu menu =
+     //  menuInflater.inflate(R.menu.main,menu);
 
         MposFramework.getInstance().start(this);
         Log.d(TAG,"middleware started");
@@ -357,19 +384,65 @@ public class MainActivity extends Activity {
         if(benchmarking!=32) statusTextView.setText("Processing ["+benchmarking+"/30]");
     }
 
-    public void exportCsv() {
-        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"TimeSpent\",\"Time\",\"Algorithm\",\"Execution\"";
-        String combinedString = columnString + "\n" + dataString;
-        File file = new File(this.getExternalCacheDir() + File.separator + "Data.csv");
+    private String readFile(String file) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader (file));
+        String         line = null;
+        StringBuilder  stringBuilder = new StringBuilder();
+        String         ls = System.getProperty("line.separator");
 
         try {
-            FileOutputStream out = new FileOutputStream(file);
-            out.write(combinedString.getBytes());
-            out.close();
-        } catch (Exception e) {
+            while((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+                stringBuilder.append(ls);
+            }
+
+            return stringBuilder.toString();
+        } finally {
+            reader.close();
+        }
+    }
+
+    public void exportCsv() {
+        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"TimeSpent (s)\",\"Time\",\"Algorithm\",\"Execution\"";
+        String combinedString = columnString + "\n" + dataString;
+        File sdcard = Environment.getExternalStorageDirectory().getAbsoluteFile();
+        //Get the text file
+        File file = new File(sdcard + "/BenchFace_Data.csv");
+        Log.d(TAG, file.getAbsolutePath());
+        FileOutputStream out = null;
+        PrintWriter pw = null;
+        String oldData = "";
+        byte[] Data = null;
+
+        try{
+
+
+            if(file.exists()){
+                oldData = readFile(file.getAbsolutePath());
+                Data = (oldData + dataString).getBytes();
+            }else{
+                Data = combinedString.getBytes();
+            }
+
+            out = new FileOutputStream(file);
+//            pw = new PrintWriter(out);
+//            pw.write(Data) ;
+            out.write(Data);
+            dataString="";
+        }
+        catch (Exception e) {
             e.printStackTrace();
             Log.e("BROKEN", "Could not write file " + e.getMessage());
+        }finally {
+           // pw.close();
+            try{
+                out.close();
+            }catch(Exception e){
+                e.printStackTrace();
+                Log.e("BROKEN", "Could not write file " + e.getMessage());
+            }
         }
+
     }
 
     public static int calculateInSampleSize(
@@ -493,7 +566,7 @@ public class MainActivity extends Activity {
         imageView.setImageBitmap(imagemCorteDesfoque);
         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
         Log.d(TAG, "Time spent " + precision.format(TotalTime));
-        timeText = precision.format(TotalTime) + "s";
+        timeText = precision.format(TotalTime);
         TotalTimeBenchmarking += TotalTime;
         time.setText(timeText);
         TimeZone tz = TimeZone.getDefault();
@@ -556,6 +629,48 @@ public class MainActivity extends Activity {
                 }
                 break;
         }
+    }
+
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    1
+            );
+        }
+    }
+
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setMessage("Want to export Csv file?").setTitle("Export");
+        //Since the order that they appear is Neutral>Negative>Positive I change the content of each one
+        //So The negative is my neutral, the neutral is my positive and at last the positive is my negative
+        builder.setNegativeButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                exportCsv();
+                Toast.makeText(mContext, "Exported", Toast.LENGTH_LONG);
+          }
+        });
+        builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        return true;
     }
 
 }

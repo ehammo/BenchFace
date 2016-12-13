@@ -4,7 +4,7 @@ import android.content.Context;
 
 import org.opencv.objdetect.CascadeClassifier;
 
-import br.ufc.mdcc.mpos.offload.Remotable;
+import br.ufpe.cin.mpos.offload.Remotable;
 
 /**
  * Created by eduardo on 31/10/2016.

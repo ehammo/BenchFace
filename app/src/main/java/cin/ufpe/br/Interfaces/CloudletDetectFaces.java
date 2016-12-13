@@ -7,7 +7,7 @@ import org.opencv.objdetect.CascadeClassifier;
 
 import java.util.List;
 
-import br.ufc.mdcc.mpos.offload.Remotable;
+import br.ufpe.cin.mpos.offload.Remotable;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**

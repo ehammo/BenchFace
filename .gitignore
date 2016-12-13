@@ -2,6 +2,10 @@
 .gradle
 .idea
 /mpOS
+/mpOSAES128
+/mpOSAES192
+/mpOSAES256
+/mpOSAESeRSA
 /opencv310
 /openCVLibrary310
 /local.properties

@@ -1,4 +1,6 @@
 include ':app', ':opencv310', ':libmylib'
 include ':openCVLibrary310'
-include ':mpOS'
-include ':mpOSCripto'
+include ':mpOSAES128'
+include ':mpOSAES192'
+include ':mpOSAES256'
+include ':mpOSAESeRSA'
