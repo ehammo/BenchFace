@@ -4,6 +4,7 @@ package cin.ufpe.br.main;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -25,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -112,7 +114,7 @@ public class MainActivity extends Activity {
     private String timeText;
     private ImageView imageView;
     private Context mContext;
-    private Toolbar toolbar;                              // Declaring the Toolbar Object
+    private ProgressDialog mProgressDialog;
 
     //Others
     private Bitmap originalImage;
@@ -198,6 +200,8 @@ public class MainActivity extends Activity {
         public void completedTask(Bitmap obj) {
             if (obj != null) {
                 imagemCorteDesfoque = obj;
+                mProgressDialog.dismiss();
+                imageView.setVisibility(View.VISIBLE);
                 if(config==1){
                     faces = mainNuvem.getNumFaces();
                 }else{
@@ -208,7 +212,8 @@ public class MainActivity extends Activity {
                 if(benchmarking<30){
                     benchmarking++;
                     time.setText("Time: ");
-                    statusTextView.setText("Processing ["+benchmarking+"/30]");
+                    mProgressDialog.show();
+                    statusTextView.setText("["+benchmarking+"/30] Processing");
                     imageView.setImageBitmap(originalImage);
                     OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
                 }else if(benchmarking==30){
@@ -240,10 +245,10 @@ public class MainActivity extends Activity {
         mContext = this;
         quit=false;
 
-//        getSupportActionBar().hide();
-//        toolbar = (Toolbar) findViewById(R.id.tool_bar); // Attaching the layout to the toolbar object
-//        setSupportActionBar(toolbar);                   // Setting toolbar as the ActionBar with setSupportActionBar() call
-
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setMessage("Processing........");
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mProgressDialog.setCancelable(true);
 
         ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
 
@@ -377,11 +382,12 @@ public class MainActivity extends Activity {
 
     public void method() {
         TimeStarted = System.nanoTime();
-        imageView.setImageBitmap(originalImage);
+        imageView.setVisibility(View.INVISIBLE);
+        mProgressDialog.show();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
         time.setText("Time: ");
         statusTextView.setText("Processing");
-        if(benchmarking!=32) statusTextView.setText("Processing ["+benchmarking+"/30]");
+        if(benchmarking!=32) statusTextView.setText("["+benchmarking+"/30]"+ "Processing ");
     }
 
     private String readFile(String file) throws IOException {
@@ -567,6 +573,7 @@ public class MainActivity extends Activity {
         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
         Log.d(TAG, "Time spent " + precision.format(TotalTime));
         timeText = precision.format(TotalTime);
+        if(benchmarking>=30) timeText = precision.format(TotalTimeBenchmarking);
         TotalTimeBenchmarking += TotalTime;
         time.setText(timeText);
         TimeZone tz = TimeZone.getDefault();
