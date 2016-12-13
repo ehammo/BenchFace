@@ -213,7 +213,8 @@ public class MainActivity extends Activity {
                     benchmarking++;
                     time.setText("Time: ");
                     mProgressDialog.show();
-                    statusTextView.setText("["+benchmarking+"/30] Processing");
+                    imageView.setVisibility(View.INVISIBLE);
+                    statusTextView.setText("["+benchmarking+"/30]"+"\nProcessing");
                     imageView.setImageBitmap(originalImage);
                     OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
                 }else if(benchmarking==30){
@@ -387,7 +388,7 @@ public class MainActivity extends Activity {
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
         time.setText("Time: ");
         statusTextView.setText("Processing");
-        if(benchmarking!=32) statusTextView.setText("["+benchmarking+"/30]"+ "Processing ");
+        if(benchmarking!=32) statusTextView.setText("["+benchmarking+"/30]"+ "\nProcessing ");
     }
 
     private String readFile(String file) throws IOException {
@@ -409,10 +410,13 @@ public class MainActivity extends Activity {
     }
 
     public void exportCsv() {
-        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"TimeSpent (s)\",\"Time\",\"Algorithm\",\"Execution\"";
+        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"TimeSpent (s)\",\"Time\",\"Algorithm\",\"Execution\",\"Cpu Time\",\"Upload Time\",\"Download Time\"";
         String combinedString = columnString + "\n" + dataString;
         File sdcard = Environment.getExternalStorageDirectory().getAbsoluteFile();
-        //Get the text file
+
+
+
+
         File file = new File(sdcard + "/BenchFace_Data.csv");
         Log.d(TAG, file.getAbsolutePath());
         FileOutputStream out = null;
@@ -573,14 +577,27 @@ public class MainActivity extends Activity {
         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
         Log.d(TAG, "Time spent " + precision.format(TotalTime));
         timeText = precision.format(TotalTime);
-        if(benchmarking>=30) timeText = precision.format(TotalTimeBenchmarking);
         TotalTimeBenchmarking += TotalTime;
-        time.setText(timeText);
+        if(benchmarking>=30) timeText = precision.format(TotalTimeBenchmarking);
+        time.setText(timeText+"s");
+        if(TotalTime>=60){
+            int min = (int) Math.floor(TotalTime/60);
+            double sec = TotalTime - (min*60);
+            time.setText(min+"min e "+sec+"s");
+        }
+
         TimeZone tz = TimeZone.getDefault();
         Calendar calendar = new GregorianCalendar(tz);
         Date now = new Date();
         calendar.setTime(now);
-        dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + timeText + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
+
+        long cpu_time = MposFramework.getInstance().getEndpointController().rpcProfile.getExecutionCpuTime();
+        long download_time = MposFramework.getInstance().getEndpointController().rpcProfile.getDonwloadTime();
+        long upload_time = MposFramework.getInstance().getEndpointController().rpcProfile.getUploadTime();
+
+
+
+        dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + timeText + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\", \"" + cpu_time +"\", \"" + upload_time + "\", \"" + download_time + "\"";
         dataString += "\n";
         id++;
     }
