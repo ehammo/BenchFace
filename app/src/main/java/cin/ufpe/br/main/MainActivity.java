@@ -584,6 +584,10 @@ public class MainActivity extends Activity {
             int min = (int) Math.floor(TotalTime/60);
             double sec = TotalTime - (min*60);
             time.setText(min+"min e "+sec+"s");
+        }else if(TotalTimeBenchmarking>=60){
+            int min = (int) Math.floor(TotalTimeBenchmarking/60);
+            double sec = TotalTime - (min*60);
+            time.setText(min+"min e "+sec+"s");
         }
 
         TimeZone tz = TimeZone.getDefault();
