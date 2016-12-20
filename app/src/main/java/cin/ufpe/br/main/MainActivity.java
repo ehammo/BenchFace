@@ -11,12 +11,13 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,7 +27,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -35,10 +35,8 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.Calendar;
@@ -52,6 +50,8 @@ import br.ufc.mdcc.mpos.config.MposConfig;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.*;
 import cin.ufpe.br.Interfaces.Cascade;
+import cin.ufpe.br.Util.Data;
+import cin.ufpe.br.Util.ExportCsv;
 import cin.ufpe.br.service.*;
 import cin.ufpe.br.service.DetectFacesService;
 
@@ -59,7 +59,6 @@ import cin.ufpe.br.service.DetectFacesService;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
 import org.opencv.objdetect.CascadeClassifier;
 
 //file_related
@@ -74,9 +73,7 @@ public class MainActivity extends Activity {
     private static final String TAG = "teste";
 
     //OpenCv-Related
-    private File mCascadeFile;
     private CascadeClassifier cascadeClassifier;
-    private Mat mat;
     private BlurImage desfoqueLocal;
     private CutImage corteLocal;
     private DetectFaces detectLocal;
@@ -84,21 +81,13 @@ public class MainActivity extends Activity {
     private Cascade cascadeLocal;
     private MainService main;
     private MainServiceNuvem mainNuvem;
-    int teste;
-    //@Inject(BlurImageService.class)
     private CloudletBlurImage desfoqueNuvem;
-
-    //@Inject(CutImageService.class)
     private CloudletCutImage corteNuvem;
+    private CloudletOverlay overlayNuvem;
+    private CloudletCascade cascadeNuvem;
 
     @Inject(DetectFacesService.class)
     private CloudletDetectFaces detectNuvem;
-
-  //  @Inject(OverlayService.class)
-    private CloudletOverlay overlayNuvem;
-
-    //@Inject(CascadeService.class)
-    private CloudletCascade cascadeNuvem;
 
     //CSV-Related
     private int alg;
@@ -107,7 +96,7 @@ public class MainActivity extends Activity {
     private int id;
     private String dataString = "";
     private String Originalresolution;
-    private String resolution;
+    private Data data;
 
     //Android-Related
     private Button btn;
@@ -118,11 +107,12 @@ public class MainActivity extends Activity {
 
     //Others
     private Bitmap originalImage;
+    private byte[] originalImageByte;
     private Bitmap imagemCorteDesfoque;
     private Long TimeStarted;
     private Double TotalTimeBenchmarking=(double)0;
     private Double TotalTime;
-    private TextView time;
+    private TextView mTextView;
     private TextView statusTextView;
     private DecimalFormat precision = new DecimalFormat("0.0000");
     private boolean quit;
@@ -158,7 +148,6 @@ public class MainActivity extends Activity {
                                 break;
                             case 1:
                                 TimeStarted = System.nanoTime();
-                                //cascadeClassifier = cascadeNuvem.loadCascade(alg,algorithm,mContext);
                                 mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                 break;
                             case 2:
@@ -204,14 +193,16 @@ public class MainActivity extends Activity {
                 imageView.setVisibility(View.VISIBLE);
                 if(config==1){
                     faces = mainNuvem.getNumFaces();
+                    data.setFaces(mainNuvem.getNumFaces());
                 }else{
                     faces = main.getNumFaces();
+                    data.setFaces(main.getNumFaces());
 
                 }
                 changeCSV();
                 if(benchmarking<30){
                     benchmarking++;
-                    time.setText("Time: ");
+                    mTextView.setText("Time: ");
                     mProgressDialog.show();
                     imageView.setVisibility(View.INVISIBLE);
                     statusTextView.setText("["+benchmarking+"/30]"+"\nProcessing");
@@ -219,14 +210,24 @@ public class MainActivity extends Activity {
                     OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
                 }else if(benchmarking==30){
                     timeText = precision.format(TotalTimeBenchmarking) + "s";
-                    TimeZone tz = TimeZone.getDefault();
-                    Calendar calendar = new GregorianCalendar(tz);
-                    Date now = new Date();
-                    calendar.setTime(now);
-                    dataString += "\"" + id + "\",\"" + 0 + "\",\"" + "Todos" + "\",\"" + "" + "\",\"" + timeText + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\"";
-                    dataString += "\n";
+                    if(TotalTimeBenchmarking>=60){
+                        int min = (int) Math.floor(TotalTimeBenchmarking/60);
+                        double sec = TotalTime - (min*60);
+                        mTextView.setText(min+"min e "+sec+"s");
+                    }else{
+                        mTextView.setText(TotalTimeBenchmarking+"s");
+                    }
+                    String now = getNow();
+                    data.setName(id);
+                    data.setFaces(0);
+                    data.setAlgorithm(algorithm);
+                    data.setExecution(execution);
+                    data.setoRes("Todos");
+                    data.setTime(now);
+                    data.setResult();
+                    TotalTimeBenchmarking=(double)0;
                     id++;
-                    benchmarking=1;
+                    benchmarking=32;
                 }
             } else {
                 TextView tv_status = (TextView) findViewById(R.id.textStatus);
@@ -235,13 +236,21 @@ public class MainActivity extends Activity {
         }
     };
 
+    public String getNow(){
+        TimeZone tz = TimeZone.getDefault();
+        Calendar calendar = new GregorianCalendar(tz);
+        Date now = new Date();
+        calendar.setTime(now);
+        return now.toString();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btn = (Button) findViewById(R.id.btnHide);
         imageView = (ImageView) findViewById(R.id.imageView);
-        time = (TextView) findViewById(R.id.textTime);
+        mTextView = (TextView) findViewById(R.id.textTime);
         statusTextView = (TextView) findViewById(R.id.textStatus);
         mContext = this;
         quit=false;
@@ -266,31 +275,54 @@ public class MainActivity extends Activity {
         photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                Drawable d;
+                Bitmap b;
                 switch (pos) {
                     case 0:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
                         Originalresolution = "1.5MP";
+                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_1_5mp);
+                        b = ((BitmapDrawable)d).getBitmap();
+                        originalImageByte = Bitmap2Byte(b);
+                        data.setSize(originalImageByte.length+" Bytes");
                         break;
                     case 1:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200,200);
                         Originalresolution = "3MP";
+                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_3mp);
+                        b = ((BitmapDrawable)d).getBitmap();
+                        originalImageByte = Bitmap2Byte(b);
+                        data.setSize(originalImageByte.length+" Bytes");
                         break;
                     case 2:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200,200);
                         Originalresolution = "6MP";
+                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_6_5mp);
+                        b = ((BitmapDrawable)d).getBitmap();
+                        originalImageByte = Bitmap2Byte(b);
+                        data.setSize(originalImageByte.length+" Bytes");
                         break;
                     case 3:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200,200);
                         Originalresolution = "8.5MP";
+                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_8_5mp);
+                        b = ((BitmapDrawable)d).getBitmap();
+                        originalImageByte = Bitmap2Byte(b);
+                        data.setSize(originalImageByte.length+" Bytes");
                         break;
                     case 4:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200,200);
                         Originalresolution = "13.5MP";
+                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_13_5mp);
+                        b = ((BitmapDrawable)d).getBitmap();
+                        originalImageByte = Bitmap2Byte(b);
+                        data.setSize(originalImageByte.length+" Bytes");
                         break;
                     default:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
                         break;
                 }
+                data.setoRes(Originalresolution);
             }
 
             @Override
@@ -307,25 +339,21 @@ public class MainActivity extends Activity {
                         alg = R.raw.haarcascade_frontalface_alt_tree;
                         algorithm = "haarcascade_frontalface_alt_tree";
                         Log.d(TAG, "" + alg);
-                        benchmarking=32;
                         break;
                     case 1:
                         alg = R.raw.haarcascade_frontalface_alt;
                         algorithm = "haarcascade_frontalface_alt";
                         Log.d(TAG, "" + alg);
-                        benchmarking=32;
                         break;
                     case 2:
                         alg = R.raw.haarcascade_frontalface_alt2;
                         algorithm = "haarcascade_frontalface_alt2";
                         Log.d(TAG, "" + alg);
-                        benchmarking=32;
                         break;
                     case 3:
                         alg = R.raw.haarcascade_frontalface_default;
                         algorithm = "haarcascade_frontalface_default";
                         Log.d(TAG, "" + alg);
-                        benchmarking=32;
                         break;
                     case 4:
                         alg = R.raw.haarcascade_frontalface_default;
@@ -337,6 +365,8 @@ public class MainActivity extends Activity {
                     default:
                         break;
                 }
+                data.setAlgorithm(algorithm);
+                if(pos!=4) benchmarking=32;
             }
 
             @Override
@@ -349,7 +379,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 method();
-               // salvarImagem();
+
             }
         });
 
@@ -386,7 +416,7 @@ public class MainActivity extends Activity {
         imageView.setVisibility(View.INVISIBLE);
         mProgressDialog.show();
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
-        time.setText("Time: ");
+        mTextView.setText("Time: ");
         statusTextView.setText("Processing");
         if(benchmarking!=32) statusTextView.setText("["+benchmarking+"/30]"+ "\nProcessing ");
     }
@@ -407,52 +437,6 @@ public class MainActivity extends Activity {
         } finally {
             reader.close();
         }
-    }
-
-    public void exportCsv() {
-        String columnString = "\"Name\",\"Quantity of faces\",\"Original Resolution\",\"Processed Resolution\",\"TimeSpent (s)\",\"Time\",\"Algorithm\",\"Execution\",\"Cpu Time\",\"Upload Time\",\"Download Time\"";
-        String combinedString = columnString + "\n" + dataString;
-        File sdcard = Environment.getExternalStorageDirectory().getAbsoluteFile();
-
-
-
-
-        File file = new File(sdcard + "/BenchFace_Data.csv");
-        Log.d(TAG, file.getAbsolutePath());
-        FileOutputStream out = null;
-        PrintWriter pw = null;
-        String oldData = "";
-        byte[] Data = null;
-
-        try{
-
-
-            if(file.exists()){
-                oldData = readFile(file.getAbsolutePath());
-                Data = (oldData + dataString).getBytes();
-            }else{
-                Data = combinedString.getBytes();
-            }
-
-            out = new FileOutputStream(file);
-//            pw = new PrintWriter(out);
-//            pw.write(Data) ;
-            out.write(Data);
-            dataString="";
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            Log.e("BROKEN", "Could not write file " + e.getMessage());
-        }finally {
-           // pw.close();
-            try{
-                out.close();
-            }catch(Exception e){
-                e.printStackTrace();
-                Log.e("BROKEN", "Could not write file " + e.getMessage());
-            }
-        }
-
     }
 
     public static int calculateInSampleSize(
@@ -510,31 +494,6 @@ public class MainActivity extends Activity {
         }.start();
     }
 
-    private void salvarImagem(){
-        OutputStream fOutputStream = null;
-        File file = new File(this.getExternalCacheDir() + File.separator + "faces_"+algorithm+"_"+Originalresolution+".jpg");
-        try {
-                fOutputStream = new FileOutputStream(file);
-
-            imagemCorteDesfoque.compress(Bitmap.CompressFormat.JPEG, 100, fOutputStream);
-
-            fOutputStream.flush();
-            fOutputStream.close();
-
-           // MediaStore.Images.Media.insertImage(getContentResolver(), file.getAbsolutePath(), file.getName(), file.getName());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Falha ao salvar", Toast.LENGTH_SHORT).show();
-            return;
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Falha ao salvar", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-    }
-
-
     @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -552,7 +511,8 @@ public class MainActivity extends Activity {
         builder.setNeutralButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                exportCsv();
+                ExportCsv exportModule = new ExportCsv();
+                exportModule.exportCsv(data.getData());
                 finish();
             }
         });
@@ -569,47 +529,40 @@ public class MainActivity extends Activity {
     }
 
     public void changeCSV(){
-        int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
-        resolution = value+"MP";
-        salvarImagem();
+        TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
+        timeText = precision.format(TotalTime);
         statusTextView.setText(faces + " faces");
         imageView.setImageBitmap(imagemCorteDesfoque);
-        TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
-        Log.d(TAG, "Time spent " + precision.format(TotalTime));
-        timeText = precision.format(TotalTime);
+        int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
+
         TotalTimeBenchmarking += TotalTime;
-        if(benchmarking>=30) timeText = precision.format(TotalTimeBenchmarking);
-        time.setText(timeText+"s");
+        mTextView.setText(timeText+"s");
         if(TotalTime>=60){
             int min = (int) Math.floor(TotalTime/60);
             double sec = TotalTime - (min*60);
-            time.setText(min+"min e "+sec+"s");
-        }else if(TotalTimeBenchmarking>=60){
-            int min = (int) Math.floor(TotalTimeBenchmarking/60);
-            double sec = TotalTime - (min*60);
-            time.setText(min+"min e "+sec+"s");
+            mTextView.setText(min+"min e "+sec+"s");
         }
 
-        TimeZone tz = TimeZone.getDefault();
-        Calendar calendar = new GregorianCalendar(tz);
-        Date now = new Date();
-        calendar.setTime(now);
 
         long cpu_time = MposFramework.getInstance().getEndpointController().rpcProfile.getExecutionCpuTime();
         long download_time = MposFramework.getInstance().getEndpointController().rpcProfile.getDonwloadTime();
         long upload_time = MposFramework.getInstance().getEndpointController().rpcProfile.getUploadTime();
 
+        data.setCpuTime(cpu_time);
+        data.setDownloadTime(download_time);
+        data.setUploadTime(upload_time);
+        data.setName(id);
+        data.setpRes(value+"MP");
+        data.setTotalTime(timeText);
+        data.setTime(getNow());
+        data.setResult();
 
-
-        dataString += "\"" + id + "\",\"" + faces + "\",\"" + Originalresolution + "\",\"" + resolution + "\",\"" + timeText + "\", \"" + now.toString() + "\", \"" + algorithm + "\", \"" + execution + "\", \"" + cpu_time +"\", \"" + upload_time + "\", \"" + download_time + "\"";
-        dataString += "\n";
-        id++;
     }
 
-    public byte[] Bitmap2Byte(Bitmap b){
+    public byte[] Bitmap2Byte(Bitmap bitmap){
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        b.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        teste =2;
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] bitmapdata = stream.toByteArray();
         return stream.toByteArray();
 
     }
@@ -657,6 +610,7 @@ public class MainActivity extends Activity {
                 }
                 break;
         }
+        data.setExecution(execution);
     }
 
     public static void verifyStoragePermissions(Activity activity) {
@@ -682,11 +636,12 @@ public class MainActivity extends Activity {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setMessage("Want to export Csv file?").setTitle("Export");
         //Since the order that they appear is Neutral>Negative>Positive I change the content of each one
-        //So The negative is my neutral, the neutral is my positive and at last the positive is my negative
+        //So The negative is my positive and the positive is my negative
         builder.setNegativeButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                exportCsv();
+                ExportCsv exportModule = new ExportCsv();
+                exportModule.exportCsv(data.getData());
                 Toast.makeText(mContext, "Exported", Toast.LENGTH_LONG);
           }
         });

@@ -1,10 +1,8 @@
 <resources>
     <string name="app_name">BenchFace</string>
     <string name="time">Time Passed</string>
-    <string name="battery">BatterySpent</string>
     <string name="status">Status</string>
     <string name="hide">Start</string>
-    <string name="getImage">Gallery</string>
     <string name="hideDescription">Image with faces blurred</string>
 
 </resources>
