@@ -7,6 +7,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -14,8 +16,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -35,9 +37,10 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -60,13 +63,9 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.objdetect.CascadeClassifier;
-
-//file_related
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.TimeZone;
 
-@MposConfig(endpointSecondary = "150.161.70.205")
+@MposConfig(endpointSecondary = "192.168.254.48")
 //@MposConfig
 public class MainActivity extends Activity {
 
@@ -92,7 +91,7 @@ public class MainActivity extends Activity {
     //CSV-Related
     private int alg;
     private String algorithm = "";
-    private String execution = "";
+    private String execution  = "LocalBased Execution";
     private int id;
     private String dataString = "";
     private String Originalresolution;
@@ -189,6 +188,8 @@ public class MainActivity extends Activity {
         public void completedTask(Bitmap obj) {
             if (obj != null) {
                 imagemCorteDesfoque = obj;
+                originalImageByte = Bitmap2Byte(obj);
+                data.setSize(originalImageByte.length+"");
                 mProgressDialog.dismiss();
                 imageView.setVisibility(View.VISIBLE);
                 if(config==1){
@@ -210,9 +211,10 @@ public class MainActivity extends Activity {
                     OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
                 }else if(benchmarking==30){
                     timeText = precision.format(TotalTimeBenchmarking) + "s";
+                    timeText.replace(",", ".");
                     if(TotalTimeBenchmarking>=60){
                         int min = (int) Math.floor(TotalTimeBenchmarking/60);
-                        double sec = TotalTime - (min*60);
+                        int sec = (int) Math.ceil(TotalTimeBenchmarking - (min*60));
                         mTextView.setText(min+"min e "+sec+"s");
                     }else{
                         mTextView.setText(TotalTimeBenchmarking+"s");
@@ -222,9 +224,11 @@ public class MainActivity extends Activity {
                     data.setFaces(0);
                     data.setAlgorithm(algorithm);
                     data.setExecution(execution);
+                    data.setTotalTime(timeText);
                     data.setoRes("Todos");
                     data.setTime(now);
                     data.setResult();
+                    Log.i(TAG,data.getData());
                     TotalTimeBenchmarking=(double)0;
                     id++;
                     benchmarking=32;
@@ -244,6 +248,16 @@ public class MainActivity extends Activity {
         return now.toString();
     }
 
+    public float getBattery(){
+        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = mContext.registerReceiver(null, ifilter);
+        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+
+        float batteryPct = level / (float)scale;
+        return batteryPct*100;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -254,6 +268,8 @@ public class MainActivity extends Activity {
         statusTextView = (TextView) findViewById(R.id.textStatus);
         mContext = this;
         quit=false;
+
+        data = new Data();
 
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setMessage("Processing........");
@@ -280,43 +296,23 @@ public class MainActivity extends Activity {
                 switch (pos) {
                     case 0:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
-                        Originalresolution = "1.5MP";
-                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_1_5mp);
-                        b = ((BitmapDrawable)d).getBitmap();
-                        originalImageByte = Bitmap2Byte(b);
-                        data.setSize(originalImageByte.length+" Bytes");
+                        Originalresolution = "1.5";
                         break;
                     case 1:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200,200);
-                        Originalresolution = "3MP";
-                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_3mp);
-                        b = ((BitmapDrawable)d).getBitmap();
-                        originalImageByte = Bitmap2Byte(b);
-                        data.setSize(originalImageByte.length+" Bytes");
+                        Originalresolution = "3";
                         break;
                     case 2:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200,200);
-                        Originalresolution = "6MP";
-                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_6_5mp);
-                        b = ((BitmapDrawable)d).getBitmap();
-                        originalImageByte = Bitmap2Byte(b);
-                        data.setSize(originalImageByte.length+" Bytes");
+                        Originalresolution = "6";
                         break;
                     case 3:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200,200);
-                        Originalresolution = "8.5MP";
-                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_8_5mp);
-                        b = ((BitmapDrawable)d).getBitmap();
-                        originalImageByte = Bitmap2Byte(b);
-                        data.setSize(originalImageByte.length+" Bytes");
+                        Originalresolution = "8.5";
                         break;
                     case 4:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200,200);
-                        Originalresolution = "13.5MP";
-                        d = ContextCompat.getDrawable(mContext, R.drawable.facedetection_13_5mp);
-                        b = ((BitmapDrawable)d).getBitmap();
-                        originalImageByte = Bitmap2Byte(b);
-                        data.setSize(originalImageByte.length+" Bytes");
+                        Originalresolution = "13.5";
                         break;
                     default:
                         decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
@@ -395,12 +391,36 @@ public class MainActivity extends Activity {
         overlayNuvem = new OverlayService();
         verifyStoragePermissions(this);
 
-        MenuInflater menuInflater = getMenuInflater();
-        //Menu menu =
-     //  menuInflater.inflate(R.menu.main,menu);
-
         MposFramework.getInstance().start(this);
         Log.d(TAG,"middleware started");
+/*
+        Log.d(TAG, "Core 0: "  + getCurrentFrequency(0)+"Ghz");
+        Log.d(TAG, "Core 1: "  + getCurrentFrequency(1)+"Ghz");
+        Log.d(TAG, "Core 2: "  + getCurrentFrequency(2)+"Ghz");
+        Log.d(TAG, "Core 3: "  + getCurrentFrequency(3)+"Ghz");
+        Log.d(TAG, "Core 4: "  + getCurrentFrequency(4)+"Ghz");
+        Log.d(TAG, "Core 5: "  + getCurrentFrequency(5)+"Ghz");
+        Log.d(TAG, "Core 6: "  + getCurrentFrequency(6)+"Ghz");
+        Log.d(TAG, "Core 7: "  + getCurrentFrequency(7)+"Ghz");
+
+        Thread t = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        Log.d(TAG, "Bateria: "+getBattery()+"%");
+                        Log.d(TAG, "CPU: "+ getCPUStatistic());
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        t.start();*/
+
+
     }
 
     protected void onDestroy(){
@@ -543,7 +563,6 @@ public class MainActivity extends Activity {
             mTextView.setText(min+"min e "+sec+"s");
         }
 
-
         long cpu_time = MposFramework.getInstance().getEndpointController().rpcProfile.getExecutionCpuTime();
         long download_time = MposFramework.getInstance().getEndpointController().rpcProfile.getDonwloadTime();
         long upload_time = MposFramework.getInstance().getEndpointController().rpcProfile.getUploadTime();
@@ -552,10 +571,12 @@ public class MainActivity extends Activity {
         data.setDownloadTime(download_time);
         data.setUploadTime(upload_time);
         data.setName(id);
-        data.setpRes(value+"MP");
+        data.setpRes(value+"");
         data.setTotalTime(timeText);
         data.setTime(getNow());
+        data.setExecution(execution);
         data.setResult();
+        Log.i(TAG, data.getData());
 
     }
 
@@ -655,5 +676,104 @@ public class MainActivity extends Activity {
         dialog.show();
         return true;
     }
+
+   /* private String getCPUStatistic() {
+
+        String tempString = getCPU();
+
+        tempString = tempString.replaceAll(",", "");
+        tempString = tempString.replaceAll("User", "");
+        tempString = tempString.replaceAll("System", "");
+        tempString = tempString.replaceAll("IOW", "");
+        tempString = tempString.replaceAll("IRQ", "");
+        tempString = tempString.replaceAll("%", "");
+        for (int i = 0; i < 10; i++) {
+            tempString = tempString.replaceAll("  ", " ");
+        }
+        tempString = tempString.trim();
+        String[] myString = tempString.split(" ");
+        int total =0;
+        int[] cpuUsageAsInt = new int[myString.length];
+        for (int i = 0; i < myString.length; i++) {
+            myString[i] = myString[i].trim();
+            cpuUsageAsInt[i] = Integer.parseInt(myString[i]);
+            total+=cpuUsageAsInt[i];
+        }
+        return total+"%";
+    }
+
+    private String getCPU() {
+        java.lang.Process p = null;
+        BufferedReader in = null;
+        String returnString = null;
+        try {
+            p = Runtime.getRuntime().exec("top -n 1");
+            in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while (returnString == null || returnString.contentEquals("")) {
+                returnString = in.readLine();
+            }
+        } catch (IOException e) {
+            Log.e("executeTop", "error in getting first line of top");
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                p.destroy();
+            } catch (IOException e) {
+                Log.e("executeTop",
+                        "error in closing and destroying top process");
+                e.printStackTrace();
+            }
+        }
+        return returnString;
+    }
+
+    private static final int INSERTION_POINT = 27;
+
+    private static String getCurFrequencyFilePath(int whichCpuCore){
+        StringBuilder filePath = new StringBuilder("/sys/devices/system/cpu/cpu/cpufreq/scaling_cur_freq");
+        filePath.insert(INSERTION_POINT, whichCpuCore);
+        return filePath.toString();
+    }
+
+    public float getCurrentFrequency(int whichCpuCore){
+
+        float curFrequency = -1;
+        String cpuCoreCurFreqFilePath = getCurFrequencyFilePath(whichCpuCore);
+
+        if(new File(cpuCoreCurFreqFilePath).exists()){
+
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(new File(cpuCoreCurFreqFilePath)));
+                String aLine;
+                while ((aLine = br.readLine()) != null) {
+
+                    try{
+                        curFrequency = Integer.parseInt(aLine);
+                    }
+                    catch(NumberFormatException e){
+
+                        Log.e(getPackageName(), e.toString());
+                    }
+
+                }
+                if (br != null) {
+                    br.close();
+                }
+            }
+            catch (IOException e) {
+                Log.e(getPackageName(), e.toString());
+            }
+
+        }
+
+        curFrequency = curFrequency/(float)1000000;
+
+        if(curFrequency<0)
+            curFrequency=-1;
+
+        return curFrequency;
+    }*/
+
 
 }

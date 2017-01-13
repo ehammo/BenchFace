@@ -21,7 +21,7 @@ public class Data {
     }
 
     public void setResult() {
-        result += "\"" + name + "\",\"" + faces + "\",\"" + algorithm + "\",\"" + execution + "\",\"" + oRes + "\", \"" + pRes + "\", \"" + size + "\", \"" + totalTime + "\", \"" + cpuTime + "\", \"" + uploadTime + "\", \"" + downloadTime + "\", \"" + time + "\"";
+        result += "\"" + name + "\";\"" + faces + "\";\"" + algorithm + "\";\"" + execution + "\";\"" + oRes + "\";\"" + pRes + "\";\"" + size + "\";\"" + totalTime + "\";\"" + cpuTime + "\";\"" + uploadTime + "\";\"" + downloadTime + "\";\"" + time + "\"";
         result += "\n";
     }
 

@@ -37,7 +37,7 @@ public class ExportCsv {
     }
 
     public void exportCsv(String dataString) {
-        String columnString = "\"Name\",\"Quantity of faces\",\"Algorithm\",\"Execution\",\"Original Resolution\",\"Processed Resolution\",\"Size\",\"Total Time (s)\",\"Cpu Time\",\"Upload Time\",\"Download Time\",\"Time\"";
+        String columnString = "\"ID\";\"Quantity of faces\";\"Algorithm\";\"Execution\";\"Original Resolution (MP)\";\"Processed Resolution (MP)\";\"Size (Bytes)\";\"Total Time (s)\";\"Cpu Time\";\"Upload Time\";\"Download Time\";\"Time\"";
         String combinedString = columnString + "\n" + dataString;
         File sdcard = Environment.getExternalStorageDirectory().getAbsoluteFile();
         File file = new File(sdcard + "/BenchFace_Data.csv");
