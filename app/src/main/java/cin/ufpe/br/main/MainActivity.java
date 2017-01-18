@@ -15,6 +15,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
@@ -248,6 +250,7 @@ public class MainActivity extends Activity {
         return now.toString();
     }
 
+    /*
     public float getBattery(){
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = mContext.registerReceiver(null, ifilter);
@@ -256,7 +259,16 @@ public class MainActivity extends Activity {
 
         float batteryPct = level / (float)scale;
         return batteryPct*100;
-    }
+    }*/
+
+    /*
+    public int getRSSI(){
+        WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        int numberOfLevels = 6;
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int level = WifiManager.calculateSignalLevel(wifiInfo.getRssi(), numberOfLevels);
+        return level;
+    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -402,16 +414,17 @@ public class MainActivity extends Activity {
         Log.d(TAG, "Core 5: "  + getCurrentFrequency(5)+"Ghz");
         Log.d(TAG, "Core 6: "  + getCurrentFrequency(6)+"Ghz");
         Log.d(TAG, "Core 7: "  + getCurrentFrequency(7)+"Ghz");
-
-        Thread t = new Thread() {
+*/
+       /* Thread t = new Thread() {
 
             @Override
             public void run() {
                 try {
                     while (!isInterrupted()) {
                         Thread.sleep(1000);
-                        Log.d(TAG, "Bateria: "+getBattery()+"%");
-                        Log.d(TAG, "CPU: "+ getCPUStatistic());
+                        //Log.d(TAG,""+getRSSI());
+                        //Log.d(TAG, "Bateria: "+getBattery()+"%");
+                        //Log.d(TAG, "CPU: "+ getCPUStatistic());
                     }
                 } catch (InterruptedException e) {
                 }
