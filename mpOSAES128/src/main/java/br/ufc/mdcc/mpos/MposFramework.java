@@ -151,7 +151,6 @@ public final class MposFramework {
 
                 profileController = new ProfileController(context, app.profile());
                 endpointController = new EndpointController(context, endpointSecondary, app.decisionMakerActive(), app.discoveryCloudlet());
-
                 break;
             }
         }

@@ -42,7 +42,7 @@ public final class EndpointController {
 	private final String clsName = EndpointController.class.getName();
 
 	public static final int REPEAT_DISCOVERY_TASK = 20 * 1000;
-	public static final int REPEAT_DECISION_MAKER = 35 * 1000;
+	public static final int REPEAT_DECISION_MAKER = 5 * 1000;
 
 	private Context context;
 
