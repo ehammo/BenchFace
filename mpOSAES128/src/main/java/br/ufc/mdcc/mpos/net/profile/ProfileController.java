@@ -26,6 +26,8 @@ import br.ufc.mdcc.mpos.net.profile.model.Network;
 import br.ufc.mdcc.mpos.persistence.ProfileNetworkDao;
 import br.ufc.mdcc.mpos.util.TaskResult;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
+import br.ufpe.cin.mpos.profile.Model.Model;
+import br.ufpe.cin.mpos.profile.ProfilesTask;
 
 /**
  * This class control the profile services
@@ -34,15 +36,18 @@ import br.ufc.mdcc.mpos.util.TaskResultAdapter;
  */
 public final class ProfileController {
     private TaskResult<Network> taskResultEvent;
-    
+    private Context mContext;
     private ProfileNetworkDao profileDao;
     private ProfileNetworkTask taskNetwork;
+    private ProfilesTask taskProfiles;
     private ProfileNetwork profileNetwork;
+    private int id;
 
     public ProfileController(Context context, ProfileNetwork profile) {
         this.profileNetwork = profile;
         profileDao = new ProfileNetworkDao(context);
-
+        mContext = context;
+        id=0;
         Log.i(ProfileController.class.getName(), "MpOS Profile Started!");
     }
 
@@ -52,9 +57,11 @@ public final class ProfileController {
 
     public void networkAnalysis(ServerContent server) throws MissedEventException, NetworkException {
         networkAnalysis(server, profileNetwork);
+
     }
 
     public void networkAnalysis(ServerContent server, ProfileNetwork profileNetwork) throws MissedEventException, NetworkException {
+        Log.d("teste", "Vou executar as tarefas");
         if (server == null) {
             throw new NetworkException("The remote service isn't ready for profile network");
         }
@@ -66,8 +73,19 @@ public final class ProfileController {
         } else if (profileNetwork == ProfileNetwork.FULL) {
             taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
         }
-        taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        taskProfiles = new ProfilesTask(taskResultAdapter, mContext, id);
+        taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      //  taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        id++;
     }
+
+    private TaskResultAdapter<Model> taskResultAdapter = new TaskResultAdapter<Model>() {
+        @Override
+        public void completedTask(Model obj) {
+            Log.d("teste", "Finalizado:\n"+obj.toString());
+        }
+    };
+
 
     private TaskResult<Network> persistNetworkResults(final TaskResult<Network> interceptedResults) {
         // interception pattern

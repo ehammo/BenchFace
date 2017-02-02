@@ -17,6 +17,10 @@ package br.ufc.mdcc.mpos.net.profile;
 
 import java.io.IOException;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
 import android.util.Log;
 import br.ufc.mdcc.mpos.net.Protocol;
 import br.ufc.mdcc.mpos.net.endpoint.ServerContent;

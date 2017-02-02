@@ -79,6 +79,7 @@ public class DynamicDecisionSystem extends TimerTask {
     public void run() {
         try {
             if (getServer() != null) {
+                Log.d("teste","Calling analysis");
                 MposFramework.getInstance().getProfileController().networkAnalysis(getServer());
             } else {
                 Log.i(clsName, "Waiting for new endpoint...");
