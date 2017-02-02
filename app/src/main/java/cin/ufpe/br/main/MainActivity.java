@@ -123,7 +123,8 @@ public class MainActivity extends Activity {
 
     private static String[] PERMISSIONS_STORAGE = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_COARSE_LOCATION
     };
 
 
@@ -270,6 +271,7 @@ public class MainActivity extends Activity {
         return level;
     }*/
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -401,7 +403,8 @@ public class MainActivity extends Activity {
         detectNuvem = new DetectFacesService();
         overlayLocal = new OverlayService();
         overlayNuvem = new OverlayService();
-        verifyStoragePermissions(this);
+        verifyStoragePermissions(this, PERMISSIONS_STORAGE);
+
 
         MposFramework.getInstance().start(this);
         Log.d(TAG,"middleware started");
@@ -647,18 +650,23 @@ public class MainActivity extends Activity {
         data.setExecution(execution);
     }
 
-    public static void verifyStoragePermissions(Activity activity) {
+    public static void verifyStoragePermissions(Activity activity, String[] per) {
         // Check if we have write permission
-        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        for(int i=0;i<per.length;i++){
+            int permission = ActivityCompat.checkSelfPermission(activity, per[i]);
 
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    activity,
-                    PERMISSIONS_STORAGE,
-                    1
-            );
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                // We don't have permission so prompt the user
+                ActivityCompat.requestPermissions(
+                        activity,
+                        PERMISSIONS_STORAGE,
+                        1
+                );
+                i=per.length;
+            }
+
         }
+
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
