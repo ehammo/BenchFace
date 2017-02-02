@@ -18,6 +18,7 @@ public class DatabaseManager extends SQLiteOpenHelper {
     public static final String Bandwidth = "Bandwidth";
     public static final String RSSI = "RSSI";
     public static final String CPUNuvem = "CPU_usage_cloud";
+    public static final String Date = "date_column";
 
     private static final int VERSAO = 1;
 
@@ -38,6 +39,7 @@ public class DatabaseManager extends SQLiteOpenHelper {
                 + SizeInput  + "integer,"
                 + Bandwidth  + "integer,"
                 + RSSI  + "text,"
+                + Date + "text,"
                 + CPUNuvem  + "text"
                 +")";
         db.execSQL(sql);

@@ -2,6 +2,7 @@ package br.ufpe.cin.mpos.DaoLocal;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import br.ufpe.cin.mpos.profile.Model.Model;
@@ -18,7 +19,7 @@ public class DatabaseController {
         dm = new DatabaseManager(context);
     }
 
-    public String insereDado(Model model){
+    public String insertData(Model model){
         ContentValues valores;
         long resultado;
 
@@ -44,6 +45,12 @@ public class DatabaseController {
         else
             return "Registro Inserido com sucesso";
 
+    }
+
+    public Cursor getData(){
+        String info = "";
+        Cursor oldestDateCursor = db.query(dm.TABELA, null, null, null, null, null, dm.Date +" ASC LIMIT 1");
+        return oldestDateCursor;
     }
 
 }

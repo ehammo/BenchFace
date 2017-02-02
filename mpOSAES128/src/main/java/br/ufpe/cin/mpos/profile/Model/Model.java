@@ -16,6 +16,7 @@ public class Model {
     public int Bandwidth;
     public String RSSI;
     public String CPUNuvem;
-    
+    public String Date;
+
     
 }

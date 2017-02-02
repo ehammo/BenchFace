@@ -44,6 +44,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -222,7 +223,7 @@ public class MainActivity extends Activity {
                     }else{
                         mTextView.setText(TotalTimeBenchmarking+"s");
                     }
-                    String now = getNow();
+                    String now = getCurrentTimeStamp();
                     data.setName(id);
                     data.setFaces(0);
                     data.setAlgorithm(algorithm);
@@ -243,12 +244,11 @@ public class MainActivity extends Activity {
         }
     };
 
-    public String getNow(){
-        TimeZone tz = TimeZone.getDefault();
-        Calendar calendar = new GregorianCalendar(tz);
+    public static String getCurrentTimeStamp() {
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
         Date now = new Date();
-        calendar.setTime(now);
-        return now.toString();
+        String strDate = sdfDate.format(now);
+        return strDate;
     }
 
     /*
@@ -589,7 +589,7 @@ public class MainActivity extends Activity {
         data.setName(id);
         data.setpRes(value+"");
         data.setTotalTime(timeText);
-        data.setTime(getNow());
+        data.setTime(getCurrentTimeStamp());
         data.setExecution(execution);
         data.setResult();
         Log.i(TAG, data.getData());

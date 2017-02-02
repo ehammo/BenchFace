@@ -18,6 +18,10 @@ package br.ufc.mdcc.mpos.net.profile;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import br.ufc.mdcc.mpos.config.ProfileNetwork;
 import br.ufc.mdcc.mpos.net.endpoint.ServerContent;
 import br.ufc.mdcc.mpos.net.exceptions.MissedEventException;
@@ -26,6 +30,8 @@ import br.ufc.mdcc.mpos.net.profile.model.Network;
 import br.ufc.mdcc.mpos.persistence.ProfileNetworkDao;
 import br.ufc.mdcc.mpos.util.TaskResult;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
+import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
+import br.ufpe.cin.mpos.DaoLocal.DatabaseManager;
 import br.ufpe.cin.mpos.profile.Model.Model;
 import br.ufpe.cin.mpos.profile.ProfilesTask;
 
@@ -41,11 +47,13 @@ public final class ProfileController {
     private ProfileNetworkTask taskNetwork;
     private ProfilesTask taskProfiles;
     private ProfileNetwork profileNetwork;
+    private DatabaseController dc;
     private int id;
 
     public ProfileController(Context context, ProfileNetwork profile) {
         this.profileNetwork = profile;
         profileDao = new ProfileNetworkDao(context);
+        dc = new DatabaseController(context);
         mContext = context;
         id=0;
         Log.i(ProfileController.class.getName(), "MpOS Profile Started!");
@@ -79,10 +87,19 @@ public final class ProfileController {
         id++;
     }
 
+    public static String getCurrentTimeStamp() {
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
+        Date now = new Date();
+        String strDate = sdfDate.format(now);
+        return strDate;
+    }
+
     private TaskResultAdapter<Model> taskResultAdapter = new TaskResultAdapter<Model>() {
         @Override
         public void completedTask(Model obj) {
             Log.d("teste", "Finalizado:\n"+obj.toString());
+            obj.Date = getCurrentTimeStamp();
+            dc.insertData(obj);
         }
     };
 
