@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MposConfig {
-	ProfileNetwork profile() default ProfileNetwork.LIGHT;
+	ProfileNetwork profile() default ProfileNetwork.FULL;
 
 	String endpointSecondary() default "";
 

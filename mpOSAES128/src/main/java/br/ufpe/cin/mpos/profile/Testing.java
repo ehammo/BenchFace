@@ -54,17 +54,19 @@ public class Testing extends TimerTask {
         m.Battery = c.getString(4);
         m.fCPU = c.getString(5);
         m.CPU = c.getString(6);
-        m.SizeInput = Integer.parseInt(c.getString(7));
-        m.Bandwidth = Integer.parseInt(c.getString(8));
-        m.RSSI = c.getString(9);
-        m.Date = c.getString(10);
-        m.CPUNuvem = c.getString(11);
+        m.SizeInput = c.getString(7);
+        m.BandwidthDown = c.getString(8);
+        m.BandwidthUp = c.getString(9);
+        m.RSSI = c.getString(10);
+        m.Date = c.getString(11);
+        m.CPUNuvem = c.getString(12);
         return m;
     }
 
     @Override
     public void run() {
         Cursor c = dc.getData();
+        c.moveToFirst();
         int id = Integer.parseInt(c.getString(0));
         for (int i=0;i<c.getColumnCount()-1;i++){
             c.moveToFirst();

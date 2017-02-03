@@ -12,8 +12,9 @@ public class Model {
     public String Battery;
     public String fCPU;
     public String CPU;
-    public int SizeInput;
-    public int Bandwidth;
+    public String SizeInput;
+    public String BandwidthDown;
+    public String BandwidthUp;
     public String RSSI;
     public String CPUNuvem;
     public String Date;

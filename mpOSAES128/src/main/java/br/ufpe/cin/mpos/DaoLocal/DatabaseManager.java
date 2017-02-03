@@ -16,7 +16,8 @@ public class DatabaseManager extends SQLiteOpenHelper {
     public static final String fCPU = "CPU_frequency";
     public static final String CPU = "CPU_usage";
     public static final String SizeInput = "Size_Input";
-    public static final String Bandwidth = "Bandwidth";
+    public static final String BandwidthDown = "BandwidthDown";
+    public static final String BandwidthUp = "BandwidthUp";
     public static final String RSSI = "RSSI";
     public static final String CPUNuvem = "CPU_usage_cloud";
     public static final String Date = "date_column";
@@ -50,8 +51,9 @@ public class DatabaseManager extends SQLiteOpenHelper {
                 + Battery  + " text,"
                 + fCPU  + " text,"
                 + CPU  + " text,"
-                + SizeInput  + " integer,"
-                + Bandwidth  + " integer,"
+                + SizeInput  + " text,"
+                + BandwidthDown  + " text,"
+                + BandwidthUp  + " text,"
                 + RSSI  + " text,"
                 + Date + " text,"
                 + CPUNuvem  + " text"

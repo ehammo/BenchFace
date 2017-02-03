@@ -50,6 +50,8 @@ public final class ProfileController {
     private ProfileNetwork profileNetwork;
     private DatabaseController dc;
     private Testing testing;
+    private String bandwidthDown;
+    private String bandwidthUp;
 
     public ProfileController(Context context, ProfileNetwork profile) {
         this.profileNetwork = profile;
@@ -82,9 +84,7 @@ public final class ProfileController {
         } else if (profileNetwork == ProfileNetwork.FULL) {
             taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
         }
-        taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
-        taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-      //  taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
     }
 
@@ -102,11 +102,22 @@ public final class ProfileController {
             Log.d("CarrierInfo", "Apos a tarefa: "+obj.Carrier);
             String date = getCurrentTimeStamp();
             obj.Date = date;
+            obj.BandwidthDown = bandwidthDown;
+            obj.BandwidthUp = bandwidthUp;
             dc.insertData(obj);
             testing.run();
         }
     };
 
+    private String formatString(String s){
+        String resp = s;
+        int ponto = s.indexOf('.');
+        if(ponto>=0&&ponto+3<=s.length()){
+            resp = s.substring(0,ponto+3);
+        }
+
+        return resp;
+    }
 
     private TaskResult<Network> persistNetworkResults(final TaskResult<Network> interceptedResults) {
         // interception pattern
@@ -116,6 +127,10 @@ public final class ProfileController {
                 if (network != null) {
                     // local persistence
                     profileDao.add(network);
+                    bandwidthDown = formatString(network.getBandwidthDownload());
+                    bandwidthUp = formatString(network.getBandwidthUpload());
+                    taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
+                    taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 }
                 interceptedResults.completedTask(network);
             }
