@@ -39,34 +39,28 @@ import br.ufpe.cin.mpos.profile.Model.Model;
 public class ProfilesTask extends AsyncTask<Void, String, Model> {
     Model result;
     Context mContext;
-    int IDC;
     TaskResultAdapter taskResultAdapter;
     private static final int INSERTION_POINT = 27;
+    String tech="";
 
-    public ProfilesTask(TaskResultAdapter TRA, Context context, int id){
+    public ProfilesTask(TaskResultAdapter TRA, Context context){
         taskResultAdapter = TRA;
         mContext = context;
-        IDC = id;
         result = new Model();
     }
 
     protected Model doInBackground(Void... params) {
         Log.d("teste", "entrei na tarefa");
         Device device = MposFramework.getInstance().getDeviceController().getDevice();
-        result.IDC = IDC;
         result.AppName = getAppLable(mContext);
-        Log.d("teste", "AppName: " +result.AppName);
         result.Carrier = device.getCarrier();
-        Log.d("teste", "Carrier: " +result.Carrier);
+        Log.d("CarrierInfo", "Durante a tarefa: "+result.Carrier);
         result.Battery = getBattery();
-        Log.d("teste", "bateria: " +result.Battery);
         //result.fCPU = getCPUMaxFrequency()??;
         //Log.d("teste", "hw: " +result.fCPU);
         result.CPU = getCPUStatistic();
-        Log.d("teste", "CPU: " +result.CPU);
         result.RSSI = getRSSI();
-        Log.d("teste", "RSSI: " +result.RSSI);
-
+        result.Tech = tech;
         return result;
     }
 
@@ -256,36 +250,31 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         Log.d("teste", "isso: "+ telephonyManager.getNetworkType());
 
         List<CellInfo> CellInfo_list = telephonyManager.getAllCellInfo();
-        for (int i = 0; i < CellInfo_list.size(); i++) {
-            int rssi = -1;
-            if(CellInfo_list.get(i) instanceof CellInfoLte){
-                Log.d("teste","entrei no if do 4G");
-                CellInfoLte cellinfo = (CellInfoLte) CellInfo_list.get(i);
-                CellSignalStrengthLte cellSignalStrength = cellinfo.getCellSignalStrength();
-                rssi = cellSignalStrength.getLevel();
-                Log.d("teste","rssi do 4G "+rssi);
+        int rssi = -1;
+        if(CellInfo_list.get(0) instanceof CellInfoLte){
+            CellInfoLte cellinfo = (CellInfoLte) CellInfo_list.get(0);
+            CellSignalStrengthLte cellSignalStrength = cellinfo.getCellSignalStrength();
+            rssi = cellSignalStrength.getLevel();
+            tech="4G";
 
-            }else if(CellInfo_list.get(i) instanceof CellInfoWcdma){
-                Log.d("teste","entrei no if do 3G");
-                CellInfoWcdma cellinfo = (CellInfoWcdma) CellInfo_list.get(i);
-                CellSignalStrengthWcdma cellSignalStrength = cellinfo.getCellSignalStrength();
-                rssi = cellSignalStrength.getLevel();
-                Log.d("teste","rssi do 3G "+rssi);
+        }else if(CellInfo_list.get(0) instanceof CellInfoWcdma){
+            CellInfoWcdma cellinfo = (CellInfoWcdma) CellInfo_list.get(0);
+            CellSignalStrengthWcdma cellSignalStrength = cellinfo.getCellSignalStrength();
+            rssi = cellSignalStrength.getLevel();
+            tech="3G";
 
-            }else if(CellInfo_list.get(i) instanceof  CellInfoGsm){
-                Log.d("teste","entrei no if do 2G");
-                CellInfoGsm cellinfo = (CellInfoGsm) CellInfo_list.get(i);
-                CellSignalStrengthGsm cellSignalStrength = cellinfo.getCellSignalStrength();
-                rssi = cellSignalStrength.getLevel();
-                Log.d("teste","rssi do 2G "+rssi);
+        }else if(CellInfo_list.get(0) instanceof  CellInfoGsm){
+            CellInfoGsm cellinfo = (CellInfoGsm) CellInfo_list.get(0);
+            CellSignalStrengthGsm cellSignalStrength = cellinfo.getCellSignalStrength();
+            rssi = cellSignalStrength.getLevel();
+            tech="2G";
 
-            }
-
-            if(rssi>-1) {
-                Log.d("teste","rssi q pegou "+rssi);
-                result.add(rssi);
-            }
         }
+
+        if(rssi>-1) {
+            result.add(rssi);
+        }
+
         return result;
     }
 
@@ -293,23 +282,24 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         int wifi = getRSSIWifi();
         int level=0;
         if(wifi>0){
-            Log.d("teste", "escolhi wifi ");
+            tech="Wifi";
             level = wifi;
         }else{
-            Log.d("teste", "escolhi 4G ");
             level = getRSSI4G();
         }
 
         switch (level) {
             case 0:
-                return "Pessimo";
+                return "Sem sinal";
             case 1:
-                return "Pobre";
+                return "Pessimo";
             case 2:
-                return "Moderado";
+                return "Pobre";
             case 3:
-                return "Bom";
+                return "Moderado";
             case 4:
+                return "Bom";
+            case 5:
                 return "Otimo";
         }
 

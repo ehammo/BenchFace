@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import br.ufpe.cin.mpos.profile.Model.Model;
 
@@ -12,11 +13,11 @@ import br.ufpe.cin.mpos.profile.Model.Model;
  */
 
 public class DatabaseController {
-    private SQLiteDatabase db;
-    private DatabaseManager dm;
+    public SQLiteDatabase db;
+    public DatabaseManager dm;
 
     public DatabaseController(Context context){
-        dm = new DatabaseManager(context);
+        dm = DatabaseManager.getInstance(context);
     }
 
     public String insertData(Model model){
@@ -25,9 +26,9 @@ public class DatabaseController {
 
         db = dm.getWritableDatabase();
         valores = new ContentValues();
-        valores.put(dm.IDC, model.IDC);
         valores.put(dm.Tech, model.Tech);
         valores.put(dm.AppName, model.AppName);
+        Log.d("CarrierInfo", "No Banco: "+model.Carrier);
         valores.put(dm.Carrier, model.Carrier);
         valores.put(dm.Battery, model.Battery);
         valores.put(dm.fCPU, model.fCPU);
@@ -36,6 +37,7 @@ public class DatabaseController {
         valores.put(dm.Bandwidth, model.Bandwidth);
         valores.put(dm.RSSI, model.RSSI);
         valores.put(dm.CPUNuvem, model.CPUNuvem);
+        valores.put(dm.Date, model.Date);
 
         resultado = db.insert(dm.TABELA, null, valores);
         db.close();
@@ -48,8 +50,8 @@ public class DatabaseController {
     }
 
     public Cursor getData(){
-        String info = "";
-        Cursor oldestDateCursor = db.query(dm.TABELA, null, null, null, null, null, dm.Date +" ASC LIMIT 1");
+        db = dm.getReadableDatabase();
+        Cursor oldestDateCursor = db.query(dm.TABELA, null, null, null, null, null, dm.Date +" DESC LIMIT 1");
         return oldestDateCursor;
     }
 

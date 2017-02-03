@@ -28,6 +28,7 @@ import br.ufc.mdcc.mpos.net.rpc.deploy.DeployService;
 import br.ufc.mdcc.mpos.net.rpc.model.RpcProfile;
 import br.ufc.mdcc.mpos.util.Util;
 import br.ufpe.cin.mpos.offload.DynamicDecisionSystem;
+import br.ufpe.cin.mpos.profile.Testing;
 
 /**
  * This class control many cycle-life services: 
@@ -56,7 +57,8 @@ public final class EndpointController {
 	private DiscoveryCloudletMulticast discoveryCloudletMulticast = null;
 
 	private Timer decisionMakerTimer;
-	private DynamicDecisionSystem dynamicDecisionSystem;
+    private DynamicDecisionSystem dynamicDecisionSystem;
+
 	private boolean decisionMakerActive;
 	private boolean remoteAdvantageExecution;
 

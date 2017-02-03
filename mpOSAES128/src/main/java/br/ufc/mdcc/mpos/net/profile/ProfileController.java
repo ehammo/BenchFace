@@ -34,6 +34,7 @@ import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseManager;
 import br.ufpe.cin.mpos.profile.Model.Model;
 import br.ufpe.cin.mpos.profile.ProfilesTask;
+import br.ufpe.cin.mpos.profile.Testing;
 
 /**
  * This class control the profile services
@@ -48,14 +49,14 @@ public final class ProfileController {
     private ProfilesTask taskProfiles;
     private ProfileNetwork profileNetwork;
     private DatabaseController dc;
-    private int id;
+    private Testing testing;
 
     public ProfileController(Context context, ProfileNetwork profile) {
         this.profileNetwork = profile;
         profileDao = new ProfileNetworkDao(context);
         dc = new DatabaseController(context);
         mContext = context;
-        id=0;
+        testing = new Testing(dc);
         Log.i(ProfileController.class.getName(), "MpOS Profile Started!");
     }
 
@@ -81,14 +82,14 @@ public final class ProfileController {
         } else if (profileNetwork == ProfileNetwork.FULL) {
             taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
         }
-        taskProfiles = new ProfilesTask(taskResultAdapter, mContext, id);
+        taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
         taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
       //  taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        id++;
+
     }
 
     public static String getCurrentTimeStamp() {
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date now = new Date();
         String strDate = sdfDate.format(now);
         return strDate;
@@ -98,8 +99,11 @@ public final class ProfileController {
         @Override
         public void completedTask(Model obj) {
             Log.d("teste", "Finalizado:\n"+obj.toString());
-            obj.Date = getCurrentTimeStamp();
+            Log.d("CarrierInfo", "Apos a tarefa: "+obj.Carrier);
+            String date = getCurrentTimeStamp();
+            obj.Date = date;
             dc.insertData(obj);
+            testing.run();
         }
     };
 
