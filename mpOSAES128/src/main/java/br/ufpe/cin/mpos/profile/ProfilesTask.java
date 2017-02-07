@@ -10,9 +10,11 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.telephony.CellInfo;
+import android.telephony.CellInfoCdma;
 import android.telephony.CellInfoGsm;
 import android.telephony.CellInfoLte;
 import android.telephony.CellInfoWcdma;
+import android.telephony.CellSignalStrengthCdma;
 import android.telephony.CellSignalStrengthGsm;
 import android.telephony.CellSignalStrengthLte;
 import android.telephony.CellSignalStrengthWcdma;
@@ -29,7 +31,7 @@ import java.util.List;
 
 import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
-import br.ufc.mdcc.mpos.util.device.Device;
+import br.ufc.mdcc.mpos.util.device.DeviceController;
 import br.ufpe.cin.mpos.profile.Model.Model;
 
 /**
@@ -41,7 +43,6 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
     Context mContext;
     TaskResultAdapter taskResultAdapter;
     private static final int INSERTION_POINT = 27;
-    String tech="";
 
     public ProfilesTask(TaskResultAdapter TRA, Context context){
         taskResultAdapter = TRA;
@@ -51,16 +52,16 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
 
     protected Model doInBackground(Void... params) {
         Log.d("teste", "entrei na tarefa");
-        Device device = MposFramework.getInstance().getDeviceController().getDevice();
+        DeviceController deviceController = MposFramework.getInstance().getDeviceController();
         result.AppName = getAppLable(mContext);
-        result.Carrier = device.getCarrier();
+        result.Carrier = deviceController.getDevice().getCarrier();
         Log.d("CarrierInfo", "Durante a tarefa: "+result.Carrier);
         result.Battery = getBattery();
         //result.fCPU = getCPUMaxFrequency()??;
         //Log.d("teste", "hw: " +result.fCPU);
         result.CPU = getCPUStatistic();
         result.RSSI = getRSSI();
-        result.Tech = tech;
+        result.Tech = deviceController.getNetworkConnectedType();
         return result;
     }
 
@@ -251,23 +252,26 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
 
         List<CellInfo> CellInfo_list = telephonyManager.getAllCellInfo();
         int rssi = -1;
+
         if(CellInfo_list.get(0) instanceof CellInfoLte){
             CellInfoLte cellinfo = (CellInfoLte) CellInfo_list.get(0);
             CellSignalStrengthLte cellSignalStrength = cellinfo.getCellSignalStrength();
             rssi = cellSignalStrength.getLevel();
-            tech="4G";
 
         }else if(CellInfo_list.get(0) instanceof CellInfoWcdma){
             CellInfoWcdma cellinfo = (CellInfoWcdma) CellInfo_list.get(0);
             CellSignalStrengthWcdma cellSignalStrength = cellinfo.getCellSignalStrength();
             rssi = cellSignalStrength.getLevel();
-            tech="3G";
 
-        }else if(CellInfo_list.get(0) instanceof  CellInfoGsm){
+        } else if (CellInfo_list.get(0) instanceof CellInfoCdma) {
+            CellInfoCdma cellinfo = (CellInfoCdma) CellInfo_list.get(0);
+            CellSignalStrengthCdma cellSignalStrength = cellinfo.getCellSignalStrength();
+            rssi = cellSignalStrength.getLevel();
+
+        } else if (CellInfo_list.get(0) instanceof CellInfoGsm) {
             CellInfoGsm cellinfo = (CellInfoGsm) CellInfo_list.get(0);
             CellSignalStrengthGsm cellSignalStrength = cellinfo.getCellSignalStrength();
             rssi = cellSignalStrength.getLevel();
-            tech="2G";
 
         }
 
@@ -282,7 +286,6 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         int wifi = getRSSIWifi();
         int level=0;
         if(wifi>0){
-            tech="Wifi";
             level = wifi;
         }else{
             level = getRSSI4G();

@@ -31,7 +31,6 @@ import br.ufc.mdcc.mpos.persistence.ProfileNetworkDao;
 import br.ufc.mdcc.mpos.util.TaskResult;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
-import br.ufpe.cin.mpos.DaoLocal.DatabaseManager;
 import br.ufpe.cin.mpos.profile.Model.Model;
 import br.ufpe.cin.mpos.profile.ProfilesTask;
 import br.ufpe.cin.mpos.profile.Testing;
@@ -105,7 +104,7 @@ public final class ProfileController {
             obj.BandwidthDown = bandwidthDown;
             obj.BandwidthUp = bandwidthUp;
             dc.insertData(obj);
-            testing.run();
+            //testing.run();
         }
     };
 
