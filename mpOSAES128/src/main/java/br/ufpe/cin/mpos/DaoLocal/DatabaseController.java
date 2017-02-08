@@ -31,9 +31,8 @@ public class DatabaseController {
         Log.d("CarrierInfo", "No Banco: "+model.Carrier);
         valores.put(dm.Carrier, model.Carrier);
         valores.put(dm.Battery, model.Battery);
-        valores.put(dm.fCPU, model.fCPU);
+        valores.put(dm.year, model.year);
         valores.put(dm.CPU, model.CPU);
-        valores.put(dm.SizeInput, model.SizeInput);
         valores.put(dm.BandwidthDown, model.BandwidthDown);
         valores.put(dm.BandwidthUp, model.BandwidthUp);
         valores.put(dm.RSSI, model.RSSI);

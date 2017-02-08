@@ -22,8 +22,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -55,14 +53,42 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         DeviceController deviceController = MposFramework.getInstance().getDeviceController();
         result.AppName = getAppLable(mContext);
         result.Carrier = deviceController.getDevice().getCarrier();
-        Log.d("CarrierInfo", "Durante a tarefa: "+result.Carrier);
         result.Battery = getBattery();
-        //result.fCPU = getCPUMaxFrequency()??;
-        //Log.d("teste", "hw: " +result.fCPU);
+        result.year = getYear(deviceController.getDevice().getYear());
         result.CPU = getCPUStatistic();
         result.RSSI = getRSSI();
         result.Tech = deviceController.getNetworkConnectedType();
         return result;
+    }
+
+    public String getYear(int year) {
+        String resp;
+
+        switch (year) {
+            case 2016:
+                resp = "Potente";
+                break;
+            case 2015:
+                resp = "Intermediario Avancado";
+                break;
+            case 2014:
+                resp = "Intermediario Avancado";
+                break;
+            case 2013:
+                resp = "Intermediario";
+                break;
+            case 2012:
+                resp = "Basico";
+                break;
+            case 2011:
+                resp = "Fraco";
+                break;
+            default:
+                resp = "Fraco";
+                break;
+        }
+
+        return resp;
     }
 
     public String getAppLable(Context context) {
@@ -100,63 +126,6 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         }
 
         return result;
-    }
-
-    private String getCPUMaxFrequency(){
-        String max="";
-
-        for(int i=0;i<8;i++){
-            float current = getCurrentFrequency(i);
-            if(current>0)
-               max+= "Core "+i+":" + current +"Ghz\n";
-        }
-
-        return max;
-    }
-    
-    private static String getCurFrequencyFilePath(int whichCpuCore){
-        StringBuilder filePath = new StringBuilder("/sys/devices/system/cpu/cpu/cpufreq/scaling_cur_freq");
-        filePath.insert(INSERTION_POINT, whichCpuCore);
-        return filePath.toString();
-    }
-    
-    public float getCurrentFrequency(int whichCpuCore){
-
-        float curFrequency = -1;
-        String cpuCoreCurFreqFilePath = getCurFrequencyFilePath(whichCpuCore);
-
-        if(new File(cpuCoreCurFreqFilePath).exists()){
-
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(new File(cpuCoreCurFreqFilePath)));
-                String aLine;
-                while ((aLine = br.readLine()) != null) {
-
-                    try{
-                        curFrequency = Integer.parseInt(aLine);
-                    }
-                    catch(NumberFormatException e){
-
-                        Log.e("teste", e.toString());
-                    }
-
-                }
-                if (br != null) {
-                    br.close();
-                }
-            }
-            catch (IOException e) {
-                Log.e("teste", e.toString());
-            }
-
-        }
-
-        curFrequency = curFrequency/(float)1000000;
-
-        if(curFrequency<0)
-            curFrequency=-1;
-
-        return curFrequency;
     }
 
     private String getCPUStatistic() {

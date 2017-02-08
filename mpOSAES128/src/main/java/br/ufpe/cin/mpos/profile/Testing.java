@@ -16,7 +16,6 @@
 package br.ufpe.cin.mpos.profile;
 
 import android.database.Cursor;
-import android.util.Log;
 
 import java.util.TimerTask;
 
@@ -52,7 +51,7 @@ public class Testing extends TimerTask {
         m.AppName = c.getString(2);
         m.Carrier = c.getString(3);
         m.Battery = c.getString(4);
-        m.fCPU = c.getString(5);
+        m.year = c.getString(5);
         m.CPU = c.getString(6);
         m.SizeInput = c.getString(7);
         m.BandwidthDown = c.getString(8);

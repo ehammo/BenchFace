@@ -10,7 +10,7 @@ public class Model {
     public String AppName;
     public String Carrier;
     public String Battery;
-    public String fCPU;
+    public String year;
     public String CPU;
     public String SizeInput;
     public String BandwidthDown;

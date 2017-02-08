@@ -29,12 +29,21 @@ public final class Device {
 	private String carrier;
 	private String longitude;
 	private String latitude;
+	private int year;
 
 	public Device(){
 		this.longitude = "0.0";
 		this.latitude = "0.0";
 	}
-	
+
+	public final int getYear() {
+		return year;
+	}
+
+	public final void setYear(int y) {
+		year = y;
+	}
+
 	public final String getMobileId() {
 		return mobileId;
 	}

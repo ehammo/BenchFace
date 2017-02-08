@@ -13,9 +13,9 @@ public class DatabaseManager extends SQLiteOpenHelper {
     public static final String AppName = "App";
     public static final String Carrier = "Carrier";
     public static final String Battery = "Battery";
-    public static final String fCPU = "CPU_frequency";
+    public static final String year = "year_class";
     public static final String CPU = "CPU_usage";
-    public static final String SizeInput = "Size_Input";
+    public static final String Result = "Result";
     public static final String BandwidthDown = "BandwidthDown";
     public static final String BandwidthUp = "BandwidthUp";
     public static final String RSSI = "RSSI";
@@ -49,15 +49,15 @@ public class DatabaseManager extends SQLiteOpenHelper {
                 + AppName + " text,"
                 + Carrier  + " text,"
                 + Battery  + " text,"
-                + fCPU  + " text,"
+                + year + " text,"
                 + CPU  + " text,"
-                + SizeInput  + " text,"
                 + BandwidthDown  + " text,"
                 + BandwidthUp  + " text,"
                 + RSSI  + " text,"
                 + Date + " text,"
-                + CPUNuvem  + " text"
-                +")";
+                + CPUNuvem + " text,"
+                + Result + " text"
+                + ")";
         db.execSQL(sql);
     }
 

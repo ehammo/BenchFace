@@ -1,4 +1,4 @@
-include ':app', ':opencv310', ':libmylib'
+include ':app', ':opencv310', ':libmylib', ':yearclass', ':yearclass-sample'
 include ':openCVLibrary310'
 include ':mpOSAES128'
 include ':mpOSAES192'

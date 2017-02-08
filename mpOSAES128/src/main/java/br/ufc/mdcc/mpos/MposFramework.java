@@ -15,16 +15,19 @@
  *******************************************************************************/
 package br.ufc.mdcc.mpos;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.util.Log;
-import br.ufc.mdcc.mpos.config.MposConfig;
+
+import com.facebook.device.yearclass.YearClass;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import br.ufc.mdcc.mpos.config.Inject;
+import br.ufc.mdcc.mpos.config.MposConfig;
 import br.ufc.mdcc.mpos.net.endpoint.EndpointController;
 import br.ufc.mdcc.mpos.net.exceptions.NetworkException;
 import br.ufc.mdcc.mpos.net.profile.ProfileController;
@@ -128,6 +131,7 @@ public final class MposFramework {
 
         deviceController = new DeviceController(activity);
 
+
         Annotation[] annotations = cls.getAnnotations();
         for (Annotation anno : annotations) {
             if (anno instanceof MposConfig) {
@@ -154,6 +158,9 @@ public final class MposFramework {
                 break;
             }
         }
+        deviceController.getDevice().setYear(YearClass.get(context));
+        Log.d("teste", "Ano: " + deviceController.getDevice().getYear());
+
     }
 
     public DeviceController getDeviceController() {
