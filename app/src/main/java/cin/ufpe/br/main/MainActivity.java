@@ -1,30 +1,23 @@
 package cin.ufpe.br.main;
 
 //android
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.BatteryManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -36,39 +29,47 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-
-//code
-import br.ufc.mdcc.mpos.MposFramework;
-import br.ufc.mdcc.mpos.config.Inject;
-import br.ufc.mdcc.mpos.config.MposConfig;
-import br.ufc.mdcc.mpos.util.TaskResultAdapter;
-import cin.ufpe.br.Interfaces.*;
-import cin.ufpe.br.Interfaces.Cascade;
-import cin.ufpe.br.Util.Data;
-import cin.ufpe.br.Util.ExportCsv;
-import cin.ufpe.br.service.*;
-import cin.ufpe.br.service.DetectFacesService;
-
-//openCV
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.objdetect.CascadeClassifier;
-import java.util.TimeZone;
 
-@MposConfig(endpointSecondary = "192.168.254.48")
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import br.ufc.mdcc.mpos.MposFramework;
+import br.ufc.mdcc.mpos.config.Inject;
+import br.ufc.mdcc.mpos.config.MposConfig;
+import br.ufc.mdcc.mpos.util.TaskResultAdapter;
+import cin.ufpe.br.Interfaces.BlurImage;
+import cin.ufpe.br.Interfaces.Cascade;
+import cin.ufpe.br.Interfaces.CloudletBlurImage;
+import cin.ufpe.br.Interfaces.CloudletCascade;
+import cin.ufpe.br.Interfaces.CloudletCutImage;
+import cin.ufpe.br.Interfaces.CloudletDetectFaces;
+import cin.ufpe.br.Interfaces.CloudletOverlay;
+import cin.ufpe.br.Interfaces.CutImage;
+import cin.ufpe.br.Interfaces.DetectFaces;
+import cin.ufpe.br.Interfaces.Overlay;
+import cin.ufpe.br.Util.Data;
+import cin.ufpe.br.Util.ExportCsv;
+import cin.ufpe.br.service.BlurImageService;
+import cin.ufpe.br.service.CascadeService;
+import cin.ufpe.br.service.CutImageService;
+import cin.ufpe.br.service.DetectFacesService;
+import cin.ufpe.br.service.MainService;
+import cin.ufpe.br.service.MainServiceNuvem;
+import cin.ufpe.br.service.OverlayService;
+
+//code
+//openCV
+
+@MposConfig(endpointSecondary = "192.168.254.109")
 //@MposConfig
 public class MainActivity extends Activity {
 

@@ -15,12 +15,15 @@
  *******************************************************************************/
 package br.ufc.mdcc.mpos.net.core;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Arrays;
 
+import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.net.exceptions.MissedEventException;
 
 /**
@@ -61,10 +64,22 @@ public final class ClientTcp extends ClientAbstract {
 		byte tempBuffer[] = new byte[BUFFER];// 4k de buffer
 
 		InputStream is = socket.getInputStream();
-
 		int read = 0;
 		byte zero = (byte) 0;
+		int i = 1;
 		while ((read = is.read(tempBuffer)) != -1) {
+			String str = new String(tempBuffer, "ISO-8859-1");
+			if (str != null && str.contains("Testando")) {
+				Log.d("recebimento", "converti");
+				int pos = str.indexOf('T');
+				pos = pos + 9;
+				String valor = (str.substring(pos)).substring(0, 5);
+				Log.d("recebimento", valor);
+				MposFramework.getInstance().getProfileController().CPU_Nuvem = valor;
+			} else {
+				Log.d("recebimento", "Str: " + str);
+			}
+			i++;
 			event.receive(tempBuffer, 0, read);
 			Arrays.fill(tempBuffer, zero);
 		}

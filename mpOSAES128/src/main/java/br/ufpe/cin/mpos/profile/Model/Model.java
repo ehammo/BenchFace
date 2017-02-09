@@ -19,5 +19,8 @@ public class Model {
     public String CPUNuvem;
     public String Date;
 
-    
+    public String toString() {
+        return IDC + " " + Tech + " " + AppName + " " + Carrier + " " + Battery + " " + year + " " + CPU + " " + SizeInput + " " + BandwidthDown + " " + BandwidthUp + " " + RSSI + " " + CPUNuvem + " " + Date;
+    }
+
 }

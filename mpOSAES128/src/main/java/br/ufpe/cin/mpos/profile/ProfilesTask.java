@@ -55,7 +55,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         result.Carrier = deviceController.getDevice().getCarrier();
         result.Battery = getBattery();
         result.year = getYear(deviceController.getDevice().getYear());
-        result.CPU = getCPUStatistic();
+        result.CPU = getCPULabel(getCPUStatistic());
         result.RSSI = getRSSI();
         result.Tech = deviceController.getNetworkConnectedType();
         return result;
@@ -128,7 +128,19 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return result;
     }
 
-    private String getCPUStatistic() {
+    public String getCPULabel(int total) {
+        String ret = "";
+        if (total < 30) {
+            ret = "Baixa";
+        } else if (total >= 30 && total < 75) {
+            ret = "Media";
+        } else {
+            ret = "Alta";
+        }
+        return ret;
+    }
+
+    private int getCPUStatistic() {
 
         String tempString = getCPU();
 
@@ -150,17 +162,8 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
             cpuUsageAsInt[i] = Integer.parseInt(myString[i]);
             total+=cpuUsageAsInt[i];
         }
-		String ret = "";
-		if(total<30){
-			ret = "Baixa";
-		}else if(total>=30&&total<75){
-			ret = "Media";
-		}else{
-			ret = "Alta";
-		}
-		
-		
-        return ret;
+
+        return total;
     }
 
     private String getCPU() {

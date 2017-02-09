@@ -51,6 +51,7 @@ public final class ProfileController {
     private Testing testing;
     private String bandwidthDown;
     private String bandwidthUp;
+    public String CPU_Nuvem;
 
     public ProfileController(Context context, ProfileNetwork profile) {
         this.profileNetwork = profile;
@@ -103,7 +104,11 @@ public final class ProfileController {
             obj.Date = date;
             obj.BandwidthDown = bandwidthDown;
             obj.BandwidthUp = bandwidthUp;
+            ProfilesTask pt = new ProfilesTask(null, null);
+            obj.CPUNuvem = pt.getCPULabel(Integer.parseInt(CPU_Nuvem));
+
             dc.insertData(obj);
+            Log.d("teste", "Finalizado:\n" + obj.toString());
             //testing.run();
         }
     };
