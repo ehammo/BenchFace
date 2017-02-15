@@ -128,14 +128,14 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return result;
     }
 
-    public String getCPULabel(int total) {
+    public String getCPULabel(float total) {
         String ret = "";
         if (total < 30) {
-            ret = "Baixa";
+            ret = "Relaxado";
         } else if (total >= 30 && total < 75) {
-            ret = "Media";
+            ret = "Carga Normal";
         } else {
-            ret = "Alta";
+            ret = "Estressado";
         }
         return ret;
     }
@@ -197,7 +197,9 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         int numberOfLevels = 6;
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        int level = WifiManager.calculateSignalLevel(wifiInfo.getRssi(), numberOfLevels);
+        int rssi = wifiInfo.getRssi();
+        Log.d("teste", "RSSI: " + rssi);
+        int level = WifiManager.calculateSignalLevel(rssi, numberOfLevels);
         return level;
     }
 
@@ -262,7 +264,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         }else{
             level = getRSSI4G();
         }
-
+        Log.d("teste", "RSSILevel: " + level);
         switch (level) {
             case 0:
                 return "Sem sinal";

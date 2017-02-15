@@ -84,7 +84,7 @@ public final class ProfileController {
         } else if (profileNetwork == ProfileNetwork.FULL) {
             taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
         }
-      taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
     }
 
@@ -98,17 +98,16 @@ public final class ProfileController {
     private TaskResultAdapter<Model> taskResultAdapter = new TaskResultAdapter<Model>() {
         @Override
         public void completedTask(Model obj) {
-            Log.d("teste", "Finalizado:\n"+obj.toString());
             Log.d("CarrierInfo", "Apos a tarefa: "+obj.Carrier);
             String date = getCurrentTimeStamp();
             obj.Date = date;
             obj.BandwidthDown = bandwidthDown;
             obj.BandwidthUp = bandwidthUp;
             ProfilesTask pt = new ProfilesTask(null, null);
-            obj.CPUNuvem = pt.getCPULabel(Integer.parseInt(CPU_Nuvem));
+            obj.CPUNuvem = pt.getCPULabel(Float.parseFloat(CPU_Nuvem));
 
             dc.insertData(obj);
-            Log.d("teste", "Finalizado:\n" + obj.toString());
+            Log.d("final", "Finalizado:\n" + obj.toString());
             //testing.run();
         }
     };
