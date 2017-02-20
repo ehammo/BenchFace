@@ -49,9 +49,11 @@ public final class ProfileController {
     private ProfileNetwork profileNetwork;
     private DatabaseController dc;
     private Testing testing;
-    private String bandwidthDown;
-    private String bandwidthUp;
+    private String bandwidthDown="";
+    private String bandwidthUp="";
     public String CPU_Nuvem;
+    Model model = new Model();
+    ServerContent server = null;
 
     public ProfileController(Context context, ProfileNetwork profile) {
         this.profileNetwork = profile;
@@ -75,16 +77,17 @@ public final class ProfileController {
         Log.d("teste", "Vou executar as tarefas");
         if (server == null) {
             throw new NetworkException("The remote service isn't ready for profile network");
+        }else{
+            this.server=server;
         }
 
-        if (profileNetwork == ProfileNetwork.LIGHT) {
-            taskNetwork = new ProfileNetworkLight(persistNetworkResults(taskResultEvent), server);
-        } else if (profileNetwork == ProfileNetwork.DEFAULT) {
-            taskNetwork = new ProfileNetworkDefault(persistNetworkResults(taskResultEvent), server);
-        } else if (profileNetwork == ProfileNetwork.FULL) {
-            taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
+        if(bandwidthDown.equals("0")&&bandwidthUp.equals("0")){
+            salvaBanco();
         }
-        taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+        taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
+        taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
 
     }
 
@@ -95,19 +98,53 @@ public final class ProfileController {
         return strDate;
     }
 
+    private String getBandwidthLabel(String b){
+        float f = Float.parseFloat(b);
+        String resp = "";
+        if(f>20){
+            resp = "Livre";
+        }else if(f>2){
+            resp = "Mediano";
+        }else{
+            resp = "Congestionado";
+        }
+        return resp;
+    }
+
+    private void salvaBanco(){
+        String date = getCurrentTimeStamp();
+        model.Date = date;
+        model.BandwidthDown = getBandwidthLabel(bandwidthDown);
+        model.BandwidthUp = getBandwidthLabel(bandwidthUp);
+        ProfilesTask pt = new ProfilesTask(null, null);
+        model.CPUNuvem = pt.getCPULabel(Float.parseFloat(CPU_Nuvem));
+
+        dc.insertData(model);
+        bandwidthDown="-1";
+        bandwidthUp="-1";
+        Log.d("final", "Finalizado:\n" + model.toString());
+
+    }
+
     private TaskResultAdapter<Model> taskResultAdapter = new TaskResultAdapter<Model>() {
         @Override
         public void completedTask(Model obj) {
             Log.d("CarrierInfo", "Apos a tarefa: "+obj.Carrier);
-            String date = getCurrentTimeStamp();
-            obj.Date = date;
-            obj.BandwidthDown = bandwidthDown;
-            obj.BandwidthUp = bandwidthUp;
-            ProfilesTask pt = new ProfilesTask(null, null);
-            obj.CPUNuvem = pt.getCPULabel(Float.parseFloat(CPU_Nuvem));
-
-            dc.insertData(obj);
-            Log.d("final", "Finalizado:\n" + obj.toString());
+            model = obj;
+            bandwidthDown="0";
+            bandwidthUp="0";
+            try {
+                if (profileNetwork == ProfileNetwork.LIGHT) {
+                    taskNetwork = new ProfileNetworkLight(persistNetworkResults(taskResultEvent), server);
+                } else if (profileNetwork == ProfileNetwork.DEFAULT) {
+                    taskNetwork = new ProfileNetworkDefault(persistNetworkResults(taskResultEvent), server);
+                } else if (profileNetwork == ProfileNetwork.FULL) {
+                    taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
+                }
+            }catch(Exception e){
+                Log.e("teste", e.getMessage());
+            }
+            taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             //testing.run();
         }
     };
@@ -132,8 +169,7 @@ public final class ProfileController {
                     profileDao.add(network);
                     bandwidthDown = formatString(network.getBandwidthDownload());
                     bandwidthUp = formatString(network.getBandwidthUpload());
-                    taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
-                    taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                    salvaBanco();
                 }
                 interceptedResults.completedTask(network);
             }

@@ -177,7 +177,7 @@ public final class ProfileNetworkFull extends ProfileNetworkTask {
 
 	private boolean bandwidthCalculation() throws IOException, MissedEventException, InterruptedException {
 		final Semaphore mutex = new Semaphore(0);
-		
+		//Log.i("testando","Entrei no calculo de banda");
 		//begin download
 		publishProgress(55);
 		
@@ -190,13 +190,15 @@ public final class ProfileNetworkFull extends ProfileNetworkTask {
 
 			@Override
 			public void receive(byte[] data, int offset, int read) {
-				countBytes += (long) read;
+				//Log.i(clsName, "Read: "+read);
+                countBytes += (long) read;
 
 				if (Util.containsArrays(data, endDown)) {
 					// System.out.println("Bytes: "+countBytes);
 					// bytes * 8bits / 7s * 1E+6 = X Mbits
 					double bandwidth = ((double) (countBytes * 8L) / (double) (7.0 * 1E+6));
-					network.setBandwidthDownload(String.valueOf(bandwidth));
+                    Log.i("testando","Download: "+bandwidth);
+                    network.setBandwidthDownload(String.valueOf(bandwidth));
 					countBytes = 0L;
 					mutex.release();
 				} else if (Util.containsArrays(data, endSession)) {

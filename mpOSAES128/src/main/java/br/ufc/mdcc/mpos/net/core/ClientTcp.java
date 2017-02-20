@@ -71,14 +71,14 @@ public final class ClientTcp extends ClientAbstract {
 			String str = new String(tempBuffer, "ISO-8859-1");
 			if (str != null && str.contains("Testando")) {
 				Log.d("recebimento", "converti");
-				Log.d("recebimento", str);
+				//Log.d("recebimento", str);
 				int pos = str.indexOf('T');
 				pos = pos + 9;
 				String valor = (str.substring(pos)).substring(0, 5);
 				Log.d("recebimento", valor);
 				MposFramework.getInstance().getProfileController().CPU_Nuvem = valor;
 			} else {
-				Log.d("recebimento", "Str: " + str);
+				//Log.d("recebimento", "Str: " + str);
 			}
 			i++;
 			event.receive(tempBuffer, 0, read);
