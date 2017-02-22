@@ -98,15 +98,19 @@ public final class ProfileController {
         return strDate;
     }
 
-    private String getBandwidthLabel(String b){
+    private String getBandwidthLabel(String b, String tech){
         float f = Float.parseFloat(b);
         String resp = "";
-        if(f>20){
-            resp = "Livre";
-        }else if(f>2){
-            resp = "Mediano";
+        if(tech.equals("WIFI")) {
+            if (f > 20) {
+                resp = "Livre";
+            } else if (f > 2) {
+                resp = "Mediano";
+            } else {
+                resp = "Congestionado";
+            }
         }else{
-            resp = "Congestionado";
+            resp = "Sem limiar";
         }
         return resp;
     }
@@ -118,9 +122,9 @@ public final class ProfileController {
         float down = Float.parseFloat(bandwidthDown);
         float up = Float.parseFloat(bandwidthUp);
         if(down<up){
-            bandwidthLabel = getBandwidthLabel(bandwidthDown);
+            bandwidthLabel = getBandwidthLabel(bandwidthDown, model.Tech);
         }else{
-            bandwidthLabel = getBandwidthLabel(bandwidthUp);
+            bandwidthLabel = getBandwidthLabel(bandwidthUp, model.Tech);
         }
 
         model.Bandwidth = bandwidthLabel;
