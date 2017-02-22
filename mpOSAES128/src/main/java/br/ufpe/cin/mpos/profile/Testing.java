@@ -54,8 +54,7 @@ public class Testing extends TimerTask {
         m.year = c.getString(5);
         m.CPU = c.getString(6);
         m.SizeInput = c.getString(7);
-        m.BandwidthDown = c.getString(8);
-        m.BandwidthUp = c.getString(9);
+        m.Bandwidth = c.getString(8);
         m.RSSI = c.getString(10);
         m.Date = c.getString(11);
         m.CPUNuvem = c.getString(12);

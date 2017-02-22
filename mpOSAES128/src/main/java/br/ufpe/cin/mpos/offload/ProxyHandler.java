@@ -45,7 +45,7 @@ public final class ProxyHandler implements InvocationHandler {
 
 	private Object objOriginal;
 	private boolean manualSerialization = false;
-	private boolean cripto = true;
+	private boolean cripto = false;
 
 	private ProxyHandler(Object objProxy, Class<?> interfaceType) {
 		this.objOriginal = objProxy;

@@ -114,8 +114,16 @@ public final class ProfileController {
     private void salvaBanco(){
         String date = getCurrentTimeStamp();
         model.Date = date;
-        model.BandwidthDown = getBandwidthLabel(bandwidthDown);
-        model.BandwidthUp = getBandwidthLabel(bandwidthUp);
+        String bandwidthLabel="";
+        float down = Float.parseFloat(bandwidthDown);
+        float up = Float.parseFloat(bandwidthUp);
+        if(down<up){
+            bandwidthLabel = getBandwidthLabel(bandwidthDown);
+        }else{
+            bandwidthLabel = getBandwidthLabel(bandwidthUp);
+        }
+
+        model.Bandwidth = bandwidthLabel;
         ProfilesTask pt = new ProfilesTask(null, null);
         model.CPUNuvem = pt.getCPULabel(Float.parseFloat(CPU_Nuvem));
 

@@ -13,14 +13,13 @@ public class Model {
     public String year;
     public String CPU;
     public String SizeInput;
-    public String BandwidthDown;
-    public String BandwidthUp;
+    public String Bandwidth;
     public String RSSI;
     public String CPUNuvem;
     public String Date;
 
     public String toString() {
-        return IDC + " " + Tech + " " + AppName + " " + Carrier + " " + Battery + " " + year + " " + CPU + " " + SizeInput + " " + BandwidthDown + " " + BandwidthUp + " " + RSSI + " " + CPUNuvem + " " + Date;
+        return IDC + " " + Tech + " " + AppName + " " + Carrier + " " + Battery + " " + year + " " + CPU + " " + SizeInput + Bandwidth + " " + RSSI + " " + CPUNuvem + " " + Date;
     }
 
 }

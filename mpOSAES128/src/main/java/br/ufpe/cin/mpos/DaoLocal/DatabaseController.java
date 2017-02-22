@@ -33,8 +33,7 @@ public class DatabaseController {
         valores.put(dm.Battery, model.Battery);
         valores.put(dm.year, model.year);
         valores.put(dm.CPU, model.CPU);
-        valores.put(dm.BandwidthDown, model.BandwidthDown);
-        valores.put(dm.BandwidthUp, model.BandwidthUp);
+        valores.put(dm.Bandwidth, model.Bandwidth);
         valores.put(dm.RSSI, model.RSSI);
         valores.put(dm.CPUNuvem, model.CPUNuvem);
         valores.put(dm.Date, model.Date);
