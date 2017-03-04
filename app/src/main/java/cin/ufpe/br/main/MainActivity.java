@@ -69,8 +69,8 @@ import cin.ufpe.br.service.OverlayService;
 //code
 //openCV
 
-@MposConfig(endpointSecondary = "192.168.254.102")
-//@MposConfig
+//@MposConfig(endpointSecondary = "192.168.254.107")
+@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";

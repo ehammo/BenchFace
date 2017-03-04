@@ -51,7 +51,7 @@ public final class ProfileController {
     private Testing testing;
     private String bandwidthDown="";
     private String bandwidthUp="";
-    public String CPU_Nuvem;
+    public String CPU_Nuvem="-1";
     Model model = new Model();
     ServerContent server = null;
 
@@ -101,10 +101,12 @@ public final class ProfileController {
     private String getBandwidthLabel(String b, String tech){
         float f = Float.parseFloat(b);
         String resp = "";
-        if(tech.equals("WIFI")) {
+        if(tech.equalsIgnoreCase("WIFI")) {
             if (f > 20) {
                 resp = "Livre";
-            } else if (f > 2) {
+            }else if(f==9.14){
+                resp = "Mediano (9.14)";
+            }else if (f > 2) {
                 resp = "Mediano";
             } else {
                 resp = "Congestionado";

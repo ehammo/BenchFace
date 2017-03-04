@@ -72,7 +72,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
                 resp = "Intermediario Avancado";
                 break;
             case 2014:
-                resp = "Intermediario Avancado";
+                resp = "Intermediario";
                 break;
             case 2013:
                 resp = "Intermediario";
@@ -134,7 +134,9 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
             ret = "Relaxado";
         } else if (total >= 30 && total < 75) {
             ret = "Carga Normal";
-        } else {
+        } else if(total == (-1)){
+            ret = "Desconhecido";
+        } else{
             ret = "Estressado";
         }
         return ret;
@@ -195,7 +197,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
     public int getRSSIWifi(){
         Log.d("teste", "WIFI");
         WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        int numberOfLevels = 6;
+        int numberOfLevels = 3;
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         int rssi = wifiInfo.getRssi();
         Log.d("teste", "RSSI: " + rssi);
@@ -269,14 +271,10 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
             case 0:
                 return "Sem sinal";
             case 1:
-                return "Pessimo";
-            case 2:
                 return "Pobre";
-            case 3:
-                return "Moderado";
-            case 4:
+            case 2:
                 return "Bom";
-            case 5:
+            case 3:
                 return "Otimo";
         }
 
