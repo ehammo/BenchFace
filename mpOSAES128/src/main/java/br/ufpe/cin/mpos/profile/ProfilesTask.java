@@ -197,7 +197,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
     public int getRSSIWifi(){
         Log.d("teste", "WIFI");
         WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        int numberOfLevels = 3;
+        int numberOfLevels = 4;
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         int rssi = wifiInfo.getRssi();
         Log.d("teste", "RSSI: " + rssi);
@@ -273,8 +273,10 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
             case 1:
                 return "Pobre";
             case 2:
-                return "Bom";
+                return "Moderado";
             case 3:
+                return "Bom";
+            case 4:
                 return "Otimo";
         }
 
