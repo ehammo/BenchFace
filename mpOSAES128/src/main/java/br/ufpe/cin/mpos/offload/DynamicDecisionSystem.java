@@ -15,16 +15,40 @@
  *******************************************************************************/
 package br.ufpe.cin.mpos.offload;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.TimerTask;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.util.Log;
+import android.util.Pair;
+import android.widget.Toast;
+
 import br.ufc.mdcc.mpos.MposFramework;
+import br.ufc.mdcc.mpos.R;
 import br.ufc.mdcc.mpos.net.endpoint.ServerContent;
 import br.ufc.mdcc.mpos.net.exceptions.MissedEventException;
 import br.ufc.mdcc.mpos.net.exceptions.NetworkException;
 import br.ufc.mdcc.mpos.net.profile.model.Network;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
+import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
+import br.ufpe.cin.mpos.DaoLocal.DatabaseManager;
+import br.ufpe.cin.mpos.profile.ResultTypes;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.lazy.IBk;
+import weka.classifiers.trees.J48;
+import weka.core.Attribute;
+import weka.core.DenseInstance;
+import weka.core.FastVector;
+import weka.core.Instance;
+import weka.core.Instances;
+
 
 /**
  * This implementation made decision about local or remote execution,
@@ -34,11 +58,15 @@ import br.ufc.mdcc.mpos.util.TaskResultAdapter;
  */
 public class DynamicDecisionSystem extends TimerTask {
     private final String clsName = DynamicDecisionSystem.class.getName();
-
     private final Object mutex = new Object();
     private final long PING_TOLERANCE = 50;//ms
-
+    private J48 classifierJ48;
+    private IBk classifierKNN;
+    private NaiveBayes classifierNaiveBayes;
+    private String classifierModel = "j48.model";
     private ServerContent server;
+    private Context mContext;
+    private DatabaseController dc;
     // private ProfileNetworkDAO profileDao;
 
     private TaskResultAdapter<Network> event = new TaskResultAdapter<Network>() {
@@ -57,7 +85,28 @@ public class DynamicDecisionSystem extends TimerTask {
         }
     };
 
+    private void loadClassifier() throws Exception{
+        if(classifierModel.equals("j48.model")&&classifierJ48==null) {
+            Log.d("sqlLite","criando o objectInput J48");
+            ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierModel));
+            Log.d("sqlLite","criando o object");
+            classifierJ48 = (J48) objectInputStream.readObject();
+        }else if(classifierModel.equals("knn.model")&&classifierKNN==null){
+            Log.d("sqlLite","criando o objectInput IBk");
+            ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierModel));
+            Log.d("sqlLite","criando o object");
+            classifierKNN = (IBk) objectInputStream.readObject();
+        }else if(classifierModel.equals("naivebayes.model")&&classifierNaiveBayes==null){
+            Log.d("sqlLite","criando o objectInput NB");
+            ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierModel));
+            Log.d("sqlLite","criando o object");
+            classifierNaiveBayes = (NaiveBayes) objectInputStream.readObject();
+        }
+    }
+
     public DynamicDecisionSystem(Context context, ServerContent server) {
+        dc = new DatabaseController(context);
+        mContext = context;
         setServer(server);
         MposFramework.getInstance().getProfileController().setTaskResultEvent(event);
         // profileDao = new ProfileNetworkDAO(context);
@@ -75,13 +124,94 @@ public class DynamicDecisionSystem extends TimerTask {
         }
     }
 
+    public synchronized boolean isRemoteAdvantage(int InputSize){
+        boolean resp = false;
+        try {
+            if (classifierJ48 == null) {
+                loadClassifier();
+            }
+            Cursor c = dc.getData();
+            int colunas = c.getColumnCount();
+            Instance instance = new DenseInstance(colunas-2);
+            ArrayList<String> values = new ArrayList<String>();
+            ArrayList<Attribute> atts = new ArrayList<Attribute>();
+            if(c.moveToFirst()) {
+                for (int i = 1; i <= colunas - 2; i++) {
+                    String feature = c.getColumnName(i);
+                    String value = c.getString(i);
+                    if(value!=null) {
+                        values.add(value);
+                    }
+                    Attribute attribute;
+                    if (feature.equals(DatabaseManager.InputSize)) {
+                        values.add(""+InputSize);
+                        attribute = new Attribute(DatabaseManager.InputSize);
+                    } else {
+                        String[] strings = populateAttributes(i);
+                        ArrayList<String> attValues = new ArrayList<String>(Arrays.asList(strings));
+                        attribute = new Attribute(feature,attValues);
+                    }
+                   // Log.d("sqlL",attribute.name());
+                    atts.add(attribute);
+                }
+                Instances instances = new Instances("header",atts,atts.size());
+                instances.setClassIndex(instances.numAttributes()-1);
+                instance.setDataset(instances);
+                for(int i=0;i<atts.size();i++){
+                    if(i==9){
+                        instance.setMissing(atts.get(9));
+                    }
+                    else if(atts.get(i).name().equals(DatabaseManager.InputSize)){
+                        instance.setValue(atts.get(i),InputSize);
+                    }else{
+                        instance.setValue(atts.get(i),values.get(i));
+                    }
+                }
+                double value = classifierJ48.distributionForInstance(instance)[0];
+                Log.d("finalizado", instance.toString()+" classifiquei "+value);
+                Log.d("sqlLite","classifiquei "+instance.toString()+" com "+(0.7 <= value));
+                resp = (0.7 <= value);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            Log.e("sqlLite", e.getMessage());
+            Log.e("sqlLite", "Causa: "+e.getCause());
+        }
+        return resp;
+    }
+
+    private String[] populateAttributes(int feature){
+        if(feature==9){
+            feature=5;
+        }
+        switch (feature){
+            case 1:
+                return Arrays.toString(ResultTypes.ResultTypesApps.values()).replaceAll("^.|.$", "").split(", ");
+            case 3:
+                return Arrays.toString(ResultTypes.ResultTypesPhone.values()).replaceAll("^.|.$", "").split(", ");
+            case 4:
+                return Arrays.toString(ResultTypes.ResultTypesBateria.values()).replaceAll("^.|.$", "").split(", ");
+            case 5:
+                return Arrays.toString(ResultTypes.ResultTypesCpu.values()).replaceAll("^.|.$", "").split(", ");
+            case 6:
+                return Arrays.toString(ResultTypes.ResultTypesRede.values()).replaceAll("^.|.$", "").split(", ");
+            case 7:
+                return Arrays.toString(ResultTypes.ResultTypesLarguraRede.values()).replaceAll("^.|.$", "").split(", ");
+            case 8:
+                return Arrays.toString(ResultTypes.ResultTypesRSSI.values()).replaceAll("^.|.$", "").split(", ");
+            case 10:
+                return Arrays.toString(ResultTypes.ResultTypesResult.values()).replaceAll("^.|.$", "").split(", ");
+        }
+        return null;
+    }
+
     @Override
     public void run() {
         try {
             if (getServer() != null) {
                 Log.d("teste","Calling analysis");
                 MposFramework.getInstance().getProfileController().networkAnalysis(getServer());
-            } else {
+            }else{
                 Log.i(clsName, "Waiting for new endpoint...");
             }
         } catch (MissedEventException e) {

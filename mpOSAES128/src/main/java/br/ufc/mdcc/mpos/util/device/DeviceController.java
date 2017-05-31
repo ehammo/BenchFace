@@ -80,7 +80,7 @@ public final class DeviceController {
 			int subtype = info.getSubtype();
 
 			if (type == ConnectivityManager.TYPE_WIFI) {
-				return "WiFi";
+				return "Wifi";
 			} else if (type == ConnectivityManager.TYPE_MOBILE) {
 				switch (subtype) {
 					case TelephonyManager.NETWORK_TYPE_CDMA:

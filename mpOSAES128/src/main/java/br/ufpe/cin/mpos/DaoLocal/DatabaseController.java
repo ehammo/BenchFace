@@ -17,6 +17,7 @@ public class DatabaseController {
     public DatabaseManager dm;
 
     public DatabaseController(Context context){
+        Log.d("sqlLite","vou criar o banco");
         dm = DatabaseManager.getInstance(context);
     }
 
@@ -28,8 +29,6 @@ public class DatabaseController {
         valores = new ContentValues();
         valores.put(dm.Tech, model.Tech);
         valores.put(dm.AppName, model.AppName);
-        Log.d("CarrierInfo", "No Banco: "+model.Carrier);
-        valores.put(dm.Carrier, model.Carrier);
         valores.put(dm.Battery, model.Battery);
         valores.put(dm.year, model.year);
         valores.put(dm.CPU, model.CPU);

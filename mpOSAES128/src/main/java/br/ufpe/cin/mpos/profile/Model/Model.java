@@ -19,7 +19,7 @@ public class Model {
     public String Date;
 
     public String toString() {
-        return IDC + " " + Tech + " " + AppName + " " + Carrier + " " + Battery + " " + year + " " + CPU + " " + SizeInput +" "+ Bandwidth + " " + RSSI + " " + CPUNuvem + " " + Date;
+        return IDC + ", " + Tech + ", " + AppName + ", " + Carrier + ", " + Battery + ", " + year + ", " + CPU + ", " + SizeInput +", "+ Bandwidth + ", " + RSSI + ", " + CPUNuvem + ", " + Date;
     }
 
 }

@@ -9,16 +9,16 @@ public class DatabaseManager extends SQLiteOpenHelper {
     public static final String NOME_BANCO = "banco.db";
     public static final String TABELA = "AllProfiles";
     public static final String IDC = "_id";
-    public static final String Tech = "Tech";
-    public static final String AppName = "App";
-    public static final String Carrier = "Carrier";
-    public static final String Battery = "Battery";
-    public static final String year = "year_class";
-    public static final String CPU = "CPU_usage";
-    public static final String Result = "Result";
-    public static final String Bandwidth = "Bandwidth";
-    public static final String RSSI = "RSSI";
-    public static final String CPUNuvem = "CPU_usage_cloud";
+    public static final String Tech = "TipoRede";
+    public static final String InputSize = "TamanhoDados(Kb)";
+    public static final String AppName = "Aplicativo";
+    public static final String Battery = "BateriaSmartphone";
+    public static final String year = "HardSmartphone";
+    public static final String CPU = "CPUSmartphone";
+    public static final String Bandwidth = "LarguraBandaRede";
+    public static final String RSSI = "RSSIRede";
+    public static final String CPUNuvem = "CPUNuvem";
+    public static final String result = "Resultado";
     public static final String Date = "date_column";
 
     private static DatabaseManager sInstance;
@@ -42,19 +42,20 @@ public class DatabaseManager extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        Log.d("sqlLite","tentando criar banco");
         String sql = "CREATE TABLE "+TABELA+"("
                 + IDC + " integer primary key autoincrement,"
-                + Tech + " text,"
                 + AppName + " text,"
-                + Carrier  + " text,"
-                + Battery  + " text,"
+                + "["+InputSize + "] int,"
                 + year + " text,"
+                + Battery  + " text,"
                 + CPU  + " text,"
+                + Tech + " text,"
                 + Bandwidth  + " text,"
                 + RSSI  + " text,"
-                + Date + " text,"
                 + CPUNuvem + " text,"
-                + Result + " text"
+                + result + " text,"
+                + Date + " text"
                 + ")";
         db.execSQL(sql);
     }

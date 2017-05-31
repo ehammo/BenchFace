@@ -64,6 +64,7 @@ public final class ProfileNetworkFull extends ProfileNetworkTask {
 		network = new Network();
 
 		try {
+			/*
 			Log.i(clsName, "ping tcp");
 			long[] pings = pingService(Protocol.TCP_EVENT);
 			network.setResultPingTcp(pings);
@@ -90,6 +91,7 @@ public final class ProfileNetworkFull extends ProfileNetworkTask {
 				return null;
 			}
 			retrieveJitterResult();
+			*/
 			publishProgress(50);
 
 			Log.i(clsName, "bandwidth calculation");

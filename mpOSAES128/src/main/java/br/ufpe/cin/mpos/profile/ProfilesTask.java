@@ -27,7 +27,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+
 import br.ufc.mdcc.mpos.MposFramework;
+import br.ufc.mdcc.mpos.R;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufc.mdcc.mpos.util.device.DeviceController;
 import br.ufpe.cin.mpos.profile.Model.Model;
@@ -40,7 +42,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
     Model result;
     Context mContext;
     TaskResultAdapter taskResultAdapter;
-    private static final int INSERTION_POINT = 27;
+    public static String[] appTypes = {"BenchFace", "BenchImage", "CollisionBalls"};
 
     public ProfilesTask(TaskResultAdapter TRA, Context context){
         taskResultAdapter = TRA;
@@ -52,39 +54,37 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         Log.d("teste", "entrei na tarefa");
         DeviceController deviceController = MposFramework.getInstance().getDeviceController();
         result.AppName = getAppLable(mContext);
-        result.Carrier = deviceController.getDevice().getCarrier();
-        result.Battery = getBattery();
-        result.year = getYear(deviceController.getDevice().getYear());
-        result.CPU = getCPULabel(getCPUStatistic());
-        result.RSSI = getRSSI();
+        result.Battery = getBattery().name();
+        result.year = getYear(deviceController.getDevice().getYear()).name();
+        result.CPU = getCPULabel(getCPUStatistic()).name();
+        result.RSSI = getRSSI().name();
         result.Tech = deviceController.getNetworkConnectedType();
         return result;
     }
 
-    public String getYear(int year) {
-        String resp;
-
+    public ResultTypes.ResultTypesPhone getYear(int year) {
+        ResultTypes.ResultTypesPhone resp;
         switch (year) {
             case 2016:
-                resp = "Potente";
+                resp = ResultTypes.ResultTypesPhone.Potente;
                 break;
             case 2015:
-                resp = "Intermediario Avancado";
+                resp = ResultTypes.ResultTypesPhone.Intermediario_Avancado;
                 break;
             case 2014:
-                resp = "Intermediario";
+                resp = ResultTypes.ResultTypesPhone.Intermediario;
                 break;
             case 2013:
-                resp = "Intermediario";
+                resp = ResultTypes.ResultTypesPhone.Intermediario;
                 break;
             case 2012:
-                resp = "Basico";
+                resp = ResultTypes.ResultTypesPhone.Basico;
                 break;
             case 2011:
-                resp = "Fraco";
+                resp = ResultTypes.ResultTypesPhone.Fraco;
                 break;
             default:
-                resp = "Fraco";
+                resp = ResultTypes.ResultTypesPhone.Fraco;
                 break;
         }
 
@@ -98,6 +98,11 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
             applicationInfo = packageManager.getApplicationInfo(context.getApplicationInfo().packageName, 0);
         } catch (final PackageManager.NameNotFoundException e) {
         }
+
+        if(applicationInfo != null && packageManager.getApplicationLabel(applicationInfo).toString().contains("Collision")){
+            return "CollisionBalls";
+        }
+
         return (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : "Unknown");
     }
 
@@ -105,7 +110,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         taskResultAdapter.completedTask(result);
     }
 
-    public String getBattery(){
+    public ResultTypes.ResultTypesBateria getBattery(){
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = mContext.registerReceiver(null, ifilter);
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -114,30 +119,30 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         float batteryPct = level / (float)scale;
         float percentage = batteryPct*100;
 
-        String result;
+        ResultTypes.ResultTypesBateria result;
         if(percentage<=15){
-            result = "Fraca";
+            result = ResultTypes.ResultTypesBateria.Fraca;
         }else if(percentage>15&&percentage<=50){
-            result = "Razoavel";
+            result = ResultTypes.ResultTypesBateria.Razoavel;
         }else if(percentage>50&&percentage<=84){
-            result = "Boa";
+            result = ResultTypes.ResultTypesBateria.Boa;
         }else{
-            result = "Forte";
+            result = ResultTypes.ResultTypesBateria.Forte;
         }
 
         return result;
     }
 
-    public String getCPULabel(float total) {
-        String ret = "";
+    public ResultTypes.ResultTypesCpu getCPULabel(float total) {
+        ResultTypes.ResultTypesCpu ret;
         if (total < 30) {
-            ret = "Relaxado";
+            ret = ResultTypes.ResultTypesCpu.Relaxado;
         } else if (total >= 30 && total < 75) {
-            ret = "Carga Normal";
+            ret = ResultTypes.ResultTypesCpu.Carga_Normal;
         } else if(total == (-1)){
-            ret = "Desconhecido";
+            ret = ResultTypes.ResultTypesCpu.Desconhecido;
         } else{
-            ret = "Estressado";
+            ret = ResultTypes.ResultTypesCpu.Estressado;
         }
         return ret;
     }
@@ -258,7 +263,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return result;
     }
 
-    public String getRSSI(){
+    public ResultTypes.ResultTypesRSSI getRSSI(){
         int wifi = getRSSIWifi();
         int level=0;
         if(wifi>0){
@@ -269,17 +274,25 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         Log.d("teste", "RSSILevel: " + level);
         switch (level) {
             case 0:
-                return "Sem sinal";
+                return ResultTypes.ResultTypesRSSI.Sem_Sinal;
             case 1:
-                return "Pobre";
+                return ResultTypes.ResultTypesRSSI.Pobre;
             case 2:
-                return "Moderado";
+                return ResultTypes.ResultTypesRSSI.Bom;
             case 3:
-                return "Bom";
-            case 4:
-                return "Otimo";
+                return ResultTypes.ResultTypesRSSI.Otimo;
         }
 
-        return "";
+        return ResultTypes.ResultTypesRSSI.Sem_Sinal;
     }
+
+    public int getRSSIPuro(){
+        Log.d("teste", "WIFI");
+        WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int rssi = wifiInfo.getRssi();
+        Log.d("teste", "RSSI: " + rssi);
+        return rssi;
+    }
+
 }

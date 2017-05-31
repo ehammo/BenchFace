@@ -69,8 +69,8 @@ import cin.ufpe.br.service.OverlayService;
 //code
 //openCV
 
-//@MposConfig(endpointSecondary = "192.168.254.107")
-@MposConfig
+@MposConfig(endpointSecondary = "172.22.73.150")
+//@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
@@ -139,30 +139,21 @@ public class MainActivity extends Activity {
                     // Load native library after(!) OpenCV initialization
                     try{
                         Log.d(TAG, "config: "+config);
-                        mainNuvem = new MainServiceNuvem(Bitmap2Byte(originalImage), detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,algorithm,taskAdapter);
-                        switch (config) {
-                            case 0:
-                                TimeStarted = System.nanoTime();
-                                cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
-                                main = new MainService(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier, taskAdapter);
-                                if (cascadeClassifier != null) {
-                                    Log.d(TAG, "Loaded cascade classifier");
-                                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                }
-                                break;
-                            case 1:
-                                TimeStarted = System.nanoTime();
-                                mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                break;
-                            case 2:
-                                TimeStarted = System.nanoTime();
-                                cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
-                                main = new MainService(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier, taskAdapter);
-                                if (cascadeClassifier != null) {
-                                    Log.d(TAG, "Loaded cascade classifier");
-                                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                }
-                                break;
+                        originalImageByte = Bitmap2Byte(originalImage);
+                        int inputSize = (originalImageByte.length)/1024;
+                        if(config==2) {
+                            Log.d(TAG, "tomando decisão");
+                            if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
+                                execution = "CloudBased Execution";
+                                runAPI(1);
+                                Log.d(TAG, "resultado: nuvem");
+                            } else {
+                                execution = "LocalBased Execution";
+                                runAPI(0);
+                                Log.d(TAG, "resultado: local");
+                            }
+                        }else{
+                            runAPI(config);
                         }
                     } catch (Exception e) {
                         statusTextView.setText("Failed");
@@ -188,6 +179,25 @@ public class MainActivity extends Activity {
         }
     };
 
+    public void runAPI(int config) throws Exception{
+        switch (config) {
+            case 0:
+                TimeStarted = System.nanoTime();
+                cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
+                main = new MainService(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier, taskAdapter);
+                if (cascadeClassifier != null) {
+                    Log.d(TAG, "Loaded cascade classifier");
+                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                }
+                break;
+            case 1:
+                TimeStarted = System.nanoTime();
+                mainNuvem = new MainServiceNuvem(originalImageByte, detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,algorithm,taskAdapter);
+                mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+        }
+    }
+
     private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
         @Override
         public void completedTask(Bitmap obj) {
@@ -197,13 +207,12 @@ public class MainActivity extends Activity {
                 data.setSize(originalImageByte.length+"");
                 mProgressDialog.dismiss();
                 imageView.setVisibility(View.VISIBLE);
-                if(config==1){
-                    faces = mainNuvem.getNumFaces();
-                    data.setFaces(mainNuvem.getNumFaces());
-                }else{
+                if(execution.contains("LocalBased")){
                     faces = main.getNumFaces();
                     data.setFaces(main.getNumFaces());
-
+                }else {
+                    faces = mainNuvem.getNumFaces();
+                    data.setFaces(mainNuvem.getNumFaces());
                 }
                 changeCSV();
                 if(benchmarking<30){
@@ -251,26 +260,6 @@ public class MainActivity extends Activity {
         String strDate = sdfDate.format(now);
         return strDate;
     }
-
-    /*
-    public float getBattery(){
-        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = mContext.registerReceiver(null, ifilter);
-        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-        float batteryPct = level / (float)scale;
-        return batteryPct*100;
-    }*/
-
-    /*
-    public int getRSSI(){
-        WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        int numberOfLevels = 6;
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        int level = WifiManager.calculateSignalLevel(wifiInfo.getRssi(), numberOfLevels);
-        return level;
-    }*/
 
 
     @Override
@@ -638,12 +627,10 @@ public class MainActivity extends Activity {
                     break;
             case R.id.RBdynamic:
                 if (clicked.isChecked()&&(local.isChecked()||nuvem.isChecked())) {
-                    execution = "LocalBased Execution";
                     nuvem.setChecked(false);
                     local.setChecked(false);
                     config = 2;
                 }else if(clicked.isChecked()){
-                    execution = "LocalBased Execution";
                     config = 2;
                 }
                 break;

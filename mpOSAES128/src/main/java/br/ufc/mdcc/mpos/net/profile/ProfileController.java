@@ -49,11 +49,35 @@ public final class ProfileController {
     private ProfileNetwork profileNetwork;
     private DatabaseController dc;
     private Testing testing;
-    private String bandwidthDown="";
-    private String bandwidthUp="";
+    private String bandwidthDown="-1";
+    private String bandwidthUp="-1";
     public String CPU_Nuvem="-1";
     Model model = new Model();
     ServerContent server = null;
+
+    public float getBandwidthDown(){
+        try{
+            return Float.parseFloat(bandwidthDown);
+        }catch (Exception e){
+            return -2;
+        }
+    }
+
+    public float getBandwidthUp(){
+        try{
+            return Float.parseFloat(bandwidthUp);
+        }catch (Exception e){
+            return -2;
+        }
+    }
+
+    public float getCPUNuvem(){
+        try{
+            return Float.parseFloat(CPU_Nuvem);
+        }catch (Exception e) {
+            return -2;
+        }
+    }
 
     public ProfileController(Context context, ProfileNetwork profile) {
         this.profileNetwork = profile;
@@ -77,17 +101,16 @@ public final class ProfileController {
         Log.d("teste", "Vou executar as tarefas");
         if (server == null) {
             throw new NetworkException("The remote service isn't ready for profile network");
-        }else{
-            this.server=server;
+        } else {
+            this.server = server;
         }
 
-        if(bandwidthDown.equals("0")&&bandwidthUp.equals("0")){
+        if (bandwidthDown.equals("0") && bandwidthUp.equals("0")) {
             salvaBanco();
         }
 
         taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
         taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
 
     }
 
@@ -98,20 +121,32 @@ public final class ProfileController {
         return strDate;
     }
 
-    private String getBandwidthLabel(String b, String tech){
-        float f = Float.parseFloat(b);
+    private String getBandwidthLabel(float f, String tech){
         String resp = "";
         if(tech.equalsIgnoreCase("WIFI")) {
-            if (f > 20) {
-                resp = "Livre";
-            }else if(f==9.14){
-                resp = "Mediano (9.14)";
-            }else if (f > 2) {
-                resp = "Mediano";
-            } else {
-                resp = "Congestionado";
+
+            if(model.year.equalsIgnoreCase("Potente")||model.year.equalsIgnoreCase("Intermediario Avancado")){
+                if (f > 20) {
+                    resp = "Livre";
+                }else if(Math.abs(f-9.14)<0.001){
+                    resp = "Incerto";
+                }else if (f > 2) {
+                    resp = "Mediano";
+                } else {
+                    resp = "Congestionado";
+                }
+            }else{
+                if (f > 15) {
+                    resp = "Livre";
+                }else if(Math.abs(f-9.14)<0.001){
+                    resp = "Incerto";
+                }else if (f > 2) {
+                    resp = "Mediano";
+                } else {
+                    resp = "Congestionado";
+                }
             }
-        }else{
+	}else{
             resp = "Sem limiar";
         }
         return resp;
@@ -123,20 +158,22 @@ public final class ProfileController {
         String bandwidthLabel="";
         float down = Float.parseFloat(bandwidthDown);
         float up = Float.parseFloat(bandwidthUp);
+        Log.d("rede","Download "+down);
+        Log.d("rede","upload "+up);
         if(down<up){
-            bandwidthLabel = getBandwidthLabel(bandwidthDown, model.Tech);
-        }else{
-            bandwidthLabel = getBandwidthLabel(bandwidthUp, model.Tech);
+            bandwidthLabel = getBandwidthLabel(down, model.Tech);
+        }else {
+            bandwidthLabel = getBandwidthLabel(up, model.Tech);
         }
 
         model.Bandwidth = bandwidthLabel;
         ProfilesTask pt = new ProfilesTask(null, null);
-        model.CPUNuvem = pt.getCPULabel(Float.parseFloat(CPU_Nuvem));
+        model.CPUNuvem = pt.getCPULabel(Float.parseFloat(CPU_Nuvem)).name();
 
         dc.insertData(model);
         bandwidthDown="-1";
         bandwidthUp="-1";
-        Log.d("final", "Finalizado:\n" + model.toString());
+        Log.d("finalizado", "Finalizado:\n" + model.toString());
 
     }
 
