@@ -35,7 +35,6 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -47,17 +46,14 @@ import br.ufc.mdcc.mpos.config.Inject;
 import br.ufc.mdcc.mpos.config.MposConfig;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
-import cin.ufpe.br.Interfaces.DetectFaces;
 import cin.ufpe.br.Util.Data;
 import cin.ufpe.br.Util.ExportCsv;
 import cin.ufpe.br.Util.Util;
-import cin.ufpe.br.service.BlurImageService;
+import cin.ufpe.br.model.ToLoadCascadeModel;
 import cin.ufpe.br.service.CascadeService;
-import cin.ufpe.br.service.CutImageService;
 import cin.ufpe.br.service.DetectFacesService;
 import cin.ufpe.br.service.MainService;
 import cin.ufpe.br.service.MainServiceNuvem;
-import cin.ufpe.br.service.OverlayService;
 
 //code
 //openCV
@@ -69,12 +65,16 @@ public class MainActivity extends Activity {
     private static final String TAG = "teste";
 
     //OpenCv-Related
-    private CascadeClassifier cascadeClassifier;
+    public static CascadeClassifier cascadeClassifier;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+    };
     private MainService main;
     private MainServiceNuvem mainNuvem;
-
     @Inject(DetectFacesService.class)
-
+    private CloudletDetectFaces detectFaces;
     //CSV-Related
     private int alg;
     private String algorithm = "";
@@ -82,14 +82,12 @@ public class MainActivity extends Activity {
     private int id;
     private String Originalresolution;
     private Data data;
-
     //Android-Related
     private Button btn;
     private String timeText;
     private ImageView imageView;
     private Context mContext;
     private ProgressDialog mProgressDialog;
-
     //Others
     private Bitmap originalImage;
     private byte[] originalImageByte;
@@ -104,79 +102,6 @@ public class MainActivity extends Activity {
     private int config;
     private int faces;
     private int benchmarking=32;
-
-    private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-    };
-
-
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    Log.d(TAG, "OpenCV loaded successfully");
-                    // Load native library after(!) OpenCV initialization
-                    try{
-                        Log.d(TAG, "config: "+config);
-                        originalImageByte = Util.Bitmap2Byte(originalImage);
-                        int inputSize = (originalImageByte.length)/1024;
-                        if(config==2) {
-                            Log.d(TAG, "tomando decisão");
-                            if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
-                                execution = "CloudBased Execution";
-                                runAPI(1);
-                                Log.d(TAG, "resultado: nuvem");
-                            } else {
-                                execution = "LocalBased Execution";
-                                runAPI(0);
-                                Log.d(TAG, "resultado: local");
-                            }
-                        }else{
-                            runAPI(config);
-                        }
-                    } catch (Exception e) {
-                        statusTextView.setText("Failed");
-                        e.printStackTrace();
-                    } finally {
-                        if ((cascadeClassifier==null||cascadeClassifier.empty())&&config!=1) {
-                            Log.e(TAG, "Failed to load cascade classifier");
-                            cascadeClassifier = null;
-                            statusTextView.setText("failed");
-                            break;
-                        }
-                    }
-                }
-                default: {
-                    super.onManagerConnected(status);
-                    if(status!=LoaderCallbackInterface.SUCCESS){
-                        Log.d(TAG, "failed");
-                    }
-
-                }
-                break;
-            }
-        }
-    };
-
-    public void runAPI(int config) throws Exception{
-        switch (config) {
-            case 0:
-                TimeStarted = System.nanoTime();
-                //cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
-                main = new MainService(originalImage,alg, algorithm,mContext, taskAdapter);
-                main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                break;
-            case 1:
-                TimeStarted = System.nanoTime();
-                mainNuvem = new MainServiceNuvem(originalImageByte, algorithm, taskAdapter);
-                mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                break;
-        }
-    }
-
     private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
         @Override
         public void completedTask(Bitmap obj) {
@@ -226,9 +151,60 @@ public class MainActivity extends Activity {
                     id++;
                     benchmarking=32;
                 }
+            } else if (config != 0) {
+                statusTextView.setText("Status: Algum Error na transmissão!");
             } else {
-                TextView tv_status = (TextView) findViewById(R.id.textStatus);
-                tv_status.setText("Status: Algum Error na transmissão!");
+                statusTextView.setText("Erro inesperado");
+            }
+        }
+    };
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
+                    Log.d(TAG, "OpenCV loaded successfully");
+                    // Load native library after(!) OpenCV initialization
+                    try {
+                        //TODO: fix CascadeClassifier
+                        cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
+                        Log.d(TAG, "config: " + config);
+                        originalImageByte = Util.Bitmap2Byte(originalImage);
+                        int inputSize = (originalImageByte.length) / 1024;
+                        if (config == 2) {
+                            Log.d(TAG, "tomando decisão");
+                            if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
+                                execution = "CloudBased Execution";
+                                runAPI(1);
+                                Log.d(TAG, "resultado: nuvem");
+                            } else {
+                                execution = "LocalBased Execution";
+                                runAPI(0);
+                                Log.d(TAG, "resultado: local");
+                            }
+                        } else {
+                            runAPI(config);
+                        }
+                    } catch (Exception e) {
+                        statusTextView.setText("Failed");
+                        e.printStackTrace();
+                    } finally {
+//                        if ((cascadeClassifier==null||cascadeClassifier.empty())&&config!=1) {
+//                            Log.e(TAG, "Failed to load cascade classifier");
+//                            cascadeClassifier = null;
+//                            statusTextView.setText("failed");
+//                            break;
+//                        }
+                    }
+                }
+                default: {
+                    super.onManagerConnected(status);
+                    if (status != LoaderCallbackInterface.SUCCESS) {
+                        Log.d(TAG, "failed");
+                    }
+
+                }
+                break;
             }
         }
     };
@@ -240,6 +216,63 @@ public class MainActivity extends Activity {
         return strDate;
     }
 
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize += 1;
+            }
+        }
+
+        Log.d(TAG, "sampleSize: " + inSampleSize);
+        return inSampleSize;
+    }
+
+    public static void verifyStoragePermissions(Activity activity, String[] per) {
+        // Check if we have write permission
+        for (int i = 0; i < per.length; i++) {
+            int permission = ActivityCompat.checkSelfPermission(activity, per[i]);
+
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                // We don't have permission so prompt the user
+                ActivityCompat.requestPermissions(
+                        activity,
+                        PERMISSIONS_STORAGE,
+                        1
+                );
+                i = per.length;
+            }
+
+        }
+
+    }
+
+    public void runAPI(int config) throws Exception {
+        switch (config) {
+            case 0:
+                TimeStarted = System.nanoTime();
+                main = new MainService(originalImage, taskAdapter);
+                main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+            case 1:
+                TimeStarted = System.nanoTime();
+                mainNuvem = new MainServiceNuvem(originalImageByte, detectFaces, algorithm, taskAdapter);
+                mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -433,30 +466,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) >= reqHeight
-                    && (halfWidth / inSampleSize) >= reqWidth) {
-                inSampleSize += 1;
-            }
-        }
-
-        Log.d(TAG,"sampleSize: " + inSampleSize);
-        return inSampleSize;
-    }
-
     public void decodeSampledBitmapFromResource(Resources pRes, int pResId,
                                                          int pReqWidth, int pReqHeight) {
         final Resources res = pRes;
@@ -554,8 +563,6 @@ public class MainActivity extends Activity {
 
     }
 
-
-
     public void onRadioButtonClicked(View view) {
         // Is the button now checked?
         RadioButton clicked = ((RadioButton) view);
@@ -591,25 +598,6 @@ public class MainActivity extends Activity {
         data.setExecution(execution);
     }
 
-    public static void verifyStoragePermissions(Activity activity, String[] per) {
-        // Check if we have write permission
-        for(int i=0;i<per.length;i++){
-            int permission = ActivityCompat.checkSelfPermission(activity, per[i]);
-
-            if (permission != PackageManager.PERMISSION_GRANTED) {
-                // We don't have permission so prompt the user
-                ActivityCompat.requestPermissions(
-                        activity,
-                        PERMISSIONS_STORAGE,
-                        1
-                );
-                i=per.length;
-            }
-
-        }
-
-    }
-
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -638,104 +626,5 @@ public class MainActivity extends Activity {
         dialog.show();
         return true;
     }
-
-   /* private String getCPUStatistic() {
-
-        String tempString = getCPU();
-
-        tempString = tempString.replaceAll(",", "");
-        tempString = tempString.replaceAll("User", "");
-        tempString = tempString.replaceAll("System", "");
-        tempString = tempString.replaceAll("IOW", "");
-        tempString = tempString.replaceAll("IRQ", "");
-        tempString = tempString.replaceAll("%", "");
-        for (int i = 0; i < 10; i++) {
-            tempString = tempString.replaceAll("  ", " ");
-        }
-        tempString = tempString.trim();
-        String[] myString = tempString.split(" ");
-        int total =0;
-        int[] cpuUsageAsInt = new int[myString.length];
-        for (int i = 0; i < myString.length; i++) {
-            myString[i] = myString[i].trim();
-            cpuUsageAsInt[i] = Integer.parseInt(myString[i]);
-            total+=cpuUsageAsInt[i];
-        }
-        return total+"%";
-    }
-
-    private String getCPU() {
-        java.lang.Process p = null;
-        BufferedReader in = null;
-        String returnString = null;
-        try {
-            p = Runtime.getRuntime().exec("top -n 1");
-            in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while (returnString == null || returnString.contentEquals("")) {
-                returnString = in.readLine();
-            }
-        } catch (IOException e) {
-            Log.e("executeTop", "error in getting first line of top");
-            e.printStackTrace();
-        } finally {
-            try {
-                in.close();
-                p.destroy();
-            } catch (IOException e) {
-                Log.e("executeTop",
-                        "error in closing and destroying top process");
-                e.printStackTrace();
-            }
-        }
-        return returnString;
-    }
-
-    private static final int INSERTION_POINT = 27;
-
-    private static String getCurFrequencyFilePath(int whichCpuCore){
-        StringBuilder filePath = new StringBuilder("/sys/devices/system/cpu/cpu/cpufreq/scaling_cur_freq");
-        filePath.insert(INSERTION_POINT, whichCpuCore);
-        return filePath.toString();
-    }
-
-    public float getCurrentFrequency(int whichCpuCore){
-
-        float curFrequency = -1;
-        String cpuCoreCurFreqFilePath = getCurFrequencyFilePath(whichCpuCore);
-
-        if(new File(cpuCoreCurFreqFilePath).exists()){
-
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(new File(cpuCoreCurFreqFilePath)));
-                String aLine;
-                while ((aLine = br.readLine()) != null) {
-
-                    try{
-                        curFrequency = Integer.parseInt(aLine);
-                    }
-                    catch(NumberFormatException e){
-
-                        Log.e(getPackageName(), e.toString());
-                    }
-
-                }
-                if (br != null) {
-                    br.close();
-                }
-            }
-            catch (IOException e) {
-                Log.e(getPackageName(), e.toString());
-            }
-
-        }
-
-        curFrequency = curFrequency/(float)1000000;
-
-        if(curFrequency<0)
-            curFrequency=-1;
-
-        return curFrequency;
-    }*/
-
 
 }

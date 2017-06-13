@@ -15,6 +15,8 @@
  *******************************************************************************/
 package br.ufpe.cin.mpos.offload;
 
+import android.util.Log;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -23,7 +25,6 @@ import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.util.Log;
 import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.net.endpoint.EndpointType;
 import br.ufc.mdcc.mpos.net.endpoint.ServerContent;
@@ -71,8 +72,8 @@ public final class ProxyHandler implements InvocationHandler {
 		if (remotable != null) {
 			ServerContent server = MposFramework.getInstance().getEndpointController().selectPriorityServer(remotable.cloudletPrority());
 			if (remotable.value() == Offload.STATIC) {
-				Log.d("proxy","estatico");
-				if (server != null) {
+                Log.d("teste", "estatico");
+                if (server != null) {
 					try {
 						return invokeRemotable(server, remotable.status(), method, params);
 					} catch (ConnectException e) {

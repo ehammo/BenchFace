@@ -1,6 +1,5 @@
 package cin.ufpe.br.service;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -14,6 +13,7 @@ import java.util.List;
 
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.DetectFaces;
+import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
 import cin.ufpe.br.model.ToLoadCascadeModel;
 
@@ -23,7 +23,6 @@ import cin.ufpe.br.model.ToLoadCascadeModel;
 
 public final class MainService extends AsyncTask<Void, String, Bitmap> {
 
-    private String TAG = "teste";
     public int faces;
     Bitmap originalImage;
     DetectFaces serviceExtractFaces;
@@ -34,15 +33,16 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
     TaskResultAdapter taskResultAdapter;
     Bitmap result;
     ToLoadCascadeModel model;
+    private String TAG = "teste";
     private DecimalFormat precision = new DecimalFormat("0.0000");
 
-    public MainService(Bitmap originalImage, int alg, String algorithm, Context mContext, TaskResultAdapter taskAdapter){
+    public MainService(Bitmap originalImage, TaskResultAdapter taskAdapter) {
         this.originalImage=originalImage;
         this.serviceBlur=new BlurImageService();
         this.serviceCrop=new CutImageService();
         this.serviceExtractFaces=new DetectFacesService();
         this.serviceOverlay = new OverlayService();
-        this.model = new ToLoadCascadeModel(mContext, alg, algorithm);
+        this.cascadeClassifier = MainActivity.cascadeClassifier;
         taskResultAdapter=taskAdapter;
     }
 
@@ -61,8 +61,6 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
     }
 
     public Bitmap begin() throws Exception{
-        Log.d(TAG, "loading cascade");
-        this.cascadeClassifier=(new CascadeService()).loadCascade(model);
         Log.d(TAG, "\nRunning FaceDetector");
         Mat mat = new Mat();
         Utils.bitmapToMat(originalImage, mat);

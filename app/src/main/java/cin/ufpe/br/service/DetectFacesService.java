@@ -4,21 +4,20 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.Util.Util;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
-import cin.ufpe.br.model.PropriedadesFace2;
 
 public class DetectFacesService implements CloudletDetectFaces{
 	private static final String TAG="log";
@@ -26,12 +25,12 @@ public class DetectFacesService implements CloudletDetectFaces{
 
 	public PropriedadesFace detectarFaces(String s, byte[] image){
 		try {
-			ByteArrayInputStream in = new ByteArrayInputStream(image);
+            Log.d("teste", "DEU MERDA RODOU LOCAL");
+            ByteArrayInputStream in = new ByteArrayInputStream(image);
 			Mat mat = new Mat();
 			Utils.bitmapToMat(BitmapFactory.decodeStream(in), mat);
-			CascadeService cs = new CascadeService();
-			CascadeClassifier c = cs.loadCascade(s);
-			List<PropriedadesFace> propsFaces =  detectarFaces(c, mat);
+            CascadeClassifier c = MainActivity.cascadeClassifier;
+            List<PropriedadesFace> propsFaces =  detectarFaces(c, mat);
 			//desfoca a imagem
 			BlurImageService serviceBlur = new BlurImageService();
 			Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
@@ -47,8 +46,11 @@ public class DetectFacesService implements CloudletDetectFaces{
 			imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, Util.Byte2Bitmap(image));
 			Log.d("teste","deu tudo certo");
 			Log.d("teste","qtd de faces: "+propsFaces.size());
-
-		}catch(Exception e){
+            PropriedadesFace p = new PropriedadesFace();
+            p.setFaces(propsFaces.size());
+            p.setImagemFinal(Util.Bitmap2Byte(imagemCorteDesfoque));
+            return p;
+        }catch(Exception e){
 			e.printStackTrace();
 		}
 		return null;

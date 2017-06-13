@@ -1,6 +1,5 @@
 package cin.ufpe.br.service;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -14,7 +13,6 @@ import java.util.List;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.DetectFaces;
 import cin.ufpe.br.model.PropriedadesFace;
-import cin.ufpe.br.model.ToLoadCascadeModel;
 
 /**
  * Created by eduardo on 31/10/2016.
@@ -22,7 +20,6 @@ import cin.ufpe.br.model.ToLoadCascadeModel;
 
 public final class MainServiceNuvem extends AsyncTask<Void, String, Bitmap> {
 
-    private String TAG = "teste";
     public int faces;
     byte[] originalImage;
     DetectFaces serviceExtractFaces;
@@ -32,14 +29,14 @@ public final class MainServiceNuvem extends AsyncTask<Void, String, Bitmap> {
     String cascadeClassifier;
     TaskResultAdapter taskResultAdapter;
     Bitmap result;
-
+    private String TAG = "teste";
     private DecimalFormat precision = new DecimalFormat("0.0000");
 
-    public MainServiceNuvem(byte[] originalImage, String algorithm, TaskResultAdapter taskAdapter){
+    public MainServiceNuvem(byte[] originalImage, DetectFaces detectFaces, String algorithm, TaskResultAdapter taskAdapter) {
         this.originalImage=originalImage;
         this.serviceBlur=new BlurImageService();
         this.serviceCrop=new CutImageService();
-        this.serviceExtractFaces=new DetectFacesService();
+        this.serviceExtractFaces = detectFaces;
         this.serviceOverlay = new OverlayService();
         this.cascadeClassifier = algorithm;
         taskResultAdapter=taskAdapter;
