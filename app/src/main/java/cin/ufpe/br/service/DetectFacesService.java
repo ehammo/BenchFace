@@ -1,5 +1,6 @@
 package cin.ufpe.br.service;
 
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
@@ -14,30 +15,43 @@ import org.opencv.core.Rect;
 import org.opencv.objdetect.CascadeClassifier;
 
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
+import cin.ufpe.br.Util.Util;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
 import cin.ufpe.br.model.PropriedadesFace2;
 
-public class DetectFacesService implements CloudletDetectFaces {
+public class DetectFacesService implements CloudletDetectFaces{
 	private static final String TAG="log";
 
+
 	public PropriedadesFace detectarFaces(String s, byte[] image){
-		List<PropriedadesFace> dados = null;
 		try {
-			Log.d(TAG,"nao era pra eu entrar aki");
 			ByteArrayInputStream in = new ByteArrayInputStream(image);
 			Mat mat = new Mat();
 			Utils.bitmapToMat(BitmapFactory.decodeStream(in), mat);
 			CascadeService cs = new CascadeService();
-			CascadeClassifier c = cs.loadCascade(0,s,null);
-			dados = detectarFaces(c, mat);
+			CascadeClassifier c = cs.loadCascade(s);
+			List<PropriedadesFace> propsFaces =  detectarFaces(c, mat);
+			//desfoca a imagem
+			BlurImageService serviceBlur = new BlurImageService();
+			Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
+			Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
 
+			//corta os rostos da imagem desfocada,
+			CutImageService serviceCrop = new CutImageService();
+			propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
+
+			OverlayService serviceOverlay = new OverlayService();
+
+			//"cola" os rostos desfocados sobre a imagem original
+			imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, Util.Byte2Bitmap(image));
+			Log.d("teste","deu tudo certo");
+			Log.d("teste","qtd de faces: "+propsFaces.size());
 
 		}catch(Exception e){
 			e.printStackTrace();
-		}finally {
-			return null;
 		}
+		return null;
 	}
 
 	public List<PropriedadesFace> detectarFaces(CascadeClassifier cascadeClassifier, Mat mat){

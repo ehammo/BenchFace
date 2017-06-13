@@ -34,7 +34,7 @@ import br.ufc.mdcc.mpos.net.profile.ProfileController;
 import br.ufc.mdcc.mpos.util.device.DeviceController;
 import br.ufpe.cin.mpos.offload.ProxyHandler;
 import br.ufpe.cin.mpos.offload.Remotable;
-import weka.classifiers.trees.J48;
+
 
 /**
  * This class start all service from MpOS framework
@@ -71,19 +71,14 @@ public final class MposFramework {
             Log.i(clsName, ">>> Finish MpOS Framework loading!");
         } catch (InstantiationException e) {
             Log.e(clsName, "Instantiation Error!", e);
-            Log.e("teste",e.getMessage());
         } catch (IllegalAccessException e) {
             Log.e(clsName, "You class is public visibility?", e);
-            Log.e("teste",e.getMessage());
         } catch (ClassNotFoundException e) {
             Log.e(clsName, "Class Not Found Error!", e);
-            Log.e("teste",e.getMessage());
         } catch (NetworkException e) {
             Log.e(clsName, "Network Error: ", e);
-            Log.e("teste",e.getMessage());
         } catch (NameNotFoundException e) {
             Log.e(clsName, "Class Not Found Error!", e);
-            Log.e("teste",e.getMessage());
         } catch (RuntimeException e) {
             Log.e(clsName, "Any runtime exception", e);
             Log.e("teste",e.getMessage());

@@ -7,10 +7,9 @@ import android.graphics.Canvas;
 
 import java.util.List;
 
-import cin.ufpe.br.Interfaces.CloudletOverlay;
 import cin.ufpe.br.model.PropriedadesFace;
 
-public class OverlayService implements CloudletOverlay {
+public class OverlayService {
 	
 	public Bitmap juntarImagens(List<PropriedadesFace> dados, Bitmap imagemPrincipal){
 		
@@ -30,15 +29,5 @@ public class OverlayService implements CloudletOverlay {
         return overlayBitmap;
     }
 
-	public byte[] juntarImagens(List<PropriedadesFace> dados, byte[] imagemPrincipal){
-
-		return null;
-
-	}
-
-	public byte[] juntarUmaImage(byte[] imagemPrincipal, byte[] imagemCortada, int x, int y) {
-
-		return null;
-	}
 
 }

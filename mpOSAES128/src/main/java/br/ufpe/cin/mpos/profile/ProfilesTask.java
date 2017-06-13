@@ -29,7 +29,6 @@ import java.util.List;
 
 
 import br.ufc.mdcc.mpos.MposFramework;
-import br.ufc.mdcc.mpos.R;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufc.mdcc.mpos.util.device.DeviceController;
 import br.ufpe.cin.mpos.profile.Model.Model;

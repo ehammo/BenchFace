@@ -64,17 +64,6 @@ public final class ProxyHandler implements InvocationHandler {
 		return Proxy.newProxyInstance(cls.getClassLoader(), new Class<?>[] { interfaceType }, new ProxyHandler(objectInstance, interfaceType));
 	}
 
-	public int getSizeOfInput(Object[] params){
-		int result=0;
-		for(int i=0;i<params.length;i++){
-			if(params[i] instanceof Byte[]){
-                Log.d("proxy","entrei no instanceof");
-				result+= ((Byte[])params[i]).length;
-			}
-		}
-		return  result;
-	}
-
 	@Override
 	public Object invoke(Object original, Method method, Object[] params) throws Throwable {
 		Remotable remotable = methodCache.get(generateKeyMethod(method));
@@ -97,20 +86,14 @@ public final class ProxyHandler implements InvocationHandler {
 				Log.d("proxy","dinamico");
 				try {
 					if (server != null) {
-
-						// MposFramework.getInstance().getEndpointController().updateDynamicDecisionSystemEndpoint(server);
-						Log.d("proxy","get size");
-						int size = getSizeOfInput(params);
-						Log.d("proxy","size: "+size);
-						Log.d("proxy","Endpoint");
-						if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(size)) {
+						MposFramework.getInstance().getEndpointController().updateDynamicDecisionSystemEndpoint(server);
+						if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(0)) {
 							return invokeRemotable(server, remotable.status(), method, params);
 						}else{
                             Log.d("proxy","need to do local");
                         }
 					}
 				} catch (ConnectException e) {
-					Log.d("proxy","fuck");
 					Log.w(clsName, e);
 					MposFramework.getInstance().getEndpointController().rediscoveryServices(server);
 

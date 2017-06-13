@@ -46,18 +46,11 @@ import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.config.Inject;
 import br.ufc.mdcc.mpos.config.MposConfig;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
-import cin.ufpe.br.Interfaces.BlurImage;
-import cin.ufpe.br.Interfaces.Cascade;
-import cin.ufpe.br.Interfaces.CloudletBlurImage;
-import cin.ufpe.br.Interfaces.CloudletCascade;
-import cin.ufpe.br.Interfaces.CloudletCutImage;
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
-import cin.ufpe.br.Interfaces.CloudletOverlay;
-import cin.ufpe.br.Interfaces.CutImage;
 import cin.ufpe.br.Interfaces.DetectFaces;
-import cin.ufpe.br.Interfaces.Overlay;
 import cin.ufpe.br.Util.Data;
 import cin.ufpe.br.Util.ExportCsv;
+import cin.ufpe.br.Util.Util;
 import cin.ufpe.br.service.BlurImageService;
 import cin.ufpe.br.service.CascadeService;
 import cin.ufpe.br.service.CutImageService;
@@ -77,27 +70,16 @@ public class MainActivity extends Activity {
 
     //OpenCv-Related
     private CascadeClassifier cascadeClassifier;
-    private BlurImage desfoqueLocal;
-    private CutImage corteLocal;
-    private DetectFaces detectLocal;
-    private Overlay overlayLocal;
-    private Cascade cascadeLocal;
     private MainService main;
     private MainServiceNuvem mainNuvem;
-    private CloudletBlurImage desfoqueNuvem;
-    private CloudletCutImage corteNuvem;
-    private CloudletOverlay overlayNuvem;
-    private CloudletCascade cascadeNuvem;
 
     @Inject(DetectFacesService.class)
-    private CloudletDetectFaces detectNuvem;
 
     //CSV-Related
     private int alg;
     private String algorithm = "";
     private String execution  = "LocalBased Execution";
     private int id;
-    private String dataString = "";
     private String Originalresolution;
     private Data data;
 
@@ -139,7 +121,7 @@ public class MainActivity extends Activity {
                     // Load native library after(!) OpenCV initialization
                     try{
                         Log.d(TAG, "config: "+config);
-                        originalImageByte = Bitmap2Byte(originalImage);
+                        originalImageByte = Util.Bitmap2Byte(originalImage);
                         int inputSize = (originalImageByte.length)/1024;
                         if(config==2) {
                             Log.d(TAG, "tomando decisão");
@@ -183,16 +165,13 @@ public class MainActivity extends Activity {
         switch (config) {
             case 0:
                 TimeStarted = System.nanoTime();
-                cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
-                main = new MainService(originalImage, detectLocal, desfoqueLocal, corteLocal, overlayLocal, cascadeClassifier, taskAdapter);
-                if (cascadeClassifier != null) {
-                    Log.d(TAG, "Loaded cascade classifier");
-                    main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                }
+                //cascadeClassifier = cascadeLocal.loadCascade(alg, algorithm, mContext);
+                main = new MainService(originalImage,alg, algorithm,mContext, taskAdapter);
+                main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 1:
                 TimeStarted = System.nanoTime();
-                mainNuvem = new MainServiceNuvem(originalImageByte, detectNuvem, desfoqueNuvem,corteNuvem,overlayNuvem,algorithm,taskAdapter);
+                mainNuvem = new MainServiceNuvem(originalImageByte, algorithm, taskAdapter);
                 mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
         }
@@ -203,7 +182,7 @@ public class MainActivity extends Activity {
         public void completedTask(Bitmap obj) {
             if (obj != null) {
                 imagemCorteDesfoque = obj;
-                originalImageByte = Bitmap2Byte(obj);
+                originalImageByte = Util.Bitmap2Byte(obj);
                 data.setSize(originalImageByte.length+"");
                 mProgressDialog.dismiss();
                 imageView.setVisibility(View.VISIBLE);
@@ -382,17 +361,6 @@ public class MainActivity extends Activity {
 
             }
         });
-
-        cascadeLocal = new CascadeService();
-        cascadeNuvem = new CascadeService();
-        desfoqueLocal = new BlurImageService();
-        desfoqueNuvem = new BlurImageService();
-        corteLocal = new CutImageService();
-        corteNuvem = new CutImageService();
-        detectLocal = new DetectFacesService();
-        detectNuvem = new DetectFacesService();
-        overlayLocal = new OverlayService();
-        overlayNuvem = new OverlayService();
         verifyStoragePermissions(this, PERMISSIONS_STORAGE);
 
 
@@ -586,13 +554,7 @@ public class MainActivity extends Activity {
 
     }
 
-    public byte[] Bitmap2Byte(Bitmap bitmap){
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] bitmapdata = stream.toByteArray();
-        return stream.toByteArray();
 
-    }
 
     public void onRadioButtonClicked(View view) {
         // Is the button now checked?
@@ -603,35 +565,26 @@ public class MainActivity extends Activity {
         // Check which radio button was clicked
         switch(view.getId()) {
             case R.id.RBlocal:
+                execution = "LocalBased Execution";
+                config = 0;
                 if (clicked.isChecked()&&(nuvem.isChecked()||dynamic.isChecked())) {
-                    execution = "LocalBased Execution";
                     nuvem.setChecked(false);
                     dynamic.setChecked(false);
-                    config = 0;
-                }else if(clicked.isChecked()){
-                    execution = "LocalBased Execution";
-                    config = 0;
                 }
-                    break;
+                break;
             case R.id.RBnuvem:
-                if (clicked.isChecked()&&(local.isChecked()||dynamic.isChecked())){
-                    execution = "CloudBased Execution";
+                execution = "CloudBased Execution";
+                config = 1;
+                if (clicked.isChecked()&&(local.isChecked()||dynamic.isChecked())) {
                     local.setChecked(false);
                     dynamic.setChecked(false);
-                    config = 1;
-
-                }else if(clicked.isChecked()){
-                    execution = "CloudBased Execution";
-                    config = 1;
                 }
-                    break;
+                break;
             case R.id.RBdynamic:
+                config = 2;
                 if (clicked.isChecked()&&(local.isChecked()||nuvem.isChecked())) {
                     nuvem.setChecked(false);
                     local.setChecked(false);
-                    config = 2;
-                }else if(clicked.isChecked()){
-                    config = 2;
                 }
                 break;
         }

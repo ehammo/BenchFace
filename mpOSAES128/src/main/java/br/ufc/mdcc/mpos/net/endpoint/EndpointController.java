@@ -20,7 +20,6 @@ import java.util.Timer;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.util.Log;
-
 import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.net.endpoint.service.DiscoveryCloudletMulticast;
 import br.ufc.mdcc.mpos.net.endpoint.service.DiscoveryService;
@@ -32,7 +31,7 @@ import br.ufpe.cin.mpos.offload.DynamicDecisionSystem;
 import br.ufpe.cin.mpos.profile.Testing;
 
 /**
- * This class control many cycle-life services:
+ * This class control many cycle-life services: 
  * - Discovery Service in local or remotable servers on internet or intranet.
  * - Deploy mobile app dependences in remote service.
  * - Decision Maker select.
