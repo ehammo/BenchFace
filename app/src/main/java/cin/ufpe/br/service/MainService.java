@@ -1,21 +1,17 @@
 package cin.ufpe.br.service;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.objdetect.CascadeClassifier;
 
-import java.text.DecimalFormat;
 import java.util.List;
 
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.DetectFaces;
-import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
-import cin.ufpe.br.model.ToLoadCascadeModel;
 
 /**
  * Created by eduardo on 31/10/2016.
@@ -24,25 +20,17 @@ import cin.ufpe.br.model.ToLoadCascadeModel;
 public final class MainService extends AsyncTask<Void, String, Bitmap> {
 
     public int faces;
-    Bitmap originalImage;
+    byte[] originalImage;
     DetectFaces serviceExtractFaces;
-    BlurImageService serviceBlur;
-    CutImageService serviceCrop;
-    OverlayService serviceOverlay;
-    CascadeClassifier cascadeClassifier;
+    String cascadeClassifier;
     TaskResultAdapter taskResultAdapter;
     Bitmap result;
-    ToLoadCascadeModel model;
     private String TAG = "teste";
-    private DecimalFormat precision = new DecimalFormat("0.0000");
 
-    public MainService(Bitmap originalImage, TaskResultAdapter taskAdapter) {
+    public MainService(byte[] originalImage, DetectFaces detectFaces, String algorithm, TaskResultAdapter taskAdapter) {
         this.originalImage=originalImage;
-        this.serviceBlur=new BlurImageService();
-        this.serviceCrop=new CutImageService();
-        this.serviceExtractFaces=new DetectFacesService();
-        this.serviceOverlay = new OverlayService();
-        this.cascadeClassifier = MainActivity.cascadeClassifier;
+        this.serviceExtractFaces = detectFaces;
+        this.cascadeClassifier = algorithm;
         taskResultAdapter=taskAdapter;
     }
 
@@ -63,28 +51,13 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
     public Bitmap begin() throws Exception{
         Log.d(TAG, "\nRunning FaceDetector");
         Mat mat = new Mat();
-        Utils.bitmapToMat(originalImage, mat);
         List<PropriedadesFace> propsFaces=null;
+
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-        propsFaces = serviceExtractFaces.detectarFaces(cascadeClassifier, mat);
-        Log.d(TAG, "faces detected "+propsFaces.size());
-
-        //desfoca a imagem
-        Bitmap imagemCorteDesfoque = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(serviceBlur.DesfocarImagem(mat), imagemCorteDesfoque);
-
-        //corta os rostos da imagem desfocada,
-       // serviceCrop = new CutImageService();
-        propsFaces = serviceCrop.CortarImagem(propsFaces, imagemCorteDesfoque);
-
-        serviceOverlay = new OverlayService();
-
-        //"cola" os rostos desfocados sobre a imagem original
-        imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, originalImage);
-        Log.d("teste","deu tudo certo");
-        Log.d("teste","qtd de faces: "+propsFaces.size());
-        faces = propsFaces.size();
-        return imagemCorteDesfoque;
+        PropriedadesFace b = serviceExtractFaces.detectarFaces(this.cascadeClassifier, this.originalImage);
+        faces = b.getFaces();
+        Bitmap ret = BitmapFactory.decodeByteArray(b.getImagemFinal(),0,b.getImagemFinal().length);
+        return ret;
     }
 
     public int getNumFaces(){

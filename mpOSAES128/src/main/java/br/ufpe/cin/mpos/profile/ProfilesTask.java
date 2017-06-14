@@ -27,7 +27,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufc.mdcc.mpos.util.device.DeviceController;
@@ -38,10 +37,10 @@ import br.ufpe.cin.mpos.profile.Model.Model;
  */
 
 public class ProfilesTask extends AsyncTask<Void, String, Model> {
+    public static String[] appTypes = {"BenchFace", "BenchImage", "CollisionBalls"};
     Model result;
     Context mContext;
     TaskResultAdapter taskResultAdapter;
-    public static String[] appTypes = {"BenchFace", "BenchImage", "CollisionBalls"};
 
     public ProfilesTask(TaskResultAdapter TRA, Context context){
         taskResultAdapter = TRA;
@@ -204,7 +203,6 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         int numberOfLevels = 4;
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         int rssi = wifiInfo.getRssi();
-        Log.d("teste", "RSSI: " + rssi);
         int level = WifiManager.calculateSignalLevel(rssi, numberOfLevels);
         return level;
     }
@@ -227,8 +225,6 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
 
         TelephonyManager telephonyManager = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
         telephonyManager.getNetworkType();
-        Log.d("teste", "lte: "+ TelephonyManager.NETWORK_TYPE_LTE);
-        Log.d("teste", "isso: "+ telephonyManager.getNetworkType());
 
         List<CellInfo> CellInfo_list = telephonyManager.getAllCellInfo();
         int rssi = -1;

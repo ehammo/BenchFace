@@ -8,13 +8,14 @@ import br.ufpe.cin.mpos.offload.Remotable;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**
- * Created by eduardo on 31/10/2016.
+ * Created by eduardo on 13/06/2017.
  */
 
-public interface CloudletDetectFaces extends DetectFaces {
+public interface DynamicDetectFaces extends DetectFaces {
 
-    @Remotable(value = Remotable.Offload.STATIC, status = true)
+    @Remotable(value = Remotable.Offload.DYNAMIC, status = true)
     PropriedadesFace detectarFaces(String cascadeClassifier, byte[] originalImage);
 
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);
+
 }

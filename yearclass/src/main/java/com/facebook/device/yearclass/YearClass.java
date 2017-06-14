@@ -8,7 +8,6 @@
 package com.facebook.device.yearclass;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,8 +77,6 @@ public class YearClass {
             return DeviceInfo.getCPUMaxFreqKHz() < 1800 * MHZ_IN_KHZ ? CLASS_2012 : CLASS_2013;
         }
         if (totalRam <= 2.3 * 1024 * MB) {
-            Log.e("teste", "Entrei no if do 2.5Gb. Ram: " + totalRam);
-            Log.e("teste", "Ghz: " + DeviceInfo.getCPUMaxFreqKHz());
             return DeviceInfo.getCPUMaxFreqKHz() < 1800 * MHZ_IN_KHZ ? CLASS_2013 : CLASS_2014;
         }
         return totalRam <= 3 * 1024 * MB ? CLASS_2015 : CLASS_2016;

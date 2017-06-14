@@ -65,10 +65,22 @@ public final class ProxyHandler implements InvocationHandler {
 		return Proxy.newProxyInstance(cls.getClassLoader(), new Class<?>[] { interfaceType }, new ProxyHandler(objectInstance, interfaceType));
 	}
 
+    public int calculateInputSize(Object[] params) {
+        Log.d("teste", "Entrei no metodo");
+        int resp = 0;
+        for (int i = 0; i < params.length; i++) {
+            if (params[i] instanceof byte[]) {
+                resp += ((byte[]) params[i]).length;
+            }
+        }
+        //Turn bits to Kbytes
+        resp /= 8 * 1024;
+        return resp;
+    }
+
 	@Override
 	public Object invoke(Object original, Method method, Object[] params) throws Throwable {
 		Remotable remotable = methodCache.get(generateKeyMethod(method));
-
 		if (remotable != null) {
 			ServerContent server = MposFramework.getInstance().getEndpointController().selectPriorityServer(remotable.cloudletPrority());
 			if (remotable.value() == Offload.STATIC) {
@@ -84,17 +96,22 @@ public final class ProxyHandler implements InvocationHandler {
 					}
 				}
 			} else {
-				Log.d("proxy","dinamico");
-				try {
+                Log.d("teste", "dinamicoProxy");
+                try {
 					if (server != null) {
 						MposFramework.getInstance().getEndpointController().updateDynamicDecisionSystemEndpoint(server);
-						if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(0)) {
-							return invokeRemotable(server, remotable.status(), method, params);
+                        Log.d("teste", "vou tentar calcular o inputSize");
+                        int inputSize = calculateInputSize(params);
+                        Log.d("teste", "Calculei deu: " + inputSize);
+                        if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
+                            return invokeRemotable(server, remotable.status(), method, params);
 						}else{
-                            Log.d("proxy","need to do local");
+                            Log.d("teste", "need to do local");
                         }
-					}
-				} catch (ConnectException e) {
+                    } else {
+                        Log.e("teste", "server==null");
+                    }
+                } catch (ConnectException e) {
 					Log.w(clsName, e);
 					MposFramework.getInstance().getEndpointController().rediscoveryServices(server);
 

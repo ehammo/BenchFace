@@ -46,6 +46,8 @@ import br.ufc.mdcc.mpos.config.Inject;
 import br.ufc.mdcc.mpos.config.MposConfig;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
+import cin.ufpe.br.Interfaces.DetectFaces;
+import cin.ufpe.br.Interfaces.DynamicDetectFaces;
 import cin.ufpe.br.Util.Data;
 import cin.ufpe.br.Util.ExportCsv;
 import cin.ufpe.br.Util.Util;
@@ -53,7 +55,6 @@ import cin.ufpe.br.model.ToLoadCascadeModel;
 import cin.ufpe.br.service.CascadeService;
 import cin.ufpe.br.service.DetectFacesService;
 import cin.ufpe.br.service.MainService;
-import cin.ufpe.br.service.MainServiceNuvem;
 
 //code
 //openCV
@@ -71,10 +72,11 @@ public class MainActivity extends Activity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
-    private MainService main;
-    private MainServiceNuvem mainNuvem;
+    private MainService mainTask;
     @Inject(DetectFacesService.class)
-    private CloudletDetectFaces detectFaces;
+    private CloudletDetectFaces detectFacesCloudlet;
+    private DetectFaces detectFacesLocal;
+    private DynamicDetectFaces detectFacesDynamic;
     //CSV-Related
     private int alg;
     private String algorithm = "";
@@ -102,6 +104,58 @@ public class MainActivity extends Activity {
     private int config;
     private int faces;
     private int benchmarking=32;
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
+                    Log.d(TAG, "OpenCV loaded successfully");
+                    // Load native library after(!) OpenCV initialization
+                    try {
+                        //TODO: fix CascadeClassifier
+                        cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
+                        Log.d(TAG, "config: " + config);
+                        originalImageByte = Util.Bitmap2Byte(originalImage);
+                        int inputSize = (originalImageByte.length) / 1024;
+                        if (config == 2) {
+                            //Log.d(TAG, "tomando decisão");
+//                            if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
+//                                execution = "CloudBased Execution";
+//                                runAPI(1);
+//                                Log.d(TAG, "resultado: nuvem");
+//                            } else {
+//                                execution = "LocalBased Execution";
+//                                runAPI(0);
+//                                Log.d(TAG, "resultado: local");
+//                            }
+//                            runAPI(1);
+                        } else {
+//                            runAPI(config);
+                        }
+                        runAPI(config);
+                    } catch (Exception e) {
+                        statusTextView.setText("Failed");
+                        e.printStackTrace();
+                    } finally {
+//                        if ((cascadeClassifier==null||cascadeClassifier.empty())&&config!=1) {
+//                            Log.e(TAG, "Failed to load cascade classifier");
+//                            cascadeClassifier = null;
+//                            statusTextView.setText("failed");
+//                            break;
+//                        }
+                    }
+                }
+                default: {
+                    super.onManagerConnected(status);
+                    if (status != LoaderCallbackInterface.SUCCESS) {
+                        Log.d(TAG, "failed");
+                    }
+
+                }
+                break;
+            }
+        }
+    };
     private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
         @Override
         public void completedTask(Bitmap obj) {
@@ -111,13 +165,8 @@ public class MainActivity extends Activity {
                 data.setSize(originalImageByte.length+"");
                 mProgressDialog.dismiss();
                 imageView.setVisibility(View.VISIBLE);
-                if(execution.contains("LocalBased")){
-                    faces = main.getNumFaces();
-                    data.setFaces(main.getNumFaces());
-                }else {
-                    faces = mainNuvem.getNumFaces();
-                    data.setFaces(mainNuvem.getNumFaces());
-                }
+                faces = mainTask.getNumFaces();
+                data.setFaces(faces);
                 changeCSV();
                 if(benchmarking<30){
                     benchmarking++;
@@ -158,56 +207,6 @@ public class MainActivity extends Activity {
             }
         }
     };
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    Log.d(TAG, "OpenCV loaded successfully");
-                    // Load native library after(!) OpenCV initialization
-                    try {
-                        //TODO: fix CascadeClassifier
-                        cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
-                        Log.d(TAG, "config: " + config);
-                        originalImageByte = Util.Bitmap2Byte(originalImage);
-                        int inputSize = (originalImageByte.length) / 1024;
-                        if (config == 2) {
-                            Log.d(TAG, "tomando decisão");
-                            if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
-                                execution = "CloudBased Execution";
-                                runAPI(1);
-                                Log.d(TAG, "resultado: nuvem");
-                            } else {
-                                execution = "LocalBased Execution";
-                                runAPI(0);
-                                Log.d(TAG, "resultado: local");
-                            }
-                        } else {
-                            runAPI(config);
-                        }
-                    } catch (Exception e) {
-                        statusTextView.setText("Failed");
-                        e.printStackTrace();
-                    } finally {
-//                        if ((cascadeClassifier==null||cascadeClassifier.empty())&&config!=1) {
-//                            Log.e(TAG, "Failed to load cascade classifier");
-//                            cascadeClassifier = null;
-//                            statusTextView.setText("failed");
-//                            break;
-//                        }
-                    }
-                }
-                default: {
-                    super.onManagerConnected(status);
-                    if (status != LoaderCallbackInterface.SUCCESS) {
-                        Log.d(TAG, "failed");
-                    }
-
-                }
-                break;
-            }
-        }
-    };
 
     public static String getCurrentTimeStamp() {
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
@@ -235,8 +234,6 @@ public class MainActivity extends Activity {
                 inSampleSize += 1;
             }
         }
-
-        Log.d(TAG, "sampleSize: " + inSampleSize);
         return inSampleSize;
     }
 
@@ -260,16 +257,19 @@ public class MainActivity extends Activity {
     }
 
     public void runAPI(int config) throws Exception {
+        TimeStarted = System.nanoTime();
         switch (config) {
             case 0:
-                TimeStarted = System.nanoTime();
-                main = new MainService(originalImage, taskAdapter);
-                main.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                mainTask = new MainService(originalImageByte, detectFacesLocal, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 1:
-                TimeStarted = System.nanoTime();
-                mainNuvem = new MainServiceNuvem(originalImageByte, detectFaces, algorithm, taskAdapter);
-                mainNuvem.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                mainTask = new MainService(originalImageByte, detectFacesCloudlet, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+            case 2:
+                mainTask = new MainService(originalImageByte, detectFacesDynamic, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
         }
     }
@@ -399,34 +399,6 @@ public class MainActivity extends Activity {
 
         MposFramework.getInstance().start(this);
         Log.d(TAG,"middleware started");
-/*
-        Log.d(TAG, "Core 0: "  + getCurrentFrequency(0)+"Ghz");
-        Log.d(TAG, "Core 1: "  + getCurrentFrequency(1)+"Ghz");
-        Log.d(TAG, "Core 2: "  + getCurrentFrequency(2)+"Ghz");
-        Log.d(TAG, "Core 3: "  + getCurrentFrequency(3)+"Ghz");
-        Log.d(TAG, "Core 4: "  + getCurrentFrequency(4)+"Ghz");
-        Log.d(TAG, "Core 5: "  + getCurrentFrequency(5)+"Ghz");
-        Log.d(TAG, "Core 6: "  + getCurrentFrequency(6)+"Ghz");
-        Log.d(TAG, "Core 7: "  + getCurrentFrequency(7)+"Ghz");
-*/
-       /* Thread t = new Thread() {
-
-            @Override
-            public void run() {
-                try {
-                    while (!isInterrupted()) {
-                        Thread.sleep(1000);
-                        //Log.d(TAG,""+getRSSI());
-                        //Log.d(TAG, "Bateria: "+getBattery()+"%");
-                        //Log.d(TAG, "CPU: "+ getCPUStatistic());
-                    }
-                } catch (InterruptedException e) {
-                }
-            }
-        };
-
-        t.start();*/
-
 
     }
 
