@@ -73,9 +73,11 @@ public class MainActivity extends Activity {
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
     private MainService mainTask;
+    private DetectFaces detectFacesLocal = new DetectFacesService();
+
     @Inject(DetectFacesService.class)
     private CloudletDetectFaces detectFacesCloudlet;
-    private DetectFaces detectFacesLocal;
+    @Inject(DetectFacesService.class)
     private DynamicDetectFaces detectFacesDynamic;
     //CSV-Related
     private int alg;
@@ -104,6 +106,59 @@ public class MainActivity extends Activity {
     private int config;
     private int faces;
     private int benchmarking=32;
+    private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
+        @Override
+        public void completedTask(Bitmap obj) {
+            if (obj != null) {
+                imagemCorteDesfoque = obj;
+                originalImageByte = Util.Bitmap2Byte(obj);
+                data.setSize(originalImageByte.length + "");
+                mProgressDialog.dismiss();
+                imageView.setVisibility(View.VISIBLE);
+                faces = mainTask.getNumFaces();
+                data.setFaces(faces);
+                changeCSV();
+                if (benchmarking < 30) {
+                    benchmarking++;
+                    mTextView.setText("Time: ");
+                    mProgressDialog.show();
+                    imageView.setVisibility(View.INVISIBLE);
+                    statusTextView.setText("[" + benchmarking + "/30]" + "\nProcessing");
+                    imageView.setImageBitmap(originalImage);
+                    OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
+                } else if (benchmarking == 30) {
+                    timeText = precision.format(TotalTimeBenchmarking) + "s";
+                    timeText.replace(",", ".");
+                    if (TotalTimeBenchmarking >= 60) {
+                        int min = (int) Math.floor(TotalTimeBenchmarking / 60);
+                        int sec = (int) Math.ceil(TotalTimeBenchmarking - (min * 60));
+                        mTextView.setText(min + "min e " + sec + "s");
+                    } else {
+                        mTextView.setText(TotalTimeBenchmarking + "s");
+                    }
+                    String now = getCurrentTimeStamp();
+                    data.setName(id);
+                    data.setFaces(0);
+                    data.setAlgorithm(algorithm);
+                    data.setExecution(execution);
+                    data.setTotalTime(timeText);
+                    data.setoRes("Todos");
+                    data.setTime(now);
+                    data.setResult();
+                    Log.i(TAG, data.getData());
+                    TotalTimeBenchmarking = (double) 0;
+                    id++;
+                    benchmarking = 32;
+                }
+            } else if (config != 0) {
+                statusTextView.setText("Status: Algum Error na transmissão!");
+                mProgressDialog.dismiss();
+            } else {
+                statusTextView.setText("Erro inesperado");
+                mProgressDialog.dismiss();
+            }
+        }
+    };
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -153,57 +208,6 @@ public class MainActivity extends Activity {
 
                 }
                 break;
-            }
-        }
-    };
-    private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
-        @Override
-        public void completedTask(Bitmap obj) {
-            if (obj != null) {
-                imagemCorteDesfoque = obj;
-                originalImageByte = Util.Bitmap2Byte(obj);
-                data.setSize(originalImageByte.length+"");
-                mProgressDialog.dismiss();
-                imageView.setVisibility(View.VISIBLE);
-                faces = mainTask.getNumFaces();
-                data.setFaces(faces);
-                changeCSV();
-                if(benchmarking<30){
-                    benchmarking++;
-                    mTextView.setText("Time: ");
-                    mProgressDialog.show();
-                    imageView.setVisibility(View.INVISIBLE);
-                    statusTextView.setText("["+benchmarking+"/30]"+"\nProcessing");
-                    imageView.setImageBitmap(originalImage);
-                    OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
-                }else if(benchmarking==30){
-                    timeText = precision.format(TotalTimeBenchmarking) + "s";
-                    timeText.replace(",", ".");
-                    if(TotalTimeBenchmarking>=60){
-                        int min = (int) Math.floor(TotalTimeBenchmarking/60);
-                        int sec = (int) Math.ceil(TotalTimeBenchmarking - (min*60));
-                        mTextView.setText(min+"min e "+sec+"s");
-                    }else{
-                        mTextView.setText(TotalTimeBenchmarking+"s");
-                    }
-                    String now = getCurrentTimeStamp();
-                    data.setName(id);
-                    data.setFaces(0);
-                    data.setAlgorithm(algorithm);
-                    data.setExecution(execution);
-                    data.setTotalTime(timeText);
-                    data.setoRes("Todos");
-                    data.setTime(now);
-                    data.setResult();
-                    Log.i(TAG,data.getData());
-                    TotalTimeBenchmarking=(double)0;
-                    id++;
-                    benchmarking=32;
-                }
-            } else if (config != 0) {
-                statusTextView.setText("Status: Algum Error na transmissão!");
-            } else {
-                statusTextView.setText("Erro inesperado");
             }
         }
     };
@@ -290,7 +294,7 @@ public class MainActivity extends Activity {
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setMessage("Processing........");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setCancelable(true);
+        mProgressDialog.setCancelable(false);
 
         ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
 

@@ -15,18 +15,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
+import cin.ufpe.br.Interfaces.DynamicDetectFaces;
 import cin.ufpe.br.Util.Util;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
 
-public class DetectFacesService implements CloudletDetectFaces{
-	private static final String TAG="log";
+public class DetectFacesService implements CloudletDetectFaces, DynamicDetectFaces {
+	private static final String TAG = "teste";
 
 
 	public PropriedadesFace detectarFaces(String s, byte[] image){
 		try {
-            Log.d("teste", "DEU MERDA RODOU LOCAL");
-            ByteArrayInputStream in = new ByteArrayInputStream(image);
+			Log.d(TAG, "Rodando local");
+			ByteArrayInputStream in = new ByteArrayInputStream(image);
 			Mat mat = new Mat();
 			Utils.bitmapToMat(BitmapFactory.decodeStream(in), mat);
             CascadeClassifier c = MainActivity.cascadeClassifier;
@@ -44,9 +45,9 @@ public class DetectFacesService implements CloudletDetectFaces{
 
 			//"cola" os rostos desfocados sobre a imagem original
 			imagemCorteDesfoque = serviceOverlay.juntarImagens(propsFaces, Util.Byte2Bitmap(image));
-			Log.d("teste","deu tudo certo");
-			Log.d("teste","qtd de faces: "+propsFaces.size());
-            PropriedadesFace p = new PropriedadesFace();
+			Log.d(TAG, "deu tudo certo");
+			Log.d(TAG, "qtd de faces: " + propsFaces.size());
+			PropriedadesFace p = new PropriedadesFace();
             p.setFaces(propsFaces.size());
             p.setImagemFinal(Util.Bitmap2Byte(imagemCorteDesfoque));
             return p;
