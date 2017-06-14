@@ -72,6 +72,7 @@ public class MainActivity extends Activity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
+
     private MainService mainTask;
     private DetectFaces detectFacesLocal = new DetectFacesService();
 
@@ -79,6 +80,7 @@ public class MainActivity extends Activity {
     private CloudletDetectFaces detectFacesCloudlet;
     @Inject(DetectFacesService.class)
     private DynamicDetectFaces detectFacesDynamic;
+    //TODO: Make all csv-Related stuff write on Data
     //CSV-Related
     private int alg;
     private String algorithm = "";
@@ -171,22 +173,7 @@ public class MainActivity extends Activity {
                         cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
                         Log.d(TAG, "config: " + config);
                         originalImageByte = Util.Bitmap2Byte(originalImage);
-                        int inputSize = (originalImageByte.length) / 1024;
-                        if (config == 2) {
-                            //Log.d(TAG, "tomando decisão");
-//                            if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
-//                                execution = "CloudBased Execution";
-//                                runAPI(1);
-//                                Log.d(TAG, "resultado: nuvem");
-//                            } else {
-//                                execution = "LocalBased Execution";
-//                                runAPI(0);
-//                                Log.d(TAG, "resultado: local");
-//                            }
-//                            runAPI(1);
-                        } else {
-//                            runAPI(config);
-                        }
+                        Log.d(TAG, "input size on app: " + (originalImageByte.length) / 1024);
                         runAPI(config);
                     } catch (Exception e) {
                         statusTextView.setText("Failed");
@@ -260,24 +247,6 @@ public class MainActivity extends Activity {
 
     }
 
-    public void runAPI(int config) throws Exception {
-        TimeStarted = System.nanoTime();
-        switch (config) {
-            case 0:
-                mainTask = new MainService(originalImageByte, detectFacesLocal, algorithm, taskAdapter);
-                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                break;
-            case 1:
-                mainTask = new MainService(originalImageByte, detectFacesCloudlet, algorithm, taskAdapter);
-                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                break;
-            case 2:
-                mainTask = new MainService(originalImageByte, detectFacesDynamic, algorithm, taskAdapter);
-                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                break;
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -287,7 +256,7 @@ public class MainActivity extends Activity {
         mTextView = (TextView) findViewById(R.id.textTime);
         statusTextView = (TextView) findViewById(R.id.textStatus);
         mContext = this;
-        quit=false;
+        quit = false;
 
         data = new Data();
 
@@ -296,7 +265,7 @@ public class MainActivity extends Activity {
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mProgressDialog.setCancelable(false);
 
-        ((RadioButton)findViewById(R.id.RBlocal)).setChecked(true);
+        ((RadioButton) findViewById(R.id.RBlocal)).setChecked(true);
 
         Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
@@ -315,27 +284,27 @@ public class MainActivity extends Activity {
                 Bitmap b;
                 switch (pos) {
                     case 0:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp, 200, 200);
                         Originalresolution = "1.5";
                         break;
                     case 1:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200,200);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200, 200);
                         Originalresolution = "3";
                         break;
                     case 2:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200,200);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200, 200);
                         Originalresolution = "6";
                         break;
                     case 3:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200,200);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200, 200);
                         Originalresolution = "8.5";
                         break;
                     case 4:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200,200);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200, 200);
                         Originalresolution = "13.5";
                         break;
                     default:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp,200,200);
+                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp, 200, 200);
                         break;
                 }
                 data.setoRes(Originalresolution);
@@ -375,14 +344,14 @@ public class MainActivity extends Activity {
                         alg = R.raw.haarcascade_frontalface_default;
                         algorithm = "haarcascade_frontalface_default";
                         Log.d(TAG, "" + alg);
-                        benchmarking=1;
+                        benchmarking = 1;
                         break;
 
                     default:
                         break;
                 }
                 data.setAlgorithm(algorithm);
-                if(pos!=4) benchmarking=32;
+                if (pos != 4) benchmarking = 32;
             }
 
             @Override
@@ -402,9 +371,29 @@ public class MainActivity extends Activity {
 
 
         MposFramework.getInstance().start(this);
-        Log.d(TAG,"middleware started");
+        Log.d(TAG, "middleware started");
 
     }
+
+    public void runAPI(int config) throws Exception {
+        TimeStarted = System.nanoTime();
+        switch (config) {
+            case 0:
+                mainTask = new MainService(originalImageByte, detectFacesLocal, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+            case 1:
+                mainTask = new MainService(originalImageByte, detectFacesCloudlet, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+            case 2:
+                mainTask = new MainService(originalImageByte, detectFacesDynamic, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+        }
+    }
+
+
 
     protected void onDestroy(){
         super.onDestroy();

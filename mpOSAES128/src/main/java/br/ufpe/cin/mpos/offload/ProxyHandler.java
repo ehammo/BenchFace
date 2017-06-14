@@ -73,9 +73,9 @@ public final class ProxyHandler implements InvocationHandler {
                 resp += ((byte[]) params[i]).length;
             }
         }
-        //Turn bits to Kbytes
-        resp /= 8 * 1024;
-        return resp;
+		//Turn bytes to Kbytes
+		resp /= 1024;
+		return resp;
     }
 
 	@Override
@@ -102,8 +102,8 @@ public final class ProxyHandler implements InvocationHandler {
 						MposFramework.getInstance().getEndpointController().updateDynamicDecisionSystemEndpoint(server);
                         Log.d("teste", "vou tentar calcular o inputSize");
                         int inputSize = calculateInputSize(params);
-                        Log.d("teste", "Calculei deu: " + inputSize);
-                        if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
+						Log.d("teste", "inputSize no middleware: " + inputSize);
+						if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
                             return invokeRemotable(server, remotable.status(), method, params);
 						}else{
                             Log.d("teste", "need to do local");
