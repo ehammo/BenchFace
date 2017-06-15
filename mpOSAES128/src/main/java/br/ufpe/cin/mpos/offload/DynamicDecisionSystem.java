@@ -15,23 +15,16 @@
  *******************************************************************************/
 package br.ufpe.cin.mpos.offload;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.TimerTask;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
-import android.util.Pair;
-import android.widget.Toast;
+
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.TimerTask;
 
 import br.ufc.mdcc.mpos.MposFramework;
-import br.ufc.mdcc.mpos.R;
 import br.ufc.mdcc.mpos.net.endpoint.ServerContent;
 import br.ufc.mdcc.mpos.net.exceptions.MissedEventException;
 import br.ufc.mdcc.mpos.net.exceptions.NetworkException;
@@ -40,12 +33,9 @@ import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseManager;
 import br.ufpe.cin.mpos.profile.ResultTypes;
-import weka.classifiers.bayes.NaiveBayes;
-import weka.classifiers.lazy.IBk;
-import weka.classifiers.trees.J48;
+import weka.classifiers.Classifier;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
-import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 
@@ -60,9 +50,7 @@ public class DynamicDecisionSystem extends TimerTask {
     private final String clsName = DynamicDecisionSystem.class.getName();
     private final Object mutex = new Object();
     private final long PING_TOLERANCE = 50;//ms
-    private J48 classifierJ48;
-    private IBk classifierKNN;
-    private NaiveBayes classifierNaiveBayes;
+    private Classifier classifier;
     private String classifierModel = "j48.model";
     private ServerContent server;
     private Context mContext;
@@ -85,31 +73,17 @@ public class DynamicDecisionSystem extends TimerTask {
         }
     };
 
-    private void loadClassifier() throws Exception{
-        if(classifierModel.equals("j48.model")&&classifierJ48==null) {
-            Log.d("sqlLite","criando o objectInput J48");
-            ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierModel));
-            Log.d("sqlLite","criando o object");
-            classifierJ48 = (J48) objectInputStream.readObject();
-        }else if(classifierModel.equals("knn.model")&&classifierKNN==null){
-            Log.d("sqlLite","criando o objectInput IBk");
-            ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierModel));
-            Log.d("sqlLite","criando o object");
-            classifierKNN = (IBk) objectInputStream.readObject();
-        }else if(classifierModel.equals("naivebayes.model")&&classifierNaiveBayes==null){
-            Log.d("sqlLite","criando o objectInput NB");
-            ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierModel));
-            Log.d("sqlLite","criando o object");
-            classifierNaiveBayes = (NaiveBayes) objectInputStream.readObject();
-        }
-    }
-
     public DynamicDecisionSystem(Context context, ServerContent server) {
         dc = new DatabaseController(context);
         mContext = context;
         setServer(server);
         MposFramework.getInstance().getProfileController().setTaskResultEvent(event);
         // profileDao = new ProfileNetworkDAO(context);
+    }
+
+    private void loadClassifier(Remotable.Classifier classifierRemotable) throws Exception {
+        ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierRemotable.toString()));
+        this.classifier = (Classifier) objectInputStream.readObject();
     }
 
     public ServerContent getServer() {
@@ -124,11 +98,12 @@ public class DynamicDecisionSystem extends TimerTask {
         }
     }
 
-    public synchronized boolean isRemoteAdvantage(int InputSize){
+    public synchronized boolean isRemoteAdvantage(int InputSize, Remotable.Classifier classifierRemotable) {
         boolean resp = false;
         try {
-            if (classifierJ48 == null) {
-                loadClassifier();
+            if (!(this.classifierModel.equals(classifierRemotable.toString()))) {
+                this.classifierModel = classifierRemotable.toString();
+                loadClassifier(classifierRemotable);
             }
             Cursor c = dc.getData();
             int colunas = c.getColumnCount();
@@ -167,7 +142,7 @@ public class DynamicDecisionSystem extends TimerTask {
                         instance.setValue(atts.get(i),values.get(i));
                     }
                 }
-                double value = classifierJ48.distributionForInstance(instance)[0];
+                double value = classifier.distributionForInstance(instance)[0];
                 Log.d("finalizado", instance.toString()+" classifiquei "+value);
                 Log.d("sqlLite","classifiquei "+instance.toString()+" com "+(0.7 <= value));
                 resp = (0.7 <= value);

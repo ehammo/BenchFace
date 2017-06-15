@@ -15,11 +15,12 @@
  *******************************************************************************/
 package br.ufc.mdcc.mpos.net.endpoint;
 
-import java.util.Timer;
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.util.Log;
+
+import java.util.Timer;
+
 import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.net.endpoint.service.DiscoveryCloudletMulticast;
 import br.ufc.mdcc.mpos.net.endpoint.service.DiscoveryService;
@@ -28,7 +29,7 @@ import br.ufc.mdcc.mpos.net.rpc.deploy.DeployService;
 import br.ufc.mdcc.mpos.net.rpc.model.RpcProfile;
 import br.ufc.mdcc.mpos.util.Util;
 import br.ufpe.cin.mpos.offload.DynamicDecisionSystem;
-import br.ufpe.cin.mpos.profile.Testing;
+import br.ufpe.cin.mpos.offload.Remotable;
 
 /**
  * This class control many cycle-life services: 
@@ -40,29 +41,22 @@ import br.ufpe.cin.mpos.profile.Testing;
  * @author Philipp B. Costa
  */
 public final class EndpointController {
-    private final String clsName = EndpointController.class.getName();
-
     public static final int REPEAT_DISCOVERY_TASK = 20 * 1000;
     public static final int REPEAT_DECISION_MAKER = 35 * 1000;
-
+    private final String clsName = EndpointController.class.getName();
+    public RpcProfile rpcProfile = new RpcProfile();
     private Context context;
-
     private ServerContent secondaryServer;
     private ServerContent cloudletServer;
-
     // used for rediscovery services before discovery and using
     // help on mobility user!
     private DiscoveryService discoverySecondaryServer = null;
     private DiscoveryService discoveryCloudletServer = null;
     private DiscoveryCloudletMulticast discoveryCloudletMulticast = null;
-
     private Timer decisionMakerTimer;
     private DynamicDecisionSystem dynamicDecisionSystem;
-
     private boolean decisionMakerActive;
     private boolean remoteAdvantageExecution;
-
-    public RpcProfile rpcProfile = new RpcProfile();
 
     public EndpointController(Context context, String internetIp, boolean decisionMakerActive, boolean discoveryCloudlet) throws NetworkException {
         this.context = context;
@@ -225,10 +219,10 @@ public final class EndpointController {
         this.remoteAdvantageExecution = remoteAdvantageExecution;
     }
 
-    public synchronized boolean isRemoteAdvantage(int inputSize) {
+    public synchronized boolean isRemoteAdvantage(int inputSize, Remotable.Classifier classifier) {
         Log.d("sqlLite","Chamando isRemote do dynamic");
         long start = System.currentTimeMillis();
-        boolean b = dynamicDecisionSystem.isRemoteAdvantage(inputSize);
+        boolean b = dynamicDecisionSystem.isRemoteAdvantage(inputSize, classifier);
         long end = System.currentTimeMillis();
         Log.d("sqlLite","time: "+(end-start)+"ms");
         return b;

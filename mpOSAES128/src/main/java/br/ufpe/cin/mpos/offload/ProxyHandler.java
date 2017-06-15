@@ -103,7 +103,7 @@ public final class ProxyHandler implements InvocationHandler {
                         Log.d("teste", "vou tentar calcular o inputSize");
                         int inputSize = calculateInputSize(params);
 						Log.d("teste", "inputSize no middleware: " + inputSize);
-						if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize)) {
+                        if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize, remotable.classifier())) {
                             return invokeRemotable(server, remotable.status(), method, params);
 						}else{
                             Log.d("teste", "need to do local");

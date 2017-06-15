@@ -15,12 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
-import cin.ufpe.br.Interfaces.DynamicDetectFaces;
+import cin.ufpe.br.Interfaces.DynamicDetectFacesJ48;
 import cin.ufpe.br.Util.Util;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
 
-public class DetectFacesService implements CloudletDetectFaces, DynamicDetectFaces {
+public class DetectFacesService implements CloudletDetectFaces, DynamicDetectFacesJ48 {
 	private static final String TAG = "teste";
 
 

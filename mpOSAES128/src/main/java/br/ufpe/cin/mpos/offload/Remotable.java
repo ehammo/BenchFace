@@ -33,13 +33,27 @@ import java.lang.annotation.Target;
 public @interface Remotable {
 	Offload value() default Offload.DYNAMIC;
 
+	Classifier classifier() default Classifier.J48;
+
 	boolean cloudletPrority() default true;
 
 	boolean status() default false;// see on log stats
-	
+
 	boolean cripto() default true;
 
-	public enum Offload {
+	enum Classifier {
+		J48, KNN;
+
+		public String toString() {
+			if (ordinal() == J48.ordinal()) {
+				return "j48.model";
+			} else {
+				return "knn.model";
+			}
+		}
+	}
+
+	enum Offload {
 		STATIC, DYNAMIC;
 
 		public String toString() {
@@ -48,6 +62,6 @@ public @interface Remotable {
 			} else {
 				return "Offload Dynamic";// depends from decision making
 			}
-		};
+		}
 	}
 }

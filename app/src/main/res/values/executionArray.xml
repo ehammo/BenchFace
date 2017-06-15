@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="execution_array">
+        <item>Local</item>
+        <item>Cloud</item>
+        <item>Dynamic - J48</item>
+        <item>Dynamic - Knn</item>
+    </string-array>
+</resources>

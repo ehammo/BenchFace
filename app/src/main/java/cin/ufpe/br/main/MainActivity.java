@@ -24,7 +24,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,9 +33,6 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.objdetect.CascadeClassifier;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -47,7 +43,8 @@ import br.ufc.mdcc.mpos.config.MposConfig;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.Interfaces.DetectFaces;
-import cin.ufpe.br.Interfaces.DynamicDetectFaces;
+import cin.ufpe.br.Interfaces.DynamicDetectFacesJ48;
+import cin.ufpe.br.Interfaces.DynamicDetectFacesKNN;
 import cin.ufpe.br.Util.Data;
 import cin.ufpe.br.Util.ExportCsv;
 import cin.ufpe.br.Util.Util;
@@ -79,7 +76,9 @@ public class MainActivity extends Activity {
     @Inject(DetectFacesService.class)
     private CloudletDetectFaces detectFacesCloudlet;
     @Inject(DetectFacesService.class)
-    private DynamicDetectFaces detectFacesDynamic;
+    private DynamicDetectFacesJ48 detectFacesDynamicJ48;
+    @Inject(DetectFacesService.class)
+    private DynamicDetectFacesKNN detectFacesDynamicKNN;
     //TODO: Make all csv-Related stuff write on Data
     //CSV-Related
     private int alg;
@@ -108,6 +107,43 @@ public class MainActivity extends Activity {
     private int config;
     private int faces;
     private int benchmarking=32;
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
+                    Log.d(TAG, "OpenCV loaded successfully");
+                    // Load native library after(!) OpenCV initialization
+                    try {
+                        //TODO: fix CascadeClassifier
+                        cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
+                        Log.d(TAG, "config: " + config);
+                        originalImageByte = Util.Bitmap2Byte(originalImage);
+                        Log.d(TAG, "input size on app: " + (originalImageByte.length) / 1024);
+                        runAPI(config);
+                    } catch (Exception e) {
+                        statusTextView.setText("Failed");
+                        e.printStackTrace();
+                    } finally {
+                        if ((cascadeClassifier == null || cascadeClassifier.empty()) && config != 1) {
+                            Log.e(TAG, "Failed to load cascade classifier");
+                            cascadeClassifier = null;
+                            statusTextView.setText("failed");
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    super.onManagerConnected(status);
+                    if (status != LoaderCallbackInterface.SUCCESS) {
+                        Log.d(TAG, "failed");
+                    }
+
+                }
+                break;
+            }
+        }
+    };
     private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
         @Override
         public void completedTask(Bitmap obj) {
@@ -158,43 +194,6 @@ public class MainActivity extends Activity {
             } else {
                 statusTextView.setText("Erro inesperado");
                 mProgressDialog.dismiss();
-            }
-        }
-    };
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    Log.d(TAG, "OpenCV loaded successfully");
-                    // Load native library after(!) OpenCV initialization
-                    try {
-                        //TODO: fix CascadeClassifier
-                        cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
-                        Log.d(TAG, "config: " + config);
-                        originalImageByte = Util.Bitmap2Byte(originalImage);
-                        Log.d(TAG, "input size on app: " + (originalImageByte.length) / 1024);
-                        runAPI(config);
-                    } catch (Exception e) {
-                        statusTextView.setText("Failed");
-                        e.printStackTrace();
-                    } finally {
-//                        if ((cascadeClassifier==null||cascadeClassifier.empty())&&config!=1) {
-//                            Log.e(TAG, "Failed to load cascade classifier");
-//                            cascadeClassifier = null;
-//                            statusTextView.setText("failed");
-//                            break;
-//                        }
-                    }
-                }
-                default: {
-                    super.onManagerConnected(status);
-                    if (status != LoaderCallbackInterface.SUCCESS) {
-                        Log.d(TAG, "failed");
-                    }
-
-                }
-                break;
             }
         }
     };
@@ -265,17 +264,20 @@ public class MainActivity extends Activity {
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mProgressDialog.setCancelable(false);
 
-        ((RadioButton) findViewById(R.id.RBlocal)).setChecked(true);
-
-        Spinner spinner = (Spinner) findViewById(R.id.spinnerAlg);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
+        Spinner algSpinner = (Spinner) findViewById(R.id.spinnerAlg);
+        ArrayAdapter<CharSequence> algAdapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
+        algAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        algSpinner.setAdapter(algAdapter);
 
         Spinner photoSpinner = (Spinner) findViewById(R.id.spinnerPhoto);
         ArrayAdapter<CharSequence> photoAdapter = ArrayAdapter.createFromResource(this, R.array.photo_array, android.R.layout.simple_spinner_item);
         photoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         photoSpinner.setAdapter(photoAdapter);
+
+        Spinner executionSpinner = (Spinner) findViewById(R.id.sp_execution);
+        ArrayAdapter<CharSequence> executionAdapter = ArrayAdapter.createFromResource(this, R.array.execution_array, android.R.layout.simple_spinner_item);
+        executionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        executionSpinner.setAdapter(executionAdapter);
 
         photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -316,7 +318,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        algSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
                 switch (pos) {
@@ -360,6 +362,20 @@ public class MainActivity extends Activity {
             }
         });
 
+        executionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                config = pos;
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -387,7 +403,11 @@ public class MainActivity extends Activity {
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 2:
-                mainTask = new MainService(originalImageByte, detectFacesDynamic, algorithm, taskAdapter);
+                mainTask = new MainService(originalImageByte, detectFacesDynamicJ48, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+            case 3:
+                mainTask = new MainService(originalImageByte, detectFacesDynamicKNN, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
         }
@@ -411,24 +431,6 @@ public class MainActivity extends Activity {
         mTextView.setText("Time: ");
         statusTextView.setText("Processing");
         if(benchmarking!=32) statusTextView.setText("["+benchmarking+"/30]"+ "\nProcessing ");
-    }
-
-    private String readFile(String file) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader (file));
-        String         line = null;
-        StringBuilder  stringBuilder = new StringBuilder();
-        String         ls = System.getProperty("line.separator");
-
-        try {
-            while((line = reader.readLine()) != null) {
-                stringBuilder.append(line);
-                stringBuilder.append(ls);
-            }
-
-            return stringBuilder.toString();
-        } finally {
-            reader.close();
-        }
     }
 
     public void decodeSampledBitmapFromResource(Resources pRes, int pResId,
@@ -526,41 +528,6 @@ public class MainActivity extends Activity {
         data.setResult();
         Log.i(TAG, data.getData());
 
-    }
-
-    public void onRadioButtonClicked(View view) {
-        // Is the button now checked?
-        RadioButton clicked = ((RadioButton) view);
-        RadioButton nuvem = ((RadioButton)findViewById(R.id.RBnuvem));
-        RadioButton local = ((RadioButton)findViewById(R.id.RBlocal));
-        RadioButton dynamic = ((RadioButton)findViewById(R.id.RBdynamic));
-        // Check which radio button was clicked
-        switch(view.getId()) {
-            case R.id.RBlocal:
-                execution = "LocalBased Execution";
-                config = 0;
-                if (clicked.isChecked()&&(nuvem.isChecked()||dynamic.isChecked())) {
-                    nuvem.setChecked(false);
-                    dynamic.setChecked(false);
-                }
-                break;
-            case R.id.RBnuvem:
-                execution = "CloudBased Execution";
-                config = 1;
-                if (clicked.isChecked()&&(local.isChecked()||dynamic.isChecked())) {
-                    local.setChecked(false);
-                    dynamic.setChecked(false);
-                }
-                break;
-            case R.id.RBdynamic:
-                config = 2;
-                if (clicked.isChecked()&&(local.isChecked()||nuvem.isChecked())) {
-                    nuvem.setChecked(false);
-                    local.setChecked(false);
-                }
-                break;
-        }
-        data.setExecution(execution);
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {

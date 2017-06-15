@@ -11,9 +11,9 @@ import cin.ufpe.br.model.PropriedadesFace;
  * Created by eduardo on 13/06/2017.
  */
 
-public interface DynamicDetectFaces extends DetectFaces {
+public interface DynamicDetectFacesKNN extends DetectFaces {
 
-    @Remotable(value = Remotable.Offload.DYNAMIC, status = true)
+    @Remotable(value = Remotable.Offload.DYNAMIC, status = true, classifier = Remotable.Classifier.KNN)
     PropriedadesFace detectarFaces(String cascadeClassifier, byte[] originalImage);
 
     List<PropriedadesFace> obterDadosFaces(MatOfRect matOfRect);

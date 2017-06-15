@@ -11,121 +11,94 @@
     tools:context="cin.ufpe.br.main.MainActivity">
 
     <Button
-        android:text="@string/hide"
+        android:id="@+id/btnHide"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/btnHide"
         android:layout_above="@+id/SelecionarAlgoritmo"
         android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:text="@string/hide"
          />
 
     <ImageView
-        android:background="@android:color/black"
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:srcCompat="@android:color/background_light"
-        android:contentDescription="@string/hideDescription"
-        android:id="@+id/imageView"
-        android:layout_below="@+id/RBdynamic"
         android:layout_above="@id/btnHide"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
+        android:layout_below="@+id/sp_execution"
+        android:background="@android:color/black"
+        android:contentDescription="@string/hideDescription"
+        app:srcCompat="@android:color/background_light" />
 
     <TextView
-        android:text="Selecione a foto"
+        android:id="@+id/selecionarFoto"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/selecionarFoto"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
         android:layout_above="@+id/spinnerPhoto"
-        android:layout_marginBottom="5dp" />
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="5dp"
+        android:text="Selecione a foto" />
 
     <Spinner
-        android:layout_width="wrap_content"
         android:id="@+id/spinnerPhoto"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/selecionarFoto"
         android:layout_alignParentBottom="true"
         android:layout_alignRight="@id/selecionarFoto"
-        android:layout_alignEnd="@id/selecionarFoto"
         />
 
     <TextView
-        android:text="Selecione o treinamento"
+        android:id="@+id/SelecionarAlgoritmo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/SelecionarAlgoritmo"
         android:layout_alignBottom="@+id/selecionarFoto"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:text="Selecione o treinamento" />
 
     <Spinner
+        android:id="@+id/spinnerAlg"
         android:layout_width="100sp"
         android:layout_height="wrap_content"
-        android:id="@+id/spinnerAlg"
         android:layout_alignBottom="@id/spinnerPhoto"
         android:layout_alignLeft="@id/SelecionarAlgoritmo"
         android:layout_alignStart="@id/SelecionarAlgoritmo"
         />
 
-
-
-    <RadioButton
-        android:text="Dynamic"
-        android:layout_width="wrap_content"
+    <Spinner
+        android:id="@+id/sp_execution"
+        android:layout_width="100sp"
         android:layout_height="wrap_content"
-        android:id="@+id/RBdynamic"
-        android:onClick="onRadioButtonClicked"
-        android:textSize="15sp"
-        android:layout_below="@+id/textStatus"
+        android:layout_alignEnd="@+id/imageView"
         android:layout_alignRight="@+id/imageView"
-        android:layout_alignEnd="@+id/imageView" />
-
-    <RadioButton
-        android:text="Local"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/RBlocal"
-        android:onClick="onRadioButtonClicked"
-        android:textSize="15sp"
-        android:layout_above="@+id/imageView"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/textStatus"
+        android:layout_marginBottom="8dp" />
 
     <TextView
+        android:id="@+id/textStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textStatus"
-        android:text="@string/status"
-        android:textSize="18sp"
         android:layout_alignBaseline="@+id/textTime"
         android:layout_alignBottom="@+id/textTime"
+        android:layout_alignEnd="@+id/imageView"
+        android:layout_alignRight="@+id/imageView"
         android:layout_marginBottom="8dp"
-        android:layout_alignLeft="@+id/RBdynamic"
-        android:layout_alignStart="@+id/RBdynamic" />
-
-    <RadioButton
-        android:text="Cloud"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/RBnuvem"
-        android:onClick="onRadioButtonClicked"
-        android:textSize="15sp"
-        android:layout_alignBaseline="@+id/RBlocal"
-        android:layout_alignBottom="@+id/RBlocal"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="9dp"
-        android:layout_marginStart="9dp" />
+        android:text="@string/status"
+        android:textSize="18sp" />
 
     <TextView
+        android:id="@+id/textTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textTime"
-        android:text="@string/time"
-        android:textSize="18sp"
+        android:layout_alignLeft="@+id/imageView"
         android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/imageView"
         android:layout_marginTop="8dp"
-        android:layout_alignLeft="@+id/RBnuvem"
-        android:layout_alignStart="@+id/RBnuvem" />
+        android:text="@string/time"
+        android:textSize="18sp" />
 
 </RelativeLayout>
