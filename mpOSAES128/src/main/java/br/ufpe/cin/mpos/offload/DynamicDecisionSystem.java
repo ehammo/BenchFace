@@ -102,6 +102,7 @@ public class DynamicDecisionSystem extends TimerTask {
         boolean resp = false;
         try {
             if (!(this.classifierModel.equals(classifierRemotable.toString()))) {
+                Log.d("sqlL", "classificador=" + classifierRemotable.toString());
                 this.classifierModel = classifierRemotable.toString();
                 loadClassifier(classifierRemotable);
             }
