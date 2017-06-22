@@ -12,7 +12,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -83,7 +82,7 @@ public class MainActivity extends Activity {
     //CSV-Related
     private int alg;
     private String algorithm = "";
-    private String execution  = "LocalBased Execution";
+    private String execution = "LocalBased Execution";
     private int id;
     private String Originalresolution;
     private Data data;
@@ -94,11 +93,12 @@ public class MainActivity extends Activity {
     private Context mContext;
     private ProgressDialog mProgressDialog;
     //Others
+    private int imageNumber = 0;
     private Bitmap originalImage;
     private byte[] originalImageByte;
     private Bitmap imagemCorteDesfoque;
     private Long TimeStarted;
-    private Double TotalTimeBenchmarking=(double)0;
+    private Double TotalTimeBenchmarking = (double) 0;
     private Double TotalTime;
     private TextView mTextView;
     private TextView statusTextView;
@@ -106,7 +106,68 @@ public class MainActivity extends Activity {
     private boolean quit;
     private int config;
     private int faces;
-    private int benchmarking=32;
+    private boolean benchmarking = false;
+    private int benchCount = 1;
+    private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
+        @Override
+        public void completedTask(Bitmap obj) {
+            if (obj != null) {
+                imagemCorteDesfoque = obj;
+                originalImageByte = Util.Bitmap2Byte(obj);
+                data.setSize(originalImageByte.length + "");
+                mProgressDialog.dismiss();
+                imageView.setVisibility(View.VISIBLE);
+                faces = mainTask.getNumFaces();
+                data.setFaces(faces);
+                changeCSV();
+                if (benchmarking) {
+                    benchCount++;
+                    if (benchCount % 10 != 0) {
+                        method();
+                        //TODO:fix this
+                    } else if (benchCount % 10 == 0) {
+                        //0=1.5mp, 2=6.5mp and 3=8.5mp
+                        if (imageNumber == 0) {
+                            imageNumber = 2;
+                        } else {
+                            imageNumber++;
+                        }
+                    } else if (benchCount == 30) {
+                        imageNumber = 0;
+                        benchCount = 1;
+                        benchmarking = false;
+                        timeText = precision.format(TotalTimeBenchmarking) + "s";
+                        timeText.replace(",", ".");
+                        if (TotalTimeBenchmarking >= 60) {
+                            int min = (int) Math.floor(TotalTimeBenchmarking / 60);
+                            int sec = (int) Math.ceil(TotalTimeBenchmarking - (min * 60));
+                            mTextView.setText(min + "min e " + sec + "s");
+                        } else {
+                            mTextView.setText(TotalTimeBenchmarking + "s");
+                        }
+                        String now = getCurrentTimeStamp();
+                        data.setName(id);
+                        data.setFaces(0);
+                        data.setAlgorithm(algorithm);
+                        data.setExecution(execution);
+                        data.setTotalTime(timeText);
+                        data.setoRes("Todos");
+                        data.setTime(now);
+                        data.setResult();
+                        Log.i(TAG, data.getData());
+                        TotalTimeBenchmarking = (double) 0;
+                        id++;
+                        }
+                    }
+            } else if (config != 0) {
+                statusTextView.setText("Status: Algum Error na transmissão!");
+                mProgressDialog.dismiss();
+            } else {
+                statusTextView.setText("Erro inesperado");
+                mProgressDialog.dismiss();
+                }
+        }
+    };
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -132,7 +193,7 @@ public class MainActivity extends Activity {
                             break;
                         }
                     }
-                }
+                    }
                 default: {
                     super.onManagerConnected(status);
                     if (status != LoaderCallbackInterface.SUCCESS) {
@@ -141,61 +202,8 @@ public class MainActivity extends Activity {
 
                 }
                 break;
-            }
-        }
-    };
-    private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
-        @Override
-        public void completedTask(Bitmap obj) {
-            if (obj != null) {
-                imagemCorteDesfoque = obj;
-                originalImageByte = Util.Bitmap2Byte(obj);
-                data.setSize(originalImageByte.length + "");
-                mProgressDialog.dismiss();
-                imageView.setVisibility(View.VISIBLE);
-                faces = mainTask.getNumFaces();
-                data.setFaces(faces);
-                changeCSV();
-                if (benchmarking < 30) {
-                    benchmarking++;
-                    mTextView.setText("Time: ");
-                    mProgressDialog.show();
-                    imageView.setVisibility(View.INVISIBLE);
-                    statusTextView.setText("[" + benchmarking + "/30]" + "\nProcessing");
-                    imageView.setImageBitmap(originalImage);
-                    OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
-                } else if (benchmarking == 30) {
-                    timeText = precision.format(TotalTimeBenchmarking) + "s";
-                    timeText.replace(",", ".");
-                    if (TotalTimeBenchmarking >= 60) {
-                        int min = (int) Math.floor(TotalTimeBenchmarking / 60);
-                        int sec = (int) Math.ceil(TotalTimeBenchmarking - (min * 60));
-                        mTextView.setText(min + "min e " + sec + "s");
-                    } else {
-                        mTextView.setText(TotalTimeBenchmarking + "s");
-                    }
-                    String now = getCurrentTimeStamp();
-                    data.setName(id);
-                    data.setFaces(0);
-                    data.setAlgorithm(algorithm);
-                    data.setExecution(execution);
-                    data.setTotalTime(timeText);
-                    data.setoRes("Todos");
-                    data.setTime(now);
-                    data.setResult();
-                    Log.i(TAG, data.getData());
-                    TotalTimeBenchmarking = (double) 0;
-                    id++;
-                    benchmarking = 32;
                 }
-            } else if (config != 0) {
-                statusTextView.setText("Status: Algum Error na transmissão!");
-                mProgressDialog.dismiss();
-            } else {
-                statusTextView.setText("Erro inesperado");
-                mProgressDialog.dismiss();
             }
-        }
     };
 
     public static String getCurrentTimeStamp() {
@@ -203,7 +211,7 @@ public class MainActivity extends Activity {
         Date now = new Date();
         String strDate = sdfDate.format(now);
         return strDate;
-    }
+        }
 
     public static int calculateInSampleSize(
             BitmapFactory.Options options, int reqWidth, int reqHeight) {
@@ -246,150 +254,155 @@ public class MainActivity extends Activity {
 
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        btn = (Button) findViewById(R.id.btnHide);
-        imageView = (ImageView) findViewById(R.id.imageView);
-        mTextView = (TextView) findViewById(R.id.textTime);
-        statusTextView = (TextView) findViewById(R.id.textStatus);
-        mContext = this;
-        quit = false;
-
-        data = new Data();
-
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setMessage("Processing........");
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setCancelable(false);
-
-        Spinner algSpinner = (Spinner) findViewById(R.id.spinnerAlg);
-        ArrayAdapter<CharSequence> algAdapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
-        algAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        algSpinner.setAdapter(algAdapter);
-
-        Spinner photoSpinner = (Spinner) findViewById(R.id.spinnerPhoto);
-        ArrayAdapter<CharSequence> photoAdapter = ArrayAdapter.createFromResource(this, R.array.photo_array, android.R.layout.simple_spinner_item);
-        photoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        photoSpinner.setAdapter(photoAdapter);
-
-        Spinner executionSpinner = (Spinner) findViewById(R.id.sp_execution);
-        ArrayAdapter<CharSequence> executionAdapter = ArrayAdapter.createFromResource(this, R.array.execution_array, android.R.layout.simple_spinner_item);
-        executionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        executionSpinner.setAdapter(executionAdapter);
-
-        photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                Drawable d;
-                Bitmap b;
-                switch (pos) {
-                    case 0:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp, 200, 200);
-                        Originalresolution = "1.5";
-                        break;
-                    case 1:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200, 200);
-                        Originalresolution = "3";
-                        break;
-                    case 2:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200, 200);
-                        Originalresolution = "6";
-                        break;
-                    case 3:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200, 200);
-                        Originalresolution = "8.5";
-                        break;
-                    case 4:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200, 200);
-                        Originalresolution = "13.5";
-                        break;
-                    default:
-                        decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp, 200, 200);
-                        break;
-                }
-                data.setoRes(Originalresolution);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-        algSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                switch (pos) {
-                    case 0:
-                        alg = R.raw.haarcascade_frontalface_alt_tree;
-                        algorithm = "haarcascade_frontalface_alt_tree";
-                        Log.d(TAG, "" + alg);
-                        break;
-                    case 1:
-                        alg = R.raw.haarcascade_frontalface_alt;
-                        algorithm = "haarcascade_frontalface_alt";
-                        Log.d(TAG, "" + alg);
-                        break;
-                    case 2:
-                        alg = R.raw.haarcascade_frontalface_alt2;
-                        algorithm = "haarcascade_frontalface_alt2";
-                        Log.d(TAG, "" + alg);
-                        break;
-                    case 3:
-                        alg = R.raw.haarcascade_frontalface_default;
-                        algorithm = "haarcascade_frontalface_default";
-                        Log.d(TAG, "" + alg);
-                        break;
-                    case 4:
-                        alg = R.raw.haarcascade_frontalface_default;
-                        algorithm = "haarcascade_frontalface_default";
-                        Log.d(TAG, "" + alg);
-                        benchmarking = 1;
-                        break;
-
-                    default:
-                        break;
-                }
-                data.setAlgorithm(algorithm);
-                if (pos != 4) benchmarking = 32;
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-        executionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
-                config = pos;
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-
-        btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                method();
-
-            }
-        });
-        verifyStoragePermissions(this, PERMISSIONS_STORAGE);
-
-
-        MposFramework.getInstance().start(this);
-        Log.d(TAG, "middleware started");
-
+    public void choosePicture(int pos) {
+        switch (pos) {
+            case 0:
+                decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_1_5mp, 200, 200);
+                Originalresolution = "1.5";
+                break;
+            case 1:
+                decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200, 200);
+                Originalresolution = "3";
+                break;
+            case 2:
+                decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_6_5mp, 200, 200);
+                Originalresolution = "6";
+                break;
+            case 3:
+                decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_8_5mp, 200, 200);
+                Originalresolution = "8.5";
+                break;
+            case 4:
+                decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_13_5mp, 200, 200);
+                Originalresolution = "13.5";
+                break;
+            default:
+                decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200, 200);
+                break;
+        }
     }
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+
+            //TODO:organize thi in methods
+            //TODO: create config and used to set all configurations
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            btn = (Button) findViewById(R.id.btnHide);
+            imageView = (ImageView) findViewById(R.id.imageView);
+            mTextView = (TextView) findViewById(R.id.textTime);
+            statusTextView = (TextView) findViewById(R.id.textStatus);
+            mContext = this;
+            quit = false;
+
+            data = new Data();
+
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage("Processing........");
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mProgressDialog.setCancelable(false);
+
+            Spinner algSpinner = (Spinner) findViewById(R.id.spinnerAlg);
+            ArrayAdapter<CharSequence> algAdapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
+            algAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            algSpinner.setAdapter(algAdapter);
+
+            Spinner photoSpinner = (Spinner) findViewById(R.id.spinnerPhoto);
+            ArrayAdapter<CharSequence> photoAdapter = ArrayAdapter.createFromResource(this, R.array.photo_array, android.R.layout.simple_spinner_item);
+            photoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            photoSpinner.setAdapter(photoAdapter);
+
+            Spinner executionSpinner = (Spinner) findViewById(R.id.sp_execution);
+            ArrayAdapter<CharSequence> executionAdapter = ArrayAdapter.createFromResource(this, R.array.execution_array, android.R.layout.simple_spinner_item);
+            executionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            executionSpinner.setAdapter(executionAdapter);
+
+            photoSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                    choosePicture(pos);
+                    data.setoRes(Originalresolution);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
+            algSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                    switch (pos) {
+                        case 0:
+                            alg = R.raw.haarcascade_frontalface_alt_tree;
+                            algorithm = "haarcascade_frontalface_alt_tree";
+                            Log.d(TAG, "" + alg);
+                            break;
+                        case 1:
+                            alg = R.raw.haarcascade_frontalface_alt;
+                            algorithm = "haarcascade_frontalface_alt";
+                            Log.d(TAG, "" + alg);
+                            break;
+                        case 2:
+                            alg = R.raw.haarcascade_frontalface_alt2;
+                            algorithm = "haarcascade_frontalface_alt2";
+                            Log.d(TAG, "" + alg);
+                            break;
+                        case 3:
+                            alg = R.raw.haarcascade_frontalface_default;
+                            algorithm = "haarcascade_frontalface_default";
+                            Log.d(TAG, "" + alg);
+                            break;
+                        //TODO:fix benchmarking
+                        case 4:
+                            alg = R.raw.haarcascade_frontalface_default;
+                            algorithm = "haarcascade_frontalface_default";
+                            Log.d(TAG, "" + alg);
+                            benchmarking = true;
+                            break;
+
+                        default:
+                            break;
+                    }
+                    data.setAlgorithm(algorithm);
+                    if (pos != 4) benchmarking = false;
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
+            executionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                    config = pos;
+
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
+
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    method();
+
+                }
+            });
+            verifyStoragePermissions(this, PERMISSIONS_STORAGE);
+
+
+            MposFramework.getInstance().start(this);
+            Log.d(TAG, "middleware started");
+
+        }
 
     public void runAPI(int config) throws Exception {
         TimeStarted = System.nanoTime();
@@ -410,31 +423,40 @@ public class MainActivity extends Activity {
                 mainTask = new MainService(originalImageByte, detectFacesDynamicKNN, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
+            }
         }
-    }
 
 
-
-    protected void onDestroy(){
+    protected void onDestroy() {
         super.onDestroy();
-        if(quit) {
+        if (quit) {
             MposFramework.getInstance().stop();
-            Log.d(TAG,"middleware ended");
+            Log.d(TAG, "middleware ended");
+            }
         }
-    }
 
     public void method() {
-        TimeStarted = System.nanoTime();
-        imageView.setVisibility(View.INVISIBLE);
-        mProgressDialog.show();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
-        mTextView.setText("Time: ");
-        statusTextView.setText("Processing");
-        if(benchmarking!=32) statusTextView.setText("["+benchmarking+"/30]"+ "\nProcessing ");
-    }
+        if (benchmarking) {
+            choosePicture(imageNumber);
+            mProgressDialog.show();
+            imageView.setVisibility(View.INVISIBLE);
+            statusTextView.setText("[" + benchmarking + "/30]" + "\nProcessing");
+            imageView.setImageBitmap(originalImage);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
+        } else {
+            TimeStarted = System.nanoTime();
+            imageView.setVisibility(View.INVISIBLE);
+            mProgressDialog.show();
+            mTextView.setText("Time: ");
+            statusTextView.setText("Processing");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+            }
+        }
 
+
+    //TODO:fix decode looking at benchImage
     public void decodeSampledBitmapFromResource(Resources pRes, int pResId,
-                                                         int pReqWidth, int pReqHeight) {
+                                                int pReqWidth, int pReqHeight) {
         final Resources res = pRes;
         final int resId = pResId;
         final int reqWidth = pReqWidth;
@@ -452,7 +474,7 @@ public class MainActivity extends Activity {
                 // Decode bitmap with inSampleSize set
                 options.inJustDecodeBounds = false;
                 originalImage = BitmapFactory.decodeResource(res, resId, options);
-                runOnUiThread(new Runnable(){
+                runOnUiThread(new Runnable() {
                     public void run() {
                         // First decode with inJustDecodeBounds=true to check dimensions
                         //setImageBitmap(originalImage, imageView);
@@ -460,7 +482,7 @@ public class MainActivity extends Activity {
 
                     }
                 });
-            }
+                }
         }.start();
     }
 
@@ -468,7 +490,7 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setMessage("Want to quit and export Csv file?").setTitle("Exit");
-        quit=true;
+        quit = true;
 
         //Since the order that they appear is Neutral>Negative>Positive I change the content of each one
         //So The negative is my neutral, the neutral is my positive and at last the positive is my negative
@@ -476,7 +498,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 finish();
-            }
+                }
         });
         builder.setNeutralButton("Yes", new DialogInterface.OnClickListener() {
             @Override
@@ -489,7 +511,7 @@ public class MainActivity extends Activity {
         builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                quit=false;
+                quit = false;
                 dialogInterface.cancel();
             }
         });
@@ -498,20 +520,20 @@ public class MainActivity extends Activity {
 
     }
 
-    public void changeCSV(){
+    public void changeCSV() {
         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
         timeText = precision.format(TotalTime);
         statusTextView.setText(faces + " faces");
         imageView.setImageBitmap(imagemCorteDesfoque);
-        int value = (originalImage.getHeight() * originalImage.getWidth())/1000000;
+        int value = (originalImage.getHeight() * originalImage.getWidth()) / 1000000;
 
         TotalTimeBenchmarking += TotalTime;
-        mTextView.setText(timeText+"s");
-        if(TotalTime>=60){
-            int min = (int) Math.floor(TotalTime/60);
-            double sec = TotalTime - (min*60);
-            mTextView.setText(min+"min e "+sec+"s");
-        }
+        mTextView.setText(timeText + "s");
+        if (TotalTime >= 60) {
+            int min = (int) Math.floor(TotalTime / 60);
+            double sec = TotalTime - (min * 60);
+            mTextView.setText(min + "min e " + sec + "s");
+            }
 
         long cpu_time = MposFramework.getInstance().getEndpointController().rpcProfile.getExecutionCpuTime();
         long download_time = MposFramework.getInstance().getEndpointController().rpcProfile.getDonwloadTime();
@@ -521,19 +543,19 @@ public class MainActivity extends Activity {
         data.setDownloadTime(download_time);
         data.setUploadTime(upload_time);
         data.setName(id);
-        data.setpRes(value+"");
+        data.setpRes(value + "");
         data.setTotalTime(timeText);
         data.setTime(getCurrentTimeStamp());
         data.setExecution(execution);
         data.setResult();
         Log.i(TAG, data.getData());
 
-    }
+        }
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-    }
+        }
 
     public boolean onOptionsItemSelected(MenuItem item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -546,7 +568,7 @@ public class MainActivity extends Activity {
                 ExportCsv exportModule = new ExportCsv();
                 exportModule.exportCsv(data.getData());
                 Toast.makeText(mContext, "Exported", Toast.LENGTH_LONG);
-          }
+            }
         });
         builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
             @Override
@@ -557,6 +579,6 @@ public class MainActivity extends Activity {
         AlertDialog dialog = builder.create();
         dialog.show();
         return true;
-    }
+        }
 
-}
+    }
