@@ -54,7 +54,9 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         result.AppName = getAppLable(mContext);
         result.Battery = getBattery().name();
         result.year = getYear(deviceController.getDevice().getYear()).name();
-        result.CPU = getCPULabel(getCPUStatistic()).name();
+        float cpuSmart = getCPUStatistic();
+        result.CPU = getCPULabel(cpuSmart).name();
+        Log.d("cpuSmart", "" + cpuSmart);
         result.RSSI = getRSSI().name();
         result.Tech = deviceController.getNetworkConnectedType();
         return result;
@@ -133,9 +135,9 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
 
     public ResultTypes.ResultTypesCpu getCPULabel(float total) {
         ResultTypes.ResultTypesCpu ret;
-        if (total < 30) {
+        if (total < 45) {
             ret = ResultTypes.ResultTypesCpu.Relaxado;
-        } else if (total >= 30 && total < 75) {
+        } else if (total >= 45 && total < 75) {
             ret = ResultTypes.ResultTypesCpu.Carga_Normal;
         } else if(total == (-1)){
             ret = ResultTypes.ResultTypesCpu.Desconhecido;
@@ -145,7 +147,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return ret;
     }
 
-    private int getCPUStatistic() {
+    public int getCPUStatistic() {
 
         String tempString = getCPU();
 

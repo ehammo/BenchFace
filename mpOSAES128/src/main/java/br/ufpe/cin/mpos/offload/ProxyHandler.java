@@ -66,7 +66,6 @@ public final class ProxyHandler implements InvocationHandler {
 	}
 
     public int calculateInputSize(Object[] params) {
-        Log.d("teste", "Entrei no metodo");
         int resp = 0;
         for (int i = 0; i < params.length; i++) {
             if (params[i] instanceof byte[]) {
@@ -84,7 +83,7 @@ public final class ProxyHandler implements InvocationHandler {
 		if (remotable != null) {
 			ServerContent server = MposFramework.getInstance().getEndpointController().selectPriorityServer(remotable.cloudletPrority());
 			if (remotable.value() == Offload.STATIC) {
-                Log.d("teste", "estatico");
+                Log.d("decisao", "estatico");
                 if (server != null) {
 					try {
 						return invokeRemotable(server, remotable.status(), method, params);
@@ -96,20 +95,20 @@ public final class ProxyHandler implements InvocationHandler {
 					}
 				}
 			} else {
-                Log.d("teste", "dinamicoProxy");
+                Log.d("decisao", "dinamico");
                 try {
 					if (server != null) {
 						MposFramework.getInstance().getEndpointController().updateDynamicDecisionSystemEndpoint(server);
-                        Log.d("teste", "vou tentar calcular o inputSize");
                         int inputSize = calculateInputSize(params);
-						Log.d("teste", "inputSize no middleware: " + inputSize);
+                        Log.d("decisao", "inputSize no middleware: " + inputSize);
                         if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize, remotable.classifier())) {
+                            Log.d("decisao", "need to do on cloud");
                             return invokeRemotable(server, remotable.status(), method, params);
-						}else{
-                            Log.d("teste", "need to do local");
+                        }else{
+                            Log.d("decisao", "need to do local");
                         }
                     } else {
-                        Log.e("teste", "server==null");
+                        Log.e("decisao", "server==null");
                     }
                 } catch (ConnectException e) {
 					Log.w(clsName, e);

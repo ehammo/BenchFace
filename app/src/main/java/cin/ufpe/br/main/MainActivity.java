@@ -108,13 +108,49 @@ public class MainActivity extends Activity {
     private int faces;
     private boolean benchmarking = false;
     private int benchCount = 1;
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
+                    Log.d(TAG, "OpenCV loaded successfully");
+                    // Load native library after(!) OpenCV initialization
+                    try {
+                        //TODO: fix CascadeClassifier
+                        cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
+                        Log.d(TAG, "config: " + config);
+                        originalImageByte = Util.Bitmap2Byte(originalImage);
+                        data.setSize((originalImageByte.length / 1024) + "");
+                        runAPI(config);
+                    } catch (Exception e) {
+                        statusTextView.setText("Failed");
+                        e.printStackTrace();
+                    } finally {
+                        if ((cascadeClassifier == null || cascadeClassifier.empty()) && config != 1) {
+                            Log.e(TAG, "Failed to load cascade classifier");
+                            cascadeClassifier = null;
+                            statusTextView.setText("failed");
+                            break;
+                        }
+                    }
+                }
+                default: {
+                    super.onManagerConnected(status);
+                    if (status != LoaderCallbackInterface.SUCCESS) {
+                        Log.d(TAG, "failed");
+                    }
+
+                }
+                break;
+            }
+        }
+    };
     private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
         @Override
         public void completedTask(Bitmap obj) {
             if (obj != null) {
                 imagemCorteDesfoque = obj;
                 originalImageByte = Util.Bitmap2Byte(obj);
-                data.setSize(originalImageByte.length + "");
                 mProgressDialog.dismiss();
                 imageView.setVisibility(View.VISIBLE);
                 faces = mainTask.getNumFaces();
@@ -132,10 +168,10 @@ public class MainActivity extends Activity {
                         } else {
                             imageNumber++;
                         }
+                        method();
                     } else if (benchCount == 30) {
                         imageNumber = 0;
                         benchCount = 1;
-                        benchmarking = false;
                         timeText = precision.format(TotalTimeBenchmarking) + "s";
                         timeText.replace(",", ".");
                         if (TotalTimeBenchmarking >= 60) {
@@ -167,43 +203,6 @@ public class MainActivity extends Activity {
                 mProgressDialog.dismiss();
                 }
         }
-    };
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    Log.d(TAG, "OpenCV loaded successfully");
-                    // Load native library after(!) OpenCV initialization
-                    try {
-                        //TODO: fix CascadeClassifier
-                        cascadeClassifier = (new CascadeService()).loadCascade(new ToLoadCascadeModel(mContext, alg, algorithm));
-                        Log.d(TAG, "config: " + config);
-                        originalImageByte = Util.Bitmap2Byte(originalImage);
-                        Log.d(TAG, "input size on app: " + (originalImageByte.length) / 1024);
-                        runAPI(config);
-                    } catch (Exception e) {
-                        statusTextView.setText("Failed");
-                        e.printStackTrace();
-                    } finally {
-                        if ((cascadeClassifier == null || cascadeClassifier.empty()) && config != 1) {
-                            Log.e(TAG, "Failed to load cascade classifier");
-                            cascadeClassifier = null;
-                            statusTextView.setText("failed");
-                            break;
-                        }
-                    }
-                    }
-                default: {
-                    super.onManagerConnected(status);
-                    if (status != LoaderCallbackInterface.SUCCESS) {
-                        Log.d(TAG, "failed");
-                    }
-
-                }
-                break;
-                }
-            }
     };
 
     public static String getCurrentTimeStamp() {
@@ -278,8 +277,10 @@ public class MainActivity extends Activity {
                 break;
             default:
                 decodeSampledBitmapFromResource(mContext.getResources(), R.drawable.facedetection_3mp, 200, 200);
+                Originalresolution = "3";
                 break;
         }
+        data.setoRes(Originalresolution);
     }
         @Override
         protected void onCreate(Bundle savedInstanceState) {
@@ -321,7 +322,6 @@ public class MainActivity extends Activity {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
                     choosePicture(pos);
-                    data.setoRes(Originalresolution);
                 }
 
                 @Override
@@ -408,18 +408,23 @@ public class MainActivity extends Activity {
         TimeStarted = System.nanoTime();
         switch (config) {
             case 0:
+                execution = "LocalBased Execution";
                 mainTask = new MainService(originalImageByte, detectFacesLocal, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 1:
+                execution = "CloudBased Execution";
                 mainTask = new MainService(originalImageByte, detectFacesCloudlet, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 2:
+                //TODO: add decision result in csv
+                execution = "J48Dynamic Execution";
                 mainTask = new MainService(originalImageByte, detectFacesDynamicJ48, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 3:
+                execution = "KnnDynamic Execution";
                 mainTask = new MainService(originalImageByte, detectFacesDynamicKNN, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
@@ -440,7 +445,7 @@ public class MainActivity extends Activity {
             choosePicture(imageNumber);
             mProgressDialog.show();
             imageView.setVisibility(View.INVISIBLE);
-            statusTextView.setText("[" + benchmarking + "/30]" + "\nProcessing");
+            statusTextView.setText("[" + benchCount + "/30]" + "\nProcessing");
             imageView.setImageBitmap(originalImage);
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
         } else {

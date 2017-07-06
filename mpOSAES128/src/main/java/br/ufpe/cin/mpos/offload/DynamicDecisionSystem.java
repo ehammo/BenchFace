@@ -88,7 +88,7 @@ public class DynamicDecisionSystem extends TimerTask {
 
     public ServerContent getServer() {
         synchronized (mutex) {
-            return server.newInstance(); //imutable operation  
+            return server != null ? server.newInstance() : null; //imutable operation
         }
     }
 
@@ -101,8 +101,8 @@ public class DynamicDecisionSystem extends TimerTask {
     public synchronized boolean isRemoteAdvantage(int InputSize, Remotable.Classifier classifierRemotable) {
         boolean resp = false;
         try {
-            if (!(this.classifierModel.equals(classifierRemotable.toString()))) {
-                Log.d("sqlL", "classificador=" + classifierRemotable.toString());
+            if ((!(this.classifierModel.equals(classifierRemotable.toString()))) || this.classifier == null) {
+                Log.d("classificacao", "classificador=" + classifierRemotable.toString());
                 this.classifierModel = classifierRemotable.toString();
                 loadClassifier(classifierRemotable);
             }
@@ -115,9 +115,6 @@ public class DynamicDecisionSystem extends TimerTask {
                 for (int i = 1; i <= colunas - 2; i++) {
                     String feature = c.getColumnName(i);
                     String value = c.getString(i);
-                    if(value!=null) {
-                        values.add(value);
-                    }
                     Attribute attribute;
                     if (feature.equals(DatabaseManager.InputSize)) {
                         values.add(""+InputSize);
@@ -126,6 +123,9 @@ public class DynamicDecisionSystem extends TimerTask {
                         String[] strings = populateAttributes(i);
                         ArrayList<String> attValues = new ArrayList<String>(Arrays.asList(strings));
                         attribute = new Attribute(feature,attValues);
+                        if (value != null) {
+                            values.add(value);
+                        }
                     }
                    // Log.d("sqlL",attribute.name());
                     atts.add(attribute);
@@ -143,10 +143,17 @@ public class DynamicDecisionSystem extends TimerTask {
                         instance.setValue(atts.get(i),values.get(i));
                     }
                 }
-                double value = classifier.distributionForInstance(instance)[0];
-                Log.d("finalizado", instance.toString()+" classifiquei "+value);
-                Log.d("sqlLite","classifiquei "+instance.toString()+" com "+(0.7 <= value));
+                double value = -1;
+                value = classifier.distributionForInstance(instance)[0];
+                Log.d("classificacao", instance.toString() + " classifiquei com o seguinte valor" + value);
                 resp = (0.7 <= value);
+                if (resp) {
+                    Log.d("classificacao", "sim");
+                    Log.d("Finalizado", "classifiquei " + instance.toString() + " com sim");
+                } else {
+                    Log.d("classificacao", "nao");
+                    Log.d("Finalizado", "classifiquei " + instance.toString() + " com nao");
+                }
             }
         }catch(Exception e){
             e.printStackTrace();
@@ -184,9 +191,10 @@ public class DynamicDecisionSystem extends TimerTask {
     @Override
     public void run() {
         try {
-            if (getServer() != null) {
+            ServerContent server = getServer();
+            if (server != null) {
                 Log.d("teste","Calling analysis");
-                MposFramework.getInstance().getProfileController().networkAnalysis(getServer());
+                MposFramework.getInstance().getProfileController().networkAnalysis(server);
             }else{
                 Log.i(clsName, "Waiting for new endpoint...");
             }

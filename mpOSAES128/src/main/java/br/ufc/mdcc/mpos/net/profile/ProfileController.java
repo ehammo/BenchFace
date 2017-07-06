@@ -33,7 +33,6 @@ import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
 import br.ufpe.cin.mpos.profile.Model.Model;
 import br.ufpe.cin.mpos.profile.ProfilesTask;
-import br.ufpe.cin.mpos.profile.Testing;
 
 /**
  * This class control the profile services
@@ -41,6 +40,9 @@ import br.ufpe.cin.mpos.profile.Testing;
  * @author Philipp B. Costa
  */
 public final class ProfileController {
+    public String CPU_Nuvem = "-1";
+    Model model = new Model();
+    ServerContent server = null;
     private TaskResult<Network> taskResultEvent;
     private Context mContext;
     private ProfileNetworkDao profileDao;
@@ -48,27 +50,52 @@ public final class ProfileController {
     private ProfilesTask taskProfiles;
     private ProfileNetwork profileNetwork;
     private DatabaseController dc;
-    private Testing testing;
+    private Model rawModel = new Model();
     private String bandwidthDown="-1";
     private String bandwidthUp="-1";
-    public String CPU_Nuvem="-1";
-    Model model = new Model();
-    ServerContent server = null;
-
-    public float getBandwidthDown(){
-        try{
-            return Float.parseFloat(bandwidthDown);
-        }catch (Exception e){
-            return -2;
+    private TaskResultAdapter<Model> taskResultAdapter = new TaskResultAdapter<Model>() {
+        @Override
+        public void completedTask(Model obj) {
+            Log.d("CarrierInfo", "Apos a tarefa: " + obj.Carrier);
+            model = obj;
+            bandwidthDown = "0";
+            bandwidthUp = "0";
+            try {
+                if (profileNetwork == ProfileNetwork.LIGHT) {
+                    taskNetwork = new ProfileNetworkLight(persistNetworkResults(taskResultEvent), server);
+                } else if (profileNetwork == ProfileNetwork.DEFAULT) {
+                    taskNetwork = new ProfileNetworkDefault(persistNetworkResults(taskResultEvent), server);
+                } else if (profileNetwork == ProfileNetwork.FULL) {
+                    taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
+                }
+            } catch (Exception e) {
+                Log.e("teste", e.getMessage());
+            }
+            taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            //testing.run();
         }
+    };
+
+    public ProfileController(Context context, ProfileNetwork profile) {
+        this.profileNetwork = profile;
+        profileDao = new ProfileNetworkDao(context);
+        dc = new DatabaseController(context);
+        mContext = context;
+        rawModel.CPU = -1 + "";
+        rawModel.CPUNuvem = -1 + "";
+        rawModel.Bandwidth = -1 + "";
+        Log.i(ProfileController.class.getName(), "MpOS Profile Started!");
     }
 
-    public float getBandwidthUp(){
-        try{
-            return Float.parseFloat(bandwidthUp);
-        }catch (Exception e){
-            return -2;
-        }
+    public static String getCurrentTimeStamp() {
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date now = new Date();
+        String strDate = sdfDate.format(now);
+        return strDate;
+    }
+
+    public Model getRawModel() {
+        return rawModel;
     }
 
     public float getCPUNuvem(){
@@ -77,15 +104,6 @@ public final class ProfileController {
         }catch (Exception e) {
             return -2;
         }
-    }
-
-    public ProfileController(Context context, ProfileNetwork profile) {
-        this.profileNetwork = profile;
-        profileDao = new ProfileNetworkDao(context);
-        dc = new DatabaseController(context);
-        mContext = context;
-        testing = new Testing(dc);
-        Log.i(ProfileController.class.getName(), "MpOS Profile Started!");
     }
 
     public void setTaskResultEvent(TaskResult<Network> taskResultEvent) {
@@ -112,13 +130,6 @@ public final class ProfileController {
         taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
         taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
-    }
-
-    public static String getCurrentTimeStamp() {
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date now = new Date();
-        String strDate = sdfDate.format(now);
-        return strDate;
     }
 
     private String getBandwidthLabel(float f, String tech){
@@ -162,43 +173,24 @@ public final class ProfileController {
         Log.d("rede","upload "+up);
         if(down<up){
             bandwidthLabel = getBandwidthLabel(down, model.Tech);
+            rawModel.Bandwidth = down + "";
         }else {
             bandwidthLabel = getBandwidthLabel(up, model.Tech);
+            rawModel.Bandwidth = up + "";
         }
 
         model.Bandwidth = bandwidthLabel;
         ProfilesTask pt = new ProfilesTask(null, null);
         model.CPUNuvem = pt.getCPULabel(Float.parseFloat(CPU_Nuvem)).name();
-
+        rawModel.CPUNuvem = CPU_Nuvem;
+        Log.d("csvTest", "CPUNumvem label: " + rawModel.CPUNuvem);
+        rawModel.CPU = pt.getCPUStatistic() + "";
         dc.insertData(model);
         bandwidthDown="-1";
         bandwidthUp="-1";
         Log.d("finalizado", "Finalizado:\n" + model.toString());
 
     }
-
-    private TaskResultAdapter<Model> taskResultAdapter = new TaskResultAdapter<Model>() {
-        @Override
-        public void completedTask(Model obj) {
-            Log.d("CarrierInfo", "Apos a tarefa: "+obj.Carrier);
-            model = obj;
-            bandwidthDown="0";
-            bandwidthUp="0";
-            try {
-                if (profileNetwork == ProfileNetwork.LIGHT) {
-                    taskNetwork = new ProfileNetworkLight(persistNetworkResults(taskResultEvent), server);
-                } else if (profileNetwork == ProfileNetwork.DEFAULT) {
-                    taskNetwork = new ProfileNetworkDefault(persistNetworkResults(taskResultEvent), server);
-                } else if (profileNetwork == ProfileNetwork.FULL) {
-                    taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
-                }
-            }catch(Exception e){
-                Log.e("teste", e.getMessage());
-            }
-            taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            //testing.run();
-        }
-    };
 
     private String formatString(String s){
         String resp = s;
