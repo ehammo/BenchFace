@@ -5,15 +5,15 @@ public class Data {
     private String result = "";
     private int name = 0;
     private int faces = 0;
-    private String oRes = ""; //Original Resolution
-    private String pRes = ""; //Processed Resolution
     private String size = "";
     private String totalTime = ""; //Total time
-    private long cpuTime = 0;
     private long uploadTime = 0;
     private long downloadTime = 0;
     private String algorithm = "";
     private String execution = "";
+    private String bandwidth = "";
+    private String CPUSmart = "";
+    private String CPUNuvem = "";
     private String time = "";
 
     public String getData() {
@@ -21,7 +21,7 @@ public class Data {
     }
 
     public void setResult() {
-        result += "\"" + name + "\";\"" + faces + "\";\"" + algorithm + "\";\"" + execution + "\";\"" + oRes + "\";\"" + pRes + "\";\"" + size + "\";\"" + totalTime + "\";\"" + cpuTime + "\";\"" + uploadTime + "\";\"" + downloadTime + "\";\"" + time + "\"";
+        result += "\"" + name + "\";\"" + faces + "\";\"" + algorithm + "\";\"" + execution + "\";\"" + size + "\";\"" + totalTime + "\";\"" + uploadTime + "\";\"" + downloadTime + "\";\"" + bandwidth + "\";\"" + CPUSmart + "\";\"" + CPUNuvem + "\";\"" + time + "\"";
         result += "\n";
     }
 
@@ -31,14 +31,6 @@ public class Data {
 
     public void setFaces(int faces) {
         this.faces = faces;
-    }
-
-    public void setoRes(String oRes) {
-        this.oRes = oRes;
-    }
-
-    public void setpRes(String pRes) {
-        this.pRes = pRes;
     }
 
     public void setSize(String size) {
@@ -51,10 +43,6 @@ public class Data {
 
     public void setDownloadTime(long downloadTime) {
         this.downloadTime = downloadTime;
-    }
-
-    public void setCpuTime(long cpuTime) {
-        this.cpuTime = cpuTime;
     }
 
     public void setUploadTime(long uploadTime) {
@@ -72,4 +60,17 @@ public class Data {
     public void setTime(String time) {
         this.time = time;
     }
+
+    public void setBandwidth(String bandwidth) {
+        this.bandwidth = bandwidth;
+    }
+
+    public void setCPUSmart(String CPUSmart) {
+        this.CPUSmart = CPUSmart;
+    }
+
+    public void setCPUNuvem(String CPUNuvem) {
+        this.CPUNuvem = CPUNuvem;
+    }
 }
+

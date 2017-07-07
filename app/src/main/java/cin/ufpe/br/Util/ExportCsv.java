@@ -1,6 +1,5 @@
 package cin.ufpe.br.Util;
 
-import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
@@ -37,7 +36,8 @@ public class ExportCsv {
     }
 
     public void exportCsv(String dataString) {
-        String columnString = "\"ID\";\"Quantity of faces\";\"Algorithm\";\"Execution\";\"Original Resolution (MP)\";\"Processed Resolution (MP)\";\"Size (Bytes)\";\"Total Time (s)\";\"Cpu Time\";\"Upload Time\";\"Download Time\";\"Time\"";
+        //TODO:Remove MPs
+        String columnString = "\"ID\";\"Quantity of faces\";\"Time\";\"Algorithm\";\"Execution\";\"Size (KBytes)\";\"Total Time (s)\";\"Upload Time\";\"Download Time\";\"Bandwidth\";\"CPUSmart\";\"CPUNuvem\"";
         String combinedString = columnString + "\n" + dataString;
         File sdcard = Environment.getExternalStorageDirectory().getAbsoluteFile();
         File file = new File(sdcard + "/BenchFace_Data.csv");
