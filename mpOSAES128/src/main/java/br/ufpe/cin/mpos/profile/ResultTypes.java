@@ -7,31 +7,31 @@ package br.ufpe.cin.mpos.profile;
 public class ResultTypes {
 
     public enum ResultTypesApps {
-        BenchFace, BenchImage, ColisionBalls;
+        BenchFace, BenchImage, CollisionBalls
     }
 
     public enum ResultTypesPhone {
-        Potente, Intermediario_Avancado, Intermediario,Basico, Fraco;
+        Potente, Intermediario_Avancado, Basico, Fraco, Intermediario
     }
 
     public enum ResultTypesBateria {
-        Forte, Boa, Razoavel,Fraca;
+        Forte, Boa, Razoavel, Fraca
     }
 
     public enum ResultTypesCpu {
-        Relaxado, Carga_Normal ,Estressado, Desconhecido;
+        Relaxado, Carga_Normal, Estressado, Desconhecido
     }
 
     public enum ResultTypesRede{
-        Wifi, CDMA, iDen, eHRPD, EDGE, GPRS, UMTS, EVDO, HSPA, HSDPA, HSUPA, LTE, Outro;
+        Wifi, CDMA, iDen, eHRPD, EDGE, GPRS, UMTS, EVDO, HSPA, HSDPA, HSUPA, LTE, Outro
     }
 
     public enum ResultTypesLarguraRede {
-        Livre, Mediano, Congestionado;
+        Livre, Mediano, Congestionado
     }
 
     public enum ResultTypesRSSI {
-        Sem_Sinal, Pobre, Bom, Otimo
+        Otimo, Bom, Pobre, Sem_Sinal
     }
 
     public enum ResultTypesResult {
