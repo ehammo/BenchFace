@@ -73,8 +73,7 @@
         android:id="@+id/sp_execution"
         android:layout_width="100sp"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/imageView"
-        android:layout_alignRight="@+id/imageView"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/textStatus"
         android:layout_marginBottom="8dp" />
 
@@ -84,8 +83,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/textTime"
         android:layout_alignBottom="@+id/textTime"
-        android:layout_alignEnd="@+id/imageView"
-        android:layout_alignRight="@+id/imageView"
+        android:layout_alignParentRight="true"
         android:layout_marginBottom="8dp"
         android:text="@string/status"
         android:textSize="18sp" />

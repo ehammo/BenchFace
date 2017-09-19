@@ -135,8 +135,9 @@ public final class ProfileController {
     private String getBandwidthLabel(float f, String tech){
         String resp = "";
         if(tech.equalsIgnoreCase("WIFI")) {
-
-            if(model.year.equalsIgnoreCase("Potente")||model.year.equalsIgnoreCase("Intermediario Avancado")){
+            Log.d("year", model.year);
+            if (model.year.equalsIgnoreCase("Potente") || model.year.equalsIgnoreCase("Intermediario_Avancado")) {
+                Log.d("year", "entrei");
                 if (f > 20) {
                     resp = "Livre";
                 }else if(Math.abs(f-9.14)<0.001){

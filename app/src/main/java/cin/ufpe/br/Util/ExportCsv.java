@@ -37,7 +37,7 @@ public class ExportCsv {
 
     public void exportCsv(String dataString) {
         //TODO:Remove MPs
-        String columnString = "\"ID\";\"Quantity of faces\";\"Time\";\"Algorithm\";\"Execution\";\"Size (KBytes)\";\"Total Time (s)\";\"Upload Time\";\"Download Time\";\"Bandwidth\";\"CPUSmart\";\"CPUNuvem\"";
+        String columnString = "\"ID\";\"Time\";\"Quantity of faces\";\"Algorithm\";\"Execution\";\"Size (KBytes)\";\"Total Time (s)\";\"Upload Time\";\"Download Time\";\"Bandwidth\";\"CPUSmart\";\"CPUNuvem\"";
         String combinedString = columnString + "\n" + dataString;
         File sdcard = Environment.getExternalStorageDirectory().getAbsoluteFile();
         File file = new File(sdcard + "/BenchFace_Data.csv");

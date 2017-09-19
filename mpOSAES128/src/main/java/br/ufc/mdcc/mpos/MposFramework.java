@@ -42,9 +42,9 @@ import br.ufpe.cin.mpos.offload.Remotable;
  * @author Philipp B. Costa
  */
 public final class MposFramework {
-    private final String clsName = MposFramework.class.getName();
     private final static MposFramework instance = new MposFramework();
-
+    private final String clsName = MposFramework.class.getName();
+    public Activity activity;
     private EndpointController endpointController;
     private ProfileController profileController;
     private DeviceController deviceController;
@@ -64,6 +64,7 @@ public final class MposFramework {
             //only network services
             if (!start) {
                 start = true;
+                this.activity = activity;
                 configureControllers(activity);
             }
             
@@ -163,7 +164,6 @@ public final class MposFramework {
             }
         }
         deviceController.getDevice().setYear(YearClass.get(context));
-        Log.d("teste", "Ano: " + deviceController.getDevice().getYear());
 
     }
 

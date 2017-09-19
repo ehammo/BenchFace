@@ -5,5 +5,6 @@
         <item>Cloud</item>
         <item>Dynamic - J48</item>
         <item>Dynamic - Knn</item>
+        <item>Dynamic - JRip</item>
     </string-array>
 </resources>

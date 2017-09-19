@@ -55,6 +55,7 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
 
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
         PropriedadesFace b = serviceExtractFaces.detectarFaces(this.cascadeClassifier, this.originalImage);
+        Log.d("teste", "oioi");
         faces = b.getFaces();
         Bitmap ret = BitmapFactory.decodeByteArray(b.getImagemFinal(),0,b.getImagemFinal().length);
         return ret;

@@ -11,7 +11,7 @@ public class ResultTypes {
     }
 
     public enum ResultTypesPhone {
-        Potente, Intermediario_Avancado, Basico, Fraco, Intermediario
+        Intermediario_Avancado, Fraco, Intermediario, Potente, Basico
     }
 
     public enum ResultTypesBateria {
@@ -20,6 +20,10 @@ public class ResultTypes {
 
     public enum ResultTypesCpu {
         Relaxado, Carga_Normal, Estressado, Desconhecido
+    }
+
+    public enum ResultTypesCpuNuvem {
+        Relaxado, Estressado, Carga_Normal, Desconhecido
     }
 
     public enum ResultTypesRede{
@@ -35,7 +39,7 @@ public class ResultTypes {
     }
 
     public enum ResultTypesResult {
-        Sim,Nao
+        Sim, Nao
     }
 
 

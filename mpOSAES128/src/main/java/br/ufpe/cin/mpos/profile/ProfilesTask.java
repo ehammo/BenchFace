@@ -49,7 +49,6 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
     }
 
     protected Model doInBackground(Void... params) {
-        Log.d("teste", "entrei na tarefa");
         DeviceController deviceController = MposFramework.getInstance().getDeviceController();
         result.AppName = getAppLable(mContext);
         result.Battery = getBattery().name();

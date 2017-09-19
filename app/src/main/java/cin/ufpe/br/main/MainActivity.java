@@ -44,6 +44,7 @@ import br.ufpe.cin.mpos.profile.Model.Model;
 import cin.ufpe.br.Interfaces.CloudletDetectFaces;
 import cin.ufpe.br.Interfaces.DetectFaces;
 import cin.ufpe.br.Interfaces.DynamicDetectFacesJ48;
+import cin.ufpe.br.Interfaces.DynamicDetectFacesJRIP;
 import cin.ufpe.br.Interfaces.DynamicDetectFacesKNN;
 import cin.ufpe.br.Util.Data;
 import cin.ufpe.br.Util.ExportCsv;
@@ -56,8 +57,8 @@ import cin.ufpe.br.service.MainService;
 //code
 //openCV
 
-@MposConfig(endpointSecondary = "172.22.73.150")
-//@MposConfig
+//@MposConfig(endpointSecondary = "172.22.73.150")
+@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
@@ -79,6 +80,8 @@ public class MainActivity extends Activity {
     private DynamicDetectFacesJ48 detectFacesDynamicJ48;
     @Inject(DetectFacesService.class)
     private DynamicDetectFacesKNN detectFacesDynamicKNN;
+    @Inject(DetectFacesService.class)
+    private DynamicDetectFacesJRIP detectFacesDynamicJRIP;
     //TODO: Make all csv-Related stuff write on Data
     //CSV-Related
     private int alg;
@@ -93,7 +96,7 @@ public class MainActivity extends Activity {
     private Context mContext;
     private ProgressDialog mProgressDialog;
     //Others
-    private int imageNumber = 0;
+    private int[] imageNumber = {1, 2, 3};
     private Bitmap originalImage;
     private byte[] originalImageByte;
     private Bitmap imagemCorteDesfoque;
@@ -119,21 +122,10 @@ public class MainActivity extends Activity {
                 faces = mainTask.getNumFaces();
                 data.setFaces(faces);
                 changeCSV();
+                Log.d("benchCount", benchmarking + "");
                 if (benchmarking) {
-                    benchCount++;
-                    if (benchCount % 10 != 0) {
-                        method();
-                        //TODO:fix this
-                    } else if (benchCount % 10 == 0) {
-                        //0=1.5mp, 2=6.5mp and 3=8.5mp
-                        if (imageNumber == 0) {
-                            imageNumber = 2;
-                        } else {
-                            imageNumber++;
-                        }
-                        method();
-                    } else if (benchCount == 30) {
-                        imageNumber = 0;
+                    Log.d("benchCount", benchCount + "");
+                    if (benchCount == 30) {
                         benchCount = 1;
                         timeText = precision.format(TotalTimeBenchmarking) + "s";
                         timeText.replace(",", ".");
@@ -160,10 +152,23 @@ public class MainActivity extends Activity {
                         Log.i(TAG, data.getData());
                         TotalTimeBenchmarking = (double) 0;
                         id++;
-                        }
+                        benchCount++;
+                        Log.d("benchCount", "IfCount: " + benchCount + "");
+                    } else {
+                        benchCount++;
+                        Log.d("benchCount", "ElseCount: " + benchCount + "");
+                        method();
+                        //TODO:fix this
                     }
+                }
             } else if (config != 0) {
-                statusTextView.setText("Status: Algum Error na transmissão!");
+                Log.e("teste", "Erro de transmição config=" + config);
+                try {
+                    runAPI(0);
+                } catch (Exception e) {
+                    Log.e("teste", e.getMessage());
+                }
+//                statusTextView.setText("Status: Algum Error na transmissão!");
                 mProgressDialog.dismiss();
             } else {
                 statusTextView.setText("Erro inesperado");
@@ -421,11 +426,18 @@ public class MainActivity extends Activity {
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 3:
+                Log.d("teste", "knn");
                 execution = "KnnDynamic";
                 mainTask = new MainService(originalImageByte, detectFacesDynamicKNN, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
+            case 4:
+                execution = "JRIPDynamic";
+                mainTask = new MainService(originalImageByte, detectFacesDynamicJRIP, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
             }
+
         }
 
 
@@ -439,7 +451,10 @@ public class MainActivity extends Activity {
 
     public void method() {
         if (benchmarking) {
-            choosePicture(imageNumber);
+            Log.d("benchCount", "benchCount_com(): " + ((benchCount - 1) / 10));
+            Log.d("benchCount", "benchCount_sem(): " + (benchCount - 1 / 10));
+
+            choosePicture(imageNumber[(benchCount - 1) / 10]);
             mProgressDialog.show();
             imageView.setVisibility(View.INVISIBLE);
             statusTextView.setText("[" + benchCount + "/30]" + "\nProcessing");

@@ -42,15 +42,17 @@ public @interface Remotable {
 	boolean cripto() default true;
 
 	enum Classifier {
-		J48, KNN;
+        J48, KNN, JRIP;
 
 		public String toString() {
 			if (ordinal() == J48.ordinal()) {
 				return "j48.model";
-			} else {
-				return "knn.model";
-			}
-		}
+            } else if (ordinal() == KNN.ordinal()) {
+                return "knn.model";
+            } else {
+                return "jrip.model";
+            }
+        }
 	}
 
 	enum Offload {

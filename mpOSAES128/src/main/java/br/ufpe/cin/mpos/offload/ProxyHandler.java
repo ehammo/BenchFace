@@ -101,6 +101,7 @@ public final class ProxyHandler implements InvocationHandler {
 						MposFramework.getInstance().getEndpointController().updateDynamicDecisionSystemEndpoint(server);
                         int inputSize = calculateInputSize(params);
                         Log.d("decisao", "inputSize no middleware: " + inputSize);
+                        Log.d("decisao", "classificador: " + remotable.classifier().toString());
                         if (MposFramework.getInstance().getEndpointController().isRemoteAdvantage(inputSize, remotable.classifier())) {
                             Log.d("decisao", "offload");
                             return invokeRemotable(server, remotable.status(), method, params);
@@ -108,7 +109,7 @@ public final class ProxyHandler implements InvocationHandler {
                             Log.d("decisao", "local");
                         }
                     } else {
-                        Log.e("decisao", "server==null");
+                        Log.e("serverBench", "server==null");
                     }
                 } catch (ConnectException e) {
 					Log.w(clsName, e);

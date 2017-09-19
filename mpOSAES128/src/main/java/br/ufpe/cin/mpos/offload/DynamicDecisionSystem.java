@@ -127,7 +127,6 @@ public class DynamicDecisionSystem extends TimerTask {
                             values.add(value);
                         }
                     }
-                   // Log.d("sqlL",attribute.name());
                     atts.add(attribute);
                 }
                 Instances instances = new Instances("header",atts,atts.size());
@@ -136,8 +135,7 @@ public class DynamicDecisionSystem extends TimerTask {
                 for(int i=0;i<atts.size();i++){
                     if(i==9){
                         instance.setMissing(atts.get(9));
-                    }
-                    else if(atts.get(i).name().equals(DatabaseManager.InputSize)){
+                    } else if (atts.get(i).name().equals(DatabaseManager.InputSize)) {
                         instance.setValue(atts.get(i),InputSize);
                     }else{
                         instance.setValue(atts.get(i),values.get(i));
@@ -164,9 +162,6 @@ public class DynamicDecisionSystem extends TimerTask {
     }
 
     private String[] populateAttributes(int feature){
-        if(feature==9){
-            feature=5;
-        }
         switch (feature){
             case 1:
                 return Arrays.toString(ResultTypes.ResultTypesApps.values()).replaceAll("^.|.$", "").split(", ");
@@ -182,6 +177,8 @@ public class DynamicDecisionSystem extends TimerTask {
                 return Arrays.toString(ResultTypes.ResultTypesLarguraRede.values()).replaceAll("^.|.$", "").split(", ");
             case 8:
                 return Arrays.toString(ResultTypes.ResultTypesRSSI.values()).replaceAll("^.|.$", "").split(", ");
+            case 9:
+                return Arrays.toString(ResultTypes.ResultTypesCpuNuvem.values()).replaceAll("^.|.$", "").split(", ");
             case 10:
                 return Arrays.toString(ResultTypes.ResultTypesResult.values()).replaceAll("^.|.$", "").split(", ");
         }
