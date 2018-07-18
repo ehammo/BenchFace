@@ -8,3 +8,10 @@ que não possuem faces). O aplicativo é composto de uma única imagem com 78 fa
 O usuário pode alterar a mesma imagem para diferentes resoluções e algoritmos classificadores em cascata.
 Sua execução pode ocorrer na nuvem, local e dinamicamente. Ao final da execução é exibida na tela a quantidade
 de faces detectadas e o tempo decorrido para detectá-las.
+
+
+O BenchFace utiliza de alguns modulos como:
+
+* Multiplatform Offloading System (MpOS). Diante de diversos desafios de mobile cloud computing, o framework [MpOS](http://mpos.great.ufc.br/?page_id=21) surgiu para auxiliar desenvolvedores de aplicações mobile resolverem problemas de offloading para multiplas plataformas. MpOS foi desenvolvido para suportar operações de offload em Android e Windows Phone, e sua arquitetura e requisitos foram inspirados em features de diferentes frameworks de offloading como: ThinkAir, MAUI, Cuckoo and Scavenger.
+
+* Open Source Computer Vision Library (OpenCV). A [OpenCv](https://opencv.org/) originalmente, desenvolvida pela Intel, em 2000, é uma biblioteca multiplataforma, totalmente livre ao uso acadêmico e comercial, para o desenvolvimento de aplicativos na área de Visão computacional, bastando seguir o modelo de licença BSD Intel.
