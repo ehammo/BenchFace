@@ -59,7 +59,6 @@ public final class ProfileResult {
 		object.put("jitter", network.getJitter());
 		object.put("down", network.getBandwidthDownload());
 		object.put("up", network.getBandwidthUpload());
-		object.put("net", network.getNetworkType());
 		object.put("appName", network.getAppName());
 
 		return object;

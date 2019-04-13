@@ -53,6 +53,7 @@ public final class ProfileController {
     private Model rawModel = new Model();
     private String bandwidthDown="-1";
     private String bandwidthUp="-1";
+
     private TaskResultAdapter<Model> taskResultAdapter = new TaskResultAdapter<Model>() {
         @Override
         public void completedTask(Model obj) {
@@ -117,22 +118,20 @@ public final class ProfileController {
 
     public void networkAnalysis(ServerContent server, ProfileNetwork profileNetwork) throws MissedEventException, NetworkException {
         Log.d("teste", "Vou executar as tarefas");
-        if (server == null) {
-            throw new NetworkException("The remote service isn't ready for profile network");
-        } else {
-            this.server = server;
-        }
-
-        if (bandwidthDown.equals("0") && bandwidthUp.equals("0")) {
-            salvaBanco();
-        }
-
+        Log.d("teste", "Vou executar as tarefas");
+        Network network = Network();
+        bandwidthDown=network.getBandwidthDownload();
+        bandwidthUp=network.getBandwidthUpload();
+        salvaBanco();
         taskProfiles = new ProfilesTask(taskResultAdapter, mContext);
         taskProfiles.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
     }
 
-    private String getBandwidthLabel(float f, String tech){
+    private String getBandwidthLabel(float f) {
+        return getBandwidthLabel(f, "WIFI");
+    }
+
+    private String getBandwidthLabel(float f, String tech) {
         String resp = "";
         if(tech.equalsIgnoreCase("WIFI")) {
             Log.d("year", model.year);
@@ -158,7 +157,7 @@ public final class ProfileController {
                     resp = "Congestionado";
                 }
             }
-	}else{
+        } else {
             resp = "Sem limiar";
         }
         return resp;
@@ -173,10 +172,10 @@ public final class ProfileController {
         Log.d("rede","Download "+down);
         Log.d("rede","upload "+up);
         if(down<up){
-            bandwidthLabel = getBandwidthLabel(down, model.Tech);
+            bandwidthLabel = getBandwidthLabel(down);
             rawModel.Bandwidth = down + "";
         }else {
-            bandwidthLabel = getBandwidthLabel(up, model.Tech);
+            bandwidthLabel = getBandwidthLabel(up);
             rawModel.Bandwidth = up + "";
         }
 

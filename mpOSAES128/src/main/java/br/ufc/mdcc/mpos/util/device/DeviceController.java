@@ -20,6 +20,9 @@ import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.location.Location;
 import android.net.ConnectivityManager;
+import android.net.ConnectivityManager.NetworkCallback;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.DetailedState;
 import android.os.Build;
@@ -29,6 +32,7 @@ import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.persistence.MobileDao;
 import br.ufc.mdcc.mpos.util.LocationListenerAdapter;
 import br.ufc.mdcc.mpos.util.LocationTracker;
+import weka.core.Capabilities;
 
 /**
  * This controller get all informations about mobile
@@ -40,7 +44,6 @@ public final class DeviceController {
 
 	private Context context;
 	private Device device;
-	private LocationTracker tracker;
 
 	private String appName;
 	private String appVersion;
@@ -63,60 +66,39 @@ public final class DeviceController {
 	}
 
 	public boolean isOnline() {
-		return connectionStatus(ConnectivityManager.TYPE_WIFI) || connectionStatus(ConnectivityManager.TYPE_MOBILE);
+		ConnectivityManager cm = ((ConnectivityManager)
+				context.getSystemService(Context.CONNECTIVITY_SERVICE));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			return cm != null && cm.getActiveNetwork() != null;
+		} else {
+			return cm != null && cm.getActiveNetworkInfo().isConnected();
+		}
 	}
 
-	// Fine-grained state
-	public boolean connectionStatus(int type) {
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		return connectivityManager.getNetworkInfo(type).getDetailedState() == DetailedState.CONNECTED;
-	}
+	public int getNetworkDownloadSpeed() {
+		ConnectivityManager cm = ((ConnectivityManager)
+				context.getSystemService(Context.CONNECTIVITY_SERVICE));
 
-	public String getNetworkConnectedType() {
-		NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-
-		if (info != null) {
-			int type = info.getType();
-			int subtype = info.getSubtype();
-
-			if (type == ConnectivityManager.TYPE_WIFI) {
-				return "Wifi";
-			} else if (type == ConnectivityManager.TYPE_MOBILE) {
-				switch (subtype) {
-					case TelephonyManager.NETWORK_TYPE_CDMA:
-						return "CDMA";
-					case TelephonyManager.NETWORK_TYPE_IDEN:
-						return "iDen";
-					case TelephonyManager.NETWORK_TYPE_EHRPD:
-						return "eHRPD";
-					case TelephonyManager.NETWORK_TYPE_EDGE:
-						return "EDGE";
-					case TelephonyManager.NETWORK_TYPE_1xRTT:
-						return "1xRTT";
-					case TelephonyManager.NETWORK_TYPE_GPRS:
-						return "GPRS";
-					case TelephonyManager.NETWORK_TYPE_UMTS:
-						return "UMTS";
-					case TelephonyManager.NETWORK_TYPE_EVDO_0:
-					case TelephonyManager.NETWORK_TYPE_EVDO_A:
-					case TelephonyManager.NETWORK_TYPE_EVDO_B:
-						return "EVDO";
-					case TelephonyManager.NETWORK_TYPE_HSPA:
-						return "HSPA";
-					case TelephonyManager.NETWORK_TYPE_HSDPA:
-						return "HSDPA";
-					case TelephonyManager.NETWORK_TYPE_HSPAP:
-						return "HSPA+";
-					case TelephonyManager.NETWORK_TYPE_HSUPA:
-						return "HSUPA";
-					case TelephonyManager.NETWORK_TYPE_LTE:
-						return "LTE";
-					default:
-						return "Unknown";
-				}
+		if(cm != null){
+			if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+				NetworkCapabilities capabilities = cm.getNetworkCapabilities(cm.getActiveNetwork());
+				return capabilities.getLinkDownstreamBandwidthKbps();
 			}
 		}
-		return "Offline";
+		return 0;
+	}
+
+	public int getNetworkUploadSpeed() {
+		ConnectivityManager cm = ((ConnectivityManager)
+				context.getSystemService(Context.CONNECTIVITY_SERVICE));
+
+		if(cm != null){
+			if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+				NetworkCapabilities capabilities = cm.getNetworkCapabilities(cm.getActiveNetwork());
+				return capabilities.getLinkUpstreamBandwidthKbps();
+			}
+		}
+		return 0;
 	}
 
 	public void collectDeviceConfig() {
@@ -126,37 +108,7 @@ public final class DeviceController {
 		device.setDeviceName(Build.MANUFACTURER + " " + Build.MODEL);
 	}
 
-	public void collectLocation() {
-		tracker = new LocationTracker(context);
-		tracker.setLocationListener(new LocationListenerAdapter() {
-			public void onLocationChanged(Location location) {
-				// 200m
-				if (location.getAccuracy() < 200.0f) {
-					if (device != null) {
-						device.setLatitude(Double.toString(location.getLatitude()));
-						device.setLongitude(Double.toString(location.getLongitude()));
-					}
-
-					// collect completed
-					tracker.removeLocationListener();
-
-					Log.d(clsName, "Location collect completed");
-					Log.d(clsName, "lat: " + location.getLatitude());
-					Log.d(clsName, "lon: " + location.getLongitude());
-				}
-			}
-		});
-	}
-
-	public void removeLocationListener() {
-		if (tracker != null) {
-			tracker.removeLocationListener();
-		}
-	}
-
 	public void destroy() {
-		removeLocationListener();
-		tracker = null;
 		device = null;
 		appName = null;
 	}
@@ -166,8 +118,4 @@ public final class DeviceController {
         appVersion = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
 	}
 
-	public void collectNeedCripto() {
-		// TODO Auto-generated method stub
-		
-	}
 }

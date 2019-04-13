@@ -94,7 +94,7 @@ public final class ProfileNetworkFull extends ProfileNetworkTask {
 			*/
 			publishProgress(50);
 
-			Log.i(clsName, "bandwidth calculation");
+//			Log.i(clsName, "bandwidth calculation");
 			boolean finish = bandwidthCalculation();
 			publishProgress(100);
 
@@ -182,7 +182,7 @@ public final class ProfileNetworkFull extends ProfileNetworkTask {
 		//Log.i("testando","Entrei no calculo de banda");
 		//begin download
 		publishProgress(55);
-		
+		// TODO: edit this to receive only cpu usage
 		ClientAbstract client = FactoryClient.getInstance(Protocol.TCP_EVENT);
 		client.setReceiveDataEvent(new ReceiveDataEvent() {
 			private long countBytes = 0L;

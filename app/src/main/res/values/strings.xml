@@ -1,8 +1,13 @@
 <resources>
     <string name="app_name">BenchFace</string>
-    <string name="time">Time Passed</string>
+    <string name="time_passed">Time Passed</string>
     <string name="status">Status</string>
     <string name="hide">Start</string>
     <string name="hideDescription">Image with faces blurred</string>
+    <string name="selecione_o_treinamento">Selecione o treinamento</string>
+    <string name="selecione_a_foto">Selecione a foto</string>
+    <string name="failed">Failed</string>
+    <string name="time">Time:</string>
+    <string name="processing">Processing</string>
 
 </resources>

@@ -58,7 +58,9 @@ public final class DiscoveryCloudletMulticast extends Thread {
 	}
 
 	private void multicastWifiContext() {
-		wifiMan = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+		wifiMan = (WifiManager) context.getApplicationContext()
+				.getSystemService(Context.WIFI_SERVICE);
+		assert wifiMan != null;
 		mLock = wifiMan.createMulticastLock("descServLock");
 		mLock.setReferenceCounted(true);
 		mLock.acquire();
@@ -76,7 +78,7 @@ public final class DiscoveryCloudletMulticast extends Thread {
 			ReceiveReplyCloudlet receive = null;
 
 			try {
-				if (!MposFramework.getInstance().getDeviceController().connectionStatus(ConnectivityManager.TYPE_WIFI)) {
+				if (MposFramework.getInstance().getDeviceController().getNetworkDownloadSpeed() == 0) {
 					throw new ConnectException("Wifi is offline!");
 				}
 

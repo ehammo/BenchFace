@@ -48,11 +48,6 @@ public abstract class ProfileNetworkTask extends AsyncTask<Void, Integer, Networ
 	private TaskResult<Network> taskResult;
 	private long initTime;
 
-	/**
-	 * @param sendDataToView - Os dados do resultado da tarefa é enviado para activity atraves de uma interface
-	 * @param ip - IP do serviço que pode ser local ou remoto
-	 * @throws MissedEventException
-	 */
 	protected ProfileNetworkTask(ServerContent server, TaskResult<Network> result, Class<?> cls, String startMessage) throws MissedEventException {
 		if (result == null) {
 			throw new MissedEventException("Need to set a TaskResult<Network> for get results from end task");

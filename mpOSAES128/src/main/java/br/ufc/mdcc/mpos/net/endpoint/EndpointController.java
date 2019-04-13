@@ -134,7 +134,7 @@ public final class EndpointController {
     }
 
     private ServerContent checkCloudletServer() {
-        if (MposFramework.getInstance().getDeviceController().connectionStatus(ConnectivityManager.TYPE_WIFI) && cloudletServer.isReady()) {
+        if (MposFramework.getInstance().getDeviceController().getNetworkDownloadSpeed() != 0 && cloudletServer.isReady()) {
             return cloudletServer;
         }
         return null;

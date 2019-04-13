@@ -89,8 +89,6 @@ public final class MposFramework {
     }
 
     public void stop() {
-        deviceController.removeLocationListener();
-
         deviceController.destroy();
         profileController.destroy();
         endpointController.destroy();
@@ -144,9 +142,6 @@ public final class MposFramework {
 
                 if (app.deviceDetails()) {
                     deviceController.collectDeviceConfig();
-                }
-                if (app.locationCollect()) {
-                    deviceController.collectLocation();
                 }
 
                 String endpointSecondary = app.endpointSecondary();

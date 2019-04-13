@@ -19,6 +19,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Helper class for accessing hardware specifications, including the number of CPU cores, CPU clock speed
@@ -41,13 +43,6 @@ public class DeviceInfo {
      * @return Number of CPU cores in the phone, or DEVICEINFO_UKNOWN = -1 in the event of an error.
      */
     public static int getNumberOfCPUCores() {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {
-            // Gingerbread doesn't support giving a single application access to both cores, but a
-            // handful of devices (Atrix 4G and Droid X2 for example) were released with a dual-core
-            // chipset and Gingerbread; that can let an app in the background run without impacting
-            // the foreground application. But for our purposes, it makes them single core.
-            return 1;
-        }
         int cores;
         try {
             cores = getCoresFromFileInfo("/sys/devices/system/cpu/possible");
@@ -93,8 +88,7 @@ public class DeviceInfo {
         if (str == null || !str.matches("0-[\\d]+$")) {
             return DEVICEINFO_UNKNOWN;
         }
-        int cores = Integer.valueOf(str.substring(2)) + 1;
-        return cores;
+        return Integer.valueOf(str.substring(2)) + 1;
     }
 
     private static int getCoresFromCPUFileList() {
@@ -254,8 +248,8 @@ public class DeviceInfo {
                 while (index < buffer.length && Character.isDigit(buffer[index])) {
                     index++;
                 }
-                String str = new String(buffer, 0, start, index - start);
-                return Integer.parseInt(str);
+                byte[] bytes = Arrays.copyOfRange(buffer,start,index-start);
+                return ByteBuffer.wrap(bytes).getInt();
             }
             index++;
         }

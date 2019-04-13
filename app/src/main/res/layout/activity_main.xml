@@ -96,7 +96,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/imageView"
         android:layout_marginTop="8dp"
-        android:text="@string/time"
+        android:text="@string/time_passed"
         android:textSize="18sp" />
 
 </RelativeLayout>

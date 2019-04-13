@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.Menu;
@@ -35,6 +36,7 @@ import org.opencv.objdetect.CascadeClassifier;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.config.Inject;
@@ -54,6 +56,8 @@ import cin.ufpe.br.service.CascadeService;
 import cin.ufpe.br.service.DetectFacesService;
 import cin.ufpe.br.service.MainService;
 
+import static android.content.pm.PackageManager.PERMISSION_DENIED;
+
 //code
 //openCV
 
@@ -65,7 +69,7 @@ public class MainActivity extends Activity {
 
     //OpenCv-Related
     public static CascadeClassifier cascadeClassifier;
-    private static String[] PERMISSIONS_STORAGE = {
+    private static String[] PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_COARSE_LOCATION
@@ -112,6 +116,7 @@ public class MainActivity extends Activity {
     private boolean benchmarking = false;
     private int benchCount = 1;
     private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
+
         @Override
         public void completedTask(Bitmap obj) {
             if (obj != null) {
@@ -168,12 +173,11 @@ public class MainActivity extends Activity {
                 } catch (Exception e) {
                     Log.e("teste", e.getMessage());
                 }
-//                statusTextView.setText("Status: Algum Error na transmissão!");
                 mProgressDialog.dismiss();
             } else {
-                statusTextView.setText("Erro inesperado");
+                statusTextView.setText(getApplicationContext().getString(R.string.failed));
                 mProgressDialog.dismiss();
-                }
+            }
         }
     };
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -191,14 +195,13 @@ public class MainActivity extends Activity {
                         data.setSize((originalImageByte.length / 1024) + "");
                         runAPI(config);
                     } catch (Exception e) {
-                        statusTextView.setText("Failed");
+                        statusTextView.setText(mAppContext.getString(R.string.failed));
                         e.printStackTrace();
                     } finally {
                         if ((cascadeClassifier == null || cascadeClassifier.empty()) && config != 1) {
                             Log.e(TAG, "Failed to load cascade classifier");
                             cascadeClassifier = null;
-                            statusTextView.setText("failed");
-                            break;
+                            statusTextView.setText(mAppContext.getString(R.string.failed));
                         }
                     }
                 }
@@ -215,11 +218,11 @@ public class MainActivity extends Activity {
     };
 
     public static String getCurrentTimeStamp() {
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//dd/MM/yyyy
+        SimpleDateFormat sdfDate = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss",
+                Locale.getDefault());
         Date now = new Date();
-        String strDate = sdfDate.format(now);
-        return strDate;
-        }
+        return sdfDate.format(now);
+    }
 
     public static int calculateInSampleSize(
             BitmapFactory.Options options, int reqWidth, int reqHeight) {
@@ -243,7 +246,7 @@ public class MainActivity extends Activity {
         return inSampleSize;
     }
 
-    public static void verifyStoragePermissions(Activity activity, String[] per) {
+    public boolean verifyPermissions(Activity activity, String[] per) {
         // Check if we have write permission
         for (int i = 0; i < per.length; i++) {
             int permission = ActivityCompat.checkSelfPermission(activity, per[i]);
@@ -252,14 +255,30 @@ public class MainActivity extends Activity {
                 // We don't have permission so prompt the user
                 ActivityCompat.requestPermissions(
                         activity,
-                        PERMISSIONS_STORAGE,
+                        per,
                         1
                 );
-                i = per.length;
+                return false;
             }
 
         }
+        return true;
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean finalResult = true;
+        for(int result : grantResults) {
+            if (result == PERMISSION_DENIED) {
+               finalResult = false;
+               verifyPermissions(this, PERMISSIONS);
+            }
+        }
+        if(finalResult) {
+            MposFramework.getInstance().start(this);
+        }
     }
 
     public void choosePicture(int pos) {
@@ -284,8 +303,9 @@ public class MainActivity extends Activity {
                 break;
         }
     }
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
 
             //TODO:organize thi in methods
             //TODO: create config and used to set all configurations
@@ -390,23 +410,16 @@ public class MainActivity extends Activity {
                 }
             });
 
+            btn.setOnClickListener(view -> method());
 
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    method();
-
-                }
-            });
-            verifyStoragePermissions(this, PERMISSIONS_STORAGE);
-
-
-            MposFramework.getInstance().start(this);
+            if(verifyPermissions(this, PERMISSIONS)) {
+                MposFramework.getInstance().start(this);
+            }
             Log.d(TAG, "middleware started");
 
         }
 
-    public void runAPI(int config) throws Exception {
+    public void runAPI(int config) {
         TimeStarted = System.nanoTime();
         switch (config) {
             case 0:
@@ -440,7 +453,6 @@ public class MainActivity extends Activity {
 
         }
 
-
     protected void onDestroy() {
         super.onDestroy();
         if (quit) {
@@ -451,25 +463,22 @@ public class MainActivity extends Activity {
 
     public void method() {
         if (benchmarking) {
-            Log.d("benchCount", "benchCount_com(): " + ((benchCount - 1) / 10));
-            Log.d("benchCount", "benchCount_sem(): " + (benchCount - 1 / 10));
-
             choosePicture(imageNumber[(benchCount - 1) / 10]);
             mProgressDialog.show();
             imageView.setVisibility(View.INVISIBLE);
-            statusTextView.setText("[" + benchCount + "/30]" + "\nProcessing");
+            statusTextView.setText(String.format(Locale.getDefault(),
+                    "[%d/30]\nProcessing", benchCount));
             imageView.setImageBitmap(originalImage);
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, mContext, mLoaderCallback);
         } else {
             TimeStarted = System.nanoTime();
             imageView.setVisibility(View.INVISIBLE);
             mProgressDialog.show();
-            mTextView.setText("Time: ");
-            statusTextView.setText("Processing");
+            mTextView.setText(R.string.time);
+            statusTextView.setText(R.string.processing);
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
             }
         }
-
 
     //TODO:fix decode looking at benchImage
     public void decodeSampledBitmapFromResource(Resources pRes, int pResId,
@@ -540,19 +549,19 @@ public class MainActivity extends Activity {
     public void changeCSV() {
         TotalTime = (double) (System.nanoTime() - TimeStarted) / 1000000000.0;
         timeText = precision.format(TotalTime);
-        statusTextView.setText(faces + " faces");
+        statusTextView.setText(String.format(Locale.getDefault(), "%d faces", faces));
         imageView.setImageBitmap(imagemCorteDesfoque);
         int value = (originalImage.getHeight() * originalImage.getWidth()) / 1000000;
 
         TotalTimeBenchmarking += TotalTime;
-        mTextView.setText(timeText + "s");
+        mTextView.setText(String.format("%ss", timeText));
         if (TotalTime >= 60) {
             int min = (int) Math.floor(TotalTime / 60);
             double sec = TotalTime - (min * 60);
-            mTextView.setText(min + "min e " + sec + "s");
+            mTextView.setText(String.format(Locale.getDefault(),
+                    "%dmin e %ss", min, sec));
             }
 
-        long cpu_time = MposFramework.getInstance().getEndpointController().rpcProfile.getExecutionCpuTime();
         long download_time = MposFramework.getInstance().getEndpointController().rpcProfile.getDonwloadTime();
         long upload_time = MposFramework.getInstance().getEndpointController().rpcProfile.getUploadTime();
 
@@ -586,7 +595,7 @@ public class MainActivity extends Activity {
             public void onClick(DialogInterface dialogInterface, int i) {
                 ExportCsv exportModule = new ExportCsv();
                 exportModule.exportCsv(data.getData());
-                Toast.makeText(mContext, "Exported", Toast.LENGTH_LONG);
+                Toast.makeText(mContext, "Exported", Toast.LENGTH_LONG).show();
             }
         });
         builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
@@ -600,4 +609,4 @@ public class MainActivity extends Activity {
         return true;
         }
 
-    }
+}
