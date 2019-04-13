@@ -35,7 +35,7 @@ public class ResultTypes {
     }
 
     public enum ResultTypesRSSI {
-        Otimo, Bom, Pobre, Sem_Sinal
+        Otimo, Bom, Pobre, Sem_Sinal, Sem_Permissao
     }
 
     public enum ResultTypesResult {

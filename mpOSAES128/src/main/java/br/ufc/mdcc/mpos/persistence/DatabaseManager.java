@@ -28,7 +28,7 @@ import br.ufc.mdcc.mpos.R;
  * @author Philipp B. Costa
  */
 final class DatabaseManager extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
     private Context context;
 
 	private final ArrayList<String> tabelas = new ArrayList<String>(2);

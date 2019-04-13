@@ -23,15 +23,15 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
     byte[] originalImage;
     DetectFaces serviceExtractFaces;
     String cascadeClassifier;
-    TaskResultAdapter taskResultAdapter;
+    TaskResultAdapter<Bitmap> taskResultAdapter;
     Bitmap result;
     private String TAG = "teste";
 
-    public MainService(byte[] originalImage, DetectFaces detectFaces, String algorithm, TaskResultAdapter taskAdapter) {
-        this.originalImage=originalImage;
+    public MainService(byte[] originalImage, DetectFaces detectFaces, String algorithm, TaskResultAdapter<Bitmap> taskAdapter) {
+        this.originalImage = originalImage;
         this.serviceExtractFaces = detectFaces;
         this.cascadeClassifier = algorithm;
-        taskResultAdapter=taskAdapter;
+        taskResultAdapter = taskAdapter;
     }
 
     protected Bitmap doInBackground(Void... params) {

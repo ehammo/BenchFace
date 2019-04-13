@@ -1,5 +1,6 @@
 package br.ufpe.cin.mpos.profile;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -42,7 +43,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
     Context mContext;
     TaskResultAdapter taskResultAdapter;
 
-    public ProfilesTask(TaskResultAdapter TRA, Context context){
+    public ProfilesTask(TaskResultAdapter TRA, Context context) {
         taskResultAdapter = TRA;
         mContext = context;
         result = new Model();
@@ -57,7 +58,6 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         result.CPU = getCPULabel(cpuSmart).name();
         Log.d("cpuSmart", "" + cpuSmart);
         result.RSSI = getRSSI().name();
-        result.Tech = deviceController.getNetworkConnectedType();
         return result;
     }
 
@@ -98,7 +98,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         } catch (final PackageManager.NameNotFoundException e) {
         }
 
-        if(applicationInfo != null && packageManager.getApplicationLabel(applicationInfo).toString().contains("Collision")){
+        if (applicationInfo != null && packageManager.getApplicationLabel(applicationInfo).toString().contains("Collision")) {
             return "CollisionBalls";
         }
 
@@ -109,23 +109,23 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         taskResultAdapter.completedTask(result);
     }
 
-    public ResultTypes.ResultTypesBateria getBattery(){
+    public ResultTypes.ResultTypesBateria getBattery() {
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = mContext.registerReceiver(null, ifilter);
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
-        float batteryPct = level / (float)scale;
-        float percentage = batteryPct*100;
+        float batteryPct = level / (float) scale;
+        float percentage = batteryPct * 100;
 
         ResultTypes.ResultTypesBateria result;
-        if(percentage<=15){
+        if (percentage <= 15) {
             result = ResultTypes.ResultTypesBateria.Fraca;
-        }else if(percentage>15&&percentage<=50){
+        } else if (percentage > 15 && percentage <= 50) {
             result = ResultTypes.ResultTypesBateria.Razoavel;
-        }else if(percentage>50&&percentage<=84){
+        } else if (percentage > 50 && percentage <= 84) {
             result = ResultTypes.ResultTypesBateria.Boa;
-        }else{
+        } else {
             result = ResultTypes.ResultTypesBateria.Forte;
         }
 
@@ -138,38 +138,39 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
             ret = ResultTypes.ResultTypesCpu.Relaxado;
         } else if (total >= 45 && total < 75) {
             ret = ResultTypes.ResultTypesCpu.Carga_Normal;
-        } else if(total == (-1)){
+        } else if (total == (-1)) {
             ret = ResultTypes.ResultTypesCpu.Desconhecido;
-        } else{
+        } else {
             ret = ResultTypes.ResultTypesCpu.Estressado;
         }
         return ret;
     }
 
     public int getCPUStatistic() {
-
-        String tempString = getCPU();
-
-        tempString = tempString.replaceAll(",", "");
-        tempString = tempString.replaceAll("User", "");
-        tempString = tempString.replaceAll("System", "");
-        tempString = tempString.replaceAll("IOW", "");
-        tempString = tempString.replaceAll("IRQ", "");
-        tempString = tempString.replaceAll("%", "");
-        for (int i = 0; i < 10; i++) {
-            tempString = tempString.replaceAll("  ", " ");
-        }
-        tempString = tempString.trim();
-        String[] myString = tempString.split(" ");
-        int total =0;
-        int[] cpuUsageAsInt = new int[myString.length];
-        for (int i = 0; i < myString.length; i++) {
-            myString[i] = myString[i].trim();
-            cpuUsageAsInt[i] = Integer.parseInt(myString[i]);
-            total+=cpuUsageAsInt[i];
-        }
-
-        return total;
+        // nao funciona mais
+//        String tempString = getCPU();
+//        Log.d("CPUTask", "stringFull: "+tempString);
+//        tempString = tempString.replaceAll(",", "");
+//        tempString = tempString.replaceAll("User", "");
+//        tempString = tempString.replaceAll("System", "");
+//        tempString = tempString.replaceAll("IOW", "");
+//        tempString = tempString.replaceAll("IRQ", "");
+//        tempString = tempString.replaceAll("%", "");
+//        for (int i = 0; i < 10; i++) {
+//            tempString = tempString.replaceAll("  ", " ");
+//        }
+//        tempString = tempString.trim();
+//        String[] myString = tempString.split(" ");
+//        int total = 0;
+//        int[] cpuUsageAsInt = new int[myString.length];
+//        for (int i = 0; i < myString.length; i++) {
+//            myString[i] = myString[i].trim();
+//            cpuUsageAsInt[i] = Integer.parseInt(myString[i]);
+//            total += cpuUsageAsInt[i];
+//        }
+//
+//        return total;
+        return 55;
     }
 
     private String getCPU() {
@@ -198,7 +199,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return returnString;
     }
 
-    public int getRSSIWifi(){
+    public int getRSSIWifi() {
         Log.d("teste", "WIFI");
         WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         int numberOfLevels = 4;
@@ -208,27 +209,15 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return level;
     }
 
-    public int getRSSI4G(){
-        Log.d("teste", "4G");
-        int res=0;
-        ArrayList<Integer> resultList = RSSI_values();
-        for(int i=0;i<resultList.size();i++){
-            if(resultList.get(i)!=0){
-                res = resultList.get(i);
-                i = resultList.size();
-            }
+    public int getRSSI4G() {
+        TelephonyManager telephonyManager = (TelephonyManager) mContext.getApplicationContext()
+                .getSystemService(Context.TELEPHONY_SERVICE);
+        if (mContext.getApplicationContext().checkSelfPermission(
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return -1;
         }
-        return res;
-    }
-
-    public ArrayList<Integer> RSSI_values() {
-        ArrayList<Integer> result = new ArrayList<Integer>();
-
-        TelephonyManager telephonyManager = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
-        telephonyManager.getNetworkType();
-
         List<CellInfo> CellInfo_list = telephonyManager.getAllCellInfo();
-        int rssi = -1;
+        int rssi = 0;
 
         if(CellInfo_list.get(0) instanceof CellInfoLte){
             CellInfoLte cellinfo = (CellInfoLte) CellInfo_list.get(0);
@@ -252,23 +241,20 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
 
         }
 
-        if(rssi>-1) {
-            result.add(rssi);
-        }
-
-        return result;
+        return rssi;
     }
 
     public ResultTypes.ResultTypesRSSI getRSSI(){
         int wifi = getRSSIWifi();
-        int level=0;
+        int level;
         if(wifi>0){
             level = wifi;
         }else{
             level = getRSSI4G();
         }
-        Log.d("teste", "RSSILevel: " + level);
         switch (level) {
+            case -1:
+                return ResultTypes.ResultTypesRSSI.Sem_Permissao;
             case 0:
                 return ResultTypes.ResultTypesRSSI.Sem_Sinal;
             case 1:
@@ -277,17 +263,21 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
                 return ResultTypes.ResultTypesRSSI.Bom;
             case 3:
                 return ResultTypes.ResultTypesRSSI.Otimo;
+            default:
+                return ResultTypes.ResultTypesRSSI.Sem_Sinal;
         }
 
-        return ResultTypes.ResultTypesRSSI.Sem_Sinal;
+
     }
 
     public int getRSSIPuro(){
-        Log.d("teste", "WIFI");
-        WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        int rssi = wifiInfo.getRssi();
-        Log.d("teste", "RSSI: " + rssi);
+        WifiManager wifiManager = (WifiManager) mContext.getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
+        int rssi = -1;
+        if (wifiManager != null) {
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            rssi = wifiInfo.getRssi();
+        }
         return rssi;
     }
 

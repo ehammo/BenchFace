@@ -2,7 +2,7 @@
     
     <string name="database_name">mpos.data</string>
     
-    <string name="create_table_netprofile">CREATE TABLE netprofile (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, jitter INTEGER, loss INTEGER, udp TEXT, tcp TEXT, down TEXT, up TEXT, network_type TEXT, endpoint_type TEXT, date DATETIME NOT NULL) </string>
+    <string name="create_table_netprofile">CREATE TABLE netprofile (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, jitter INTEGER, loss INTEGER, udp TEXT, tcp TEXT, down TEXT, up TEXT, endpoint_type TEXT, date DATETIME NOT NULL) </string>
     <string name="drop_table_netprofile">DROP TABLE IF EXISTS netprofile</string>
     <string name="name_table_netprofile">netprofile</string>
     

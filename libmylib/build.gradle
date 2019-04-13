@@ -4,6 +4,3 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':opencv310')
 }
-
-sourceCompatibility = "1.6"
-targetCompatibility = "1.6"

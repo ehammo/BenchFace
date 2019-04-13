@@ -49,7 +49,6 @@ public final class ProfileNetworkDao extends Dao {
 	private final String F_TCP = "tcp";
 	private final String F_DOWN = "down";
 	private final String F_UP = "up";
-	private final String F_NET_TYPE = "network_type";
 	private final String F_ENDPOINT_TYPE = "endpoint_type";
 
 	public ProfileNetworkDao(Context con) {
@@ -75,7 +74,6 @@ public final class ProfileNetworkDao extends Dao {
 		cv.put(F_TCP, Network.arrayToString(network.getResultPingTcp()));
 		cv.put(F_DOWN, network.getBandwidthDownload());
 		cv.put(F_UP, network.getBandwidthUpload());
-		cv.put(F_NET_TYPE, network.getNetworkType());
 		cv.put(F_ENDPOINT_TYPE, network.getEndpointType());
 
 		database.insert(TABLE_NAME, null, cv);
@@ -112,7 +110,6 @@ public final class ProfileNetworkDao extends Dao {
 		int idx_tcp = cursor.getColumnIndex(F_TCP);
 		int idx_down = cursor.getColumnIndex(F_DOWN);
 		int idx_up = cursor.getColumnIndex(F_UP);
-		int idx_net_type = cursor.getColumnIndex(F_NET_TYPE);
 		int idx_endpoint_type = cursor.getColumnIndex(F_ENDPOINT_TYPE);
 		int idx_date = cursor.getColumnIndex(F_DATE);
 
@@ -126,7 +123,6 @@ public final class ProfileNetworkDao extends Dao {
 				network.setResultPingTcp(Network.stringToLongArray(cursor.getString(idx_tcp)));
 				network.setResultPingUdp(Network.stringToLongArray(cursor.getString(idx_udp)));
 				network.setEndpointType(cursor.getString(idx_endpoint_type));
-				network.setNetworkType(cursor.getString(idx_net_type));
 				network.setDate(simpleDateFormat.parse(cursor.getString(idx_date)));
 
 				lista.add(network);

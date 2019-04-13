@@ -23,6 +23,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import br.ufc.mdcc.mpos.MposFramework;
+import br.ufc.mdcc.mpos.util.device.DeviceController;
 
 /**
  * Model used for save locally and sent all data to server.
@@ -43,16 +44,14 @@ public final class Network {
     private int jitter;
 
     private String bandwidthDownload, bandwidthUpload;
-    private String networkType;
     private String endpointType;
     private String appName;
 
     public Network() {
         date = new Date();
-        bandwidthDownload = "0";
-        bandwidthUpload = "0";
-
-        networkType = MposFramework.getInstance().getDeviceController().getNetworkConnectedType();
+        DeviceController dc = MposFramework.getInstance().getDeviceController();
+        bandwidthDownload = dc.getNetworkDownloadSpeed()+"";
+        bandwidthUpload = dc.getNetworkUploadSpeed()+"";
         appName = MposFramework.getInstance().getDeviceController().getAppName();
     }
 
@@ -160,14 +159,6 @@ public final class Network {
         this.endpointType = endpointType;
     }
 
-    public String getNetworkType() {
-        return networkType;
-    }
-
-    public void setNetworkType(String networkType) {
-        this.networkType = networkType;
-    }
-
     public final String getAppName() {
         return appName;
     }
@@ -242,7 +233,6 @@ public final class Network {
         object.put("jitter", jitter);
         object.put("down", bandwidthDownload);
         object.put("up", bandwidthUpload);
-        object.put("net", networkType);
         object.put("appName", appName);
 
         return object;
