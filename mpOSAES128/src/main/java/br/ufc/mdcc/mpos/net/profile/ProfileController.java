@@ -170,7 +170,7 @@ public final class ProfileController {
     private void salvaBanco(){
         String date = getCurrentTimeStamp();
         model.Date = date;
-        model.Tech = "WIFI";
+        model.Tech = "Wifi";
         String bandwidthLabel="";
         float down = Float.parseFloat(bandwidthDown);
         float up = Float.parseFloat(bandwidthUp);
@@ -190,7 +190,7 @@ public final class ProfileController {
         rawModel.CPUNuvem = CPU_Nuvem;
         Log.d("csvTest", "CPUNumvem label: " + rawModel.CPUNuvem);
         rawModel.CPU = pt.getCPUStatistic() + "";
-        dc.insertData(model);
+        if (model.AppName != null) dc.insertData(model);
         bandwidthDown="-1";
         bandwidthUp="-1";
         Log.d("finalizado", "Finalizado:\n" + model.toString());

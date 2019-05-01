@@ -15,12 +15,15 @@
  *******************************************************************************/
 package br.ufpe.cin.mpos.offload;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,8 +33,6 @@ import br.ufc.mdcc.mpos.MposFramework;
 import br.ufc.mdcc.mpos.net.endpoint.ServerContent;
 import br.ufc.mdcc.mpos.net.exceptions.MissedEventException;
 import br.ufc.mdcc.mpos.net.exceptions.NetworkException;
-import br.ufc.mdcc.mpos.net.profile.model.Network;
-import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseManager;
 import br.ufpe.cin.mpos.profile.ResultTypes;
@@ -59,46 +60,27 @@ public class DynamicDecisionSystem extends TimerTask {
     private DatabaseController dc;
     // private ProfileNetworkDAO profileDao;
 
-    private TaskResultAdapter<Network> event = new TaskResultAdapter<Network>() {
-        @Override
-        public void completedTask(Network network) {
-            if (network != null) {
-                network.generatingPingTcpStats();
-
-                Log.i(clsName, "Decision Maker -> Ping max: " + network.getPingMaxTcp() + ", med: " + network.getPingMedTcp() + ", min: " + network.getPingMinTcp());
-                MposFramework.getInstance().getEndpointController()
-                        .setRemoteAdvantageExecution(network.getPingMedTcp() < PING_TOLERANCE);
-            } else {
-                setServer(null);
-                MposFramework.getInstance().getEndpointController()
-                        .setRemoteAdvantageExecution(false);
-                Log.e(clsName, "Some problem in ping test!");
-            }
-        }
-    };
-
     public DynamicDecisionSystem(Context context, ServerContent server) {
         dc = new DatabaseController(context);
         mContext = context.getApplicationContext();
         setServer(server);
-        MposFramework.getInstance().getProfileController().setTaskResultEvent(event);
         // profileDao = new ProfileNetworkDAO(context);
     }
 
-    private void loadClassifier(Remotable.Classifier classifierRemotable) throws Exception {
+    private void loadClassifier(Remotable.Classifier classifierRemotable) throws IOException, ClassNotFoundException {
         File directory = mContext.getFilesDir();
         File file = new File(directory, classifierRemotable.toString());
         Log.d("classificacao","File_path="+file.getPath());
-        FileInputStream fileIn = new FileInputStream(file.getPath());
-        ObjectInputStream objectIn = new ObjectInputStream(fileIn);
-        this.classifier = (Classifier) objectIn.readObject();
-        if (this.classifier == null) {
+        FileInputStream fileIn = null;
+        try {
+            fileIn = new FileInputStream(file.getPath());
+            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+            this.classifier = (Classifier) objectIn.readObject();
+        } catch (FileNotFoundException e) {
             Log.d("classificacao","Loaded from assets");
             ObjectInputStream objectInputStream = new
                     ObjectInputStream(mContext.getAssets().open(classifierRemotable.toString()));
             this.classifier = (Classifier) objectInputStream.readObject();
-        } else {
-            Log.d("classificacao","Loaded from storage");
         }
     }
 
@@ -122,58 +104,59 @@ public class DynamicDecisionSystem extends TimerTask {
                 this.classifierModel = classifierRemotable.toString();
                 loadClassifier(classifierRemotable);
             }
-            Log.d("classificacao", "loaded");
             Cursor c = dc.getData();
             Log.d("classificacao", "getData");
             int colunas = c.getColumnCount();
             Instance instance = new DenseInstance(colunas-2);
             ArrayList<String> values = new ArrayList<String>();
             ArrayList<Attribute> atts = new ArrayList<Attribute>();
+            String id = null;
+            ContentValues newValues = new ContentValues();
             if(c.moveToFirst()) {
-                Log.d("classificacao", "on db");
-
+                id = c.getString(0);
                 for (int i = 1; i <= colunas - 2; i++) {
                     String feature = c.getColumnName(i);
                     String value = c.getString(i);
-                    Log.d("classificacao", feature+": "+value);
+                    Log.d("classificacao", feature + ": " + value);
                     Attribute attribute = null;
                     if (feature.equals(DatabaseManager.InputSize)) {
-                        values.add(""+InputSize);
+                        value = "" + InputSize;
                         attribute = new Attribute(DatabaseManager.InputSize);
+                        newValues.put(DatabaseManager.InputSize, value);
                     } else if (value != null) {
                         String[] strings = populateAttributes(feature);
                         ArrayList<String> attValues = new ArrayList<String>(Arrays.asList(strings));
-                        attribute = new Attribute(feature,attValues);
-                        values.add(value);
+                        attribute = new Attribute(feature, attValues);
                     }
-                    if (value != null && attribute != null) atts.add(attribute);
+                    if (value != null && attribute != null) {
+                        values.add(value);
+                        atts.add(attribute);
+                    }
                 }
-                Log.d("classificacao", "new instances");
                 Instances instances = new Instances("header",atts,atts.size());
                 instances.setClassIndex(instances.numAttributes()-1);
                 instance.setDataset(instances);
-                Log.d("classificacao", "para cada atributo");
-                for(int i=0;i<instances.numAttributes();i++){
-                    if(i==9 || i>=atts.size()){
+                for (int i = 0; i < atts.size(); i++) {
+                    if (i == 9) {
                         instance.setMissing(atts.get(9));
                         Log.d("classificacao", "missing");
                         break;
                     }
-                    Log.d("classificacao", "i="+i+","+atts.get(i).name()+"="+values.get(i));
                     if (atts.get(i).name().equals(DatabaseManager.InputSize)) {
-                        instance.setValue(atts.get(i),InputSize);
-                        Log.d("classificacao", "InputSize");
+                        instance.setValue(atts.get(i), InputSize);
                     } else {
                         instance.setValue(atts.get(i),values.get(i));
-                        Log.d("classificacao", "set");
                     }
                 }
-                Log.d("classificacao", "setData");
                 double value = -1;
                 Log.d("classificacao", "classify");
-                value = classifier.distributionForInstance(instance)[0];
+                double[] teste = classifier.distributionForInstance(instance);
+                Log.d("classificacao", "teste = " + teste.length);
+                value = teste[0];
                 Log.d("classificacao", instance.toString() + " classifiquei com o seguinte valor" + value);
                 resp = (0.7 <= value);
+                newValues.put(DatabaseManager.result, resp);
+                dc.updateData(id, newValues);
                 if (resp) {
                     Log.d("classificacao", "sim");
                     Log.d("Finalizado", "classifiquei " + instance.toString() + " com sim");
@@ -185,6 +168,7 @@ public class DynamicDecisionSystem extends TimerTask {
         }catch(Exception e){
             e.printStackTrace();
             Log.e("sqlLite", e.getMessage());
+            Log.e("classificacao", e.getMessage());
             Log.e("sqlLite", "Causa: "+e.getCause());
         }
         return resp;

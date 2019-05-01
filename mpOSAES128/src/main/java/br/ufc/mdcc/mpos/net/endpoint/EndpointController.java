@@ -16,7 +16,6 @@
 package br.ufc.mdcc.mpos.net.endpoint;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
 import android.util.Log;
 
 import java.util.Timer;
@@ -42,7 +41,6 @@ import br.ufpe.cin.mpos.offload.Remotable;
  */
 public final class EndpointController {
     public static final int REPEAT_DISCOVERY_TASK = 20 * 1000;
-    public static final int REPEAT_DECISION_MAKER = 35 * 1000;
     private final String clsName = EndpointController.class.getName();
     public RpcProfile rpcProfile = new RpcProfile();
     private Context context;
@@ -206,12 +204,10 @@ public final class EndpointController {
         }
     }
 
-    //TODO: transf decision maker in thread...
     public synchronized void startDecisionMaker(ServerContent server) {
         if (decisionMakerTimer == null && decisionMakerActive) {
             decisionMakerTimer = new Timer("Decision Maker Watch");
             dynamicDecisionSystem = new DynamicDecisionSystem(context, server);
-            decisionMakerTimer.schedule(dynamicDecisionSystem, 0, REPEAT_DECISION_MAKER);
         }
     }
 

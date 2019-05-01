@@ -47,6 +47,20 @@ public class DatabaseController {
 
     }
 
+    public String updateData(String id, ContentValues valores) {
+        long resultado;
+        db = dm.getWritableDatabase();
+        Log.d("DatabaseController", valores.toString());
+        resultado = db.update(dm.TABELA, valores, dm.IDC + "=?", new String[]{id});
+        db.close();
+
+        if (resultado == -1)
+            return "Erro ao inserir registro";
+        else
+            return "Registro Inserido com sucesso";
+
+    }
+
     public Cursor getData(){
         db = dm.getReadableDatabase();
         Cursor oldestDateCursor = db.query(dm.TABELA, null, null, null, null, null, dm.Date +" DESC LIMIT 1");
