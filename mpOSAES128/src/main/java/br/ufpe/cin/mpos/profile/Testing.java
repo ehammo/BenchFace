@@ -23,12 +23,6 @@ import br.ufc.mdcc.mpos.net.endpoint.ServerContent;
 import br.ufpe.cin.mpos.DaoLocal.DatabaseController;
 import br.ufpe.cin.mpos.profile.Model.Model;
 
-/**
- * This implementation made decision about local or remote execution,
- * based in profile results (ping tcp).
- * 
- * @author Philipp B. Costa
- */
 public class Testing extends TimerTask {
     private final String clsName = Testing.class.getName();
 

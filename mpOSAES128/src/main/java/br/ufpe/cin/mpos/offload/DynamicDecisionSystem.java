@@ -19,6 +19,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,31 +66,45 @@ public class DynamicDecisionSystem extends TimerTask {
                 network.generatingPingTcpStats();
 
                 Log.i(clsName, "Decision Maker -> Ping max: " + network.getPingMaxTcp() + ", med: " + network.getPingMedTcp() + ", min: " + network.getPingMinTcp());
-                MposFramework.getInstance().getEndpointController().setRemoteAdvantageExecution(network.getPingMedTcp() < PING_TOLERANCE);
+                MposFramework.getInstance().getEndpointController()
+                        .setRemoteAdvantageExecution(network.getPingMedTcp() < PING_TOLERANCE);
             } else {
                 setServer(null);
-                MposFramework.getInstance().getEndpointController().setRemoteAdvantageExecution(false);
-                Log.e(clsName, "Any problem in ping test!");
+                MposFramework.getInstance().getEndpointController()
+                        .setRemoteAdvantageExecution(false);
+                Log.e(clsName, "Some problem in ping test!");
             }
         }
     };
 
     public DynamicDecisionSystem(Context context, ServerContent server) {
         dc = new DatabaseController(context);
-        mContext = context;
+        mContext = context.getApplicationContext();
         setServer(server);
         MposFramework.getInstance().getProfileController().setTaskResultEvent(event);
         // profileDao = new ProfileNetworkDAO(context);
     }
 
     private void loadClassifier(Remotable.Classifier classifierRemotable) throws Exception {
-        ObjectInputStream objectInputStream = new ObjectInputStream(mContext.getAssets().open(classifierRemotable.toString()));
-        this.classifier = (Classifier) objectInputStream.readObject();
+        File directory = mContext.getFilesDir();
+        File file = new File(directory, classifierRemotable.toString());
+        Log.d("classificacao","File_path="+file.getPath());
+        FileInputStream fileIn = new FileInputStream(file.getPath());
+        ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+        this.classifier = (Classifier) objectIn.readObject();
+        if (this.classifier == null) {
+            Log.d("classificacao","Loaded from assets");
+            ObjectInputStream objectInputStream = new
+                    ObjectInputStream(mContext.getAssets().open(classifierRemotable.toString()));
+            this.classifier = (Classifier) objectInputStream.readObject();
+        } else {
+            Log.d("classificacao","Loaded from storage");
+        }
     }
 
     public ServerContent getServer() {
         synchronized (mutex) {
-            return server != null ? server.newInstance() : null; //imutable operation
+            return server != null ? server.newInstance() : null; //immutable operation
         }
     }
 
@@ -106,42 +122,55 @@ public class DynamicDecisionSystem extends TimerTask {
                 this.classifierModel = classifierRemotable.toString();
                 loadClassifier(classifierRemotable);
             }
+            Log.d("classificacao", "loaded");
             Cursor c = dc.getData();
+            Log.d("classificacao", "getData");
             int colunas = c.getColumnCount();
             Instance instance = new DenseInstance(colunas-2);
             ArrayList<String> values = new ArrayList<String>();
             ArrayList<Attribute> atts = new ArrayList<Attribute>();
             if(c.moveToFirst()) {
+                Log.d("classificacao", "on db");
+
                 for (int i = 1; i <= colunas - 2; i++) {
                     String feature = c.getColumnName(i);
                     String value = c.getString(i);
-                    Attribute attribute;
+                    Log.d("classificacao", feature+": "+value);
+                    Attribute attribute = null;
                     if (feature.equals(DatabaseManager.InputSize)) {
                         values.add(""+InputSize);
                         attribute = new Attribute(DatabaseManager.InputSize);
-                    } else {
-                        String[] strings = populateAttributes(i);
+                    } else if (value != null) {
+                        String[] strings = populateAttributes(feature);
                         ArrayList<String> attValues = new ArrayList<String>(Arrays.asList(strings));
                         attribute = new Attribute(feature,attValues);
-                        if (value != null) {
-                            values.add(value);
-                        }
+                        values.add(value);
                     }
-                    atts.add(attribute);
+                    if (value != null && attribute != null) atts.add(attribute);
                 }
+                Log.d("classificacao", "new instances");
                 Instances instances = new Instances("header",atts,atts.size());
                 instances.setClassIndex(instances.numAttributes()-1);
                 instance.setDataset(instances);
-                for(int i=0;i<atts.size();i++){
-                    if(i==9){
+                Log.d("classificacao", "para cada atributo");
+                for(int i=0;i<instances.numAttributes();i++){
+                    if(i==9 || i>=atts.size()){
                         instance.setMissing(atts.get(9));
-                    } else if (atts.get(i).name().equals(DatabaseManager.InputSize)) {
+                        Log.d("classificacao", "missing");
+                        break;
+                    }
+                    Log.d("classificacao", "i="+i+","+atts.get(i).name()+"="+values.get(i));
+                    if (atts.get(i).name().equals(DatabaseManager.InputSize)) {
                         instance.setValue(atts.get(i),InputSize);
-                    }else{
+                        Log.d("classificacao", "InputSize");
+                    } else {
                         instance.setValue(atts.get(i),values.get(i));
+                        Log.d("classificacao", "set");
                     }
                 }
+                Log.d("classificacao", "setData");
                 double value = -1;
+                Log.d("classificacao", "classify");
                 value = classifier.distributionForInstance(instance)[0];
                 Log.d("classificacao", instance.toString() + " classifiquei com o seguinte valor" + value);
                 resp = (0.7 <= value);
@@ -161,25 +190,25 @@ public class DynamicDecisionSystem extends TimerTask {
         return resp;
     }
 
-    private String[] populateAttributes(int feature){
+    private String[] populateAttributes(String feature){
         switch (feature){
-            case 1:
+            case DatabaseManager.AppName:
                 return Arrays.toString(ResultTypes.ResultTypesApps.values()).replaceAll("^.|.$", "").split(", ");
-            case 3:
+            case DatabaseManager.year:
                 return Arrays.toString(ResultTypes.ResultTypesPhone.values()).replaceAll("^.|.$", "").split(", ");
-            case 4:
+            case DatabaseManager.Battery:
                 return Arrays.toString(ResultTypes.ResultTypesBateria.values()).replaceAll("^.|.$", "").split(", ");
-            case 5:
+            case DatabaseManager.CPU:
                 return Arrays.toString(ResultTypes.ResultTypesCpu.values()).replaceAll("^.|.$", "").split(", ");
-            case 6:
+            case DatabaseManager.Tech:
                 return Arrays.toString(ResultTypes.ResultTypesRede.values()).replaceAll("^.|.$", "").split(", ");
-            case 7:
+            case DatabaseManager.Bandwidth:
                 return Arrays.toString(ResultTypes.ResultTypesLarguraRede.values()).replaceAll("^.|.$", "").split(", ");
-            case 8:
+            case DatabaseManager.RSSI:
                 return Arrays.toString(ResultTypes.ResultTypesRSSI.values()).replaceAll("^.|.$", "").split(", ");
-            case 9:
+            case DatabaseManager.CPUNuvem:
                 return Arrays.toString(ResultTypes.ResultTypesCpuNuvem.values()).replaceAll("^.|.$", "").split(", ");
-            case 10:
+            case DatabaseManager.result:
                 return Arrays.toString(ResultTypes.ResultTypesResult.values()).replaceAll("^.|.$", "").split(", ");
         }
         return null;

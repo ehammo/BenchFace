@@ -36,7 +36,7 @@ public class DatabaseController {
         valores.put(dm.RSSI, model.RSSI);
         valores.put(dm.CPUNuvem, model.CPUNuvem);
         valores.put(dm.Date, model.Date);
-
+        Log.d("DatabaseController", valores.toString());
         resultado = db.insert(dm.TABELA, null, valores);
         db.close();
 

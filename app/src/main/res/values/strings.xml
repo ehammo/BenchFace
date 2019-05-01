@@ -9,5 +9,6 @@
     <string name="failed">Failed</string>
     <string name="time">Time:</string>
     <string name="processing">Processing</string>
+    <string name="action_reload">Atualizar modelos</string>
 
 </resources>

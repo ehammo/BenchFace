@@ -61,7 +61,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return result;
     }
 
-    public ResultTypes.ResultTypesPhone getYear(int year) {
+    private ResultTypes.ResultTypesPhone getYear(int year) {
         ResultTypes.ResultTypesPhone resp;
         switch (year) {
             case 2016:
@@ -90,7 +90,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return resp;
     }
 
-    public String getAppLable(Context context) {
+    private String getAppLable(Context context) {
         PackageManager packageManager = context.getPackageManager();
         ApplicationInfo applicationInfo = null;
         try {
@@ -109,7 +109,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         taskResultAdapter.completedTask(result);
     }
 
-    public ResultTypes.ResultTypesBateria getBattery() {
+    private ResultTypes.ResultTypesBateria getBattery() {
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = mContext.registerReceiver(null, ifilter);
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -199,17 +199,20 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return returnString;
     }
 
-    public int getRSSIWifi() {
+    private int getRSSIWifi() {
         Log.d("teste", "WIFI");
-        WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) mContext
+                .getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         int numberOfLevels = 4;
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        int rssi = wifiInfo.getRssi();
-        int level = WifiManager.calculateSignalLevel(rssi, numberOfLevels);
-        return level;
+        int rssi = 0;
+        if (wifiManager != null) {
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            rssi = wifiInfo.getRssi();
+        }
+        return WifiManager.calculateSignalLevel(rssi, numberOfLevels);
     }
 
-    public int getRSSI4G() {
+    private int getRSSI4G() {
         TelephonyManager telephonyManager = (TelephonyManager) mContext.getApplicationContext()
                 .getSystemService(Context.TELEPHONY_SERVICE);
         if (mContext.getApplicationContext().checkSelfPermission(
@@ -244,7 +247,7 @@ public class ProfilesTask extends AsyncTask<Void, String, Model> {
         return rssi;
     }
 
-    public ResultTypes.ResultTypesRSSI getRSSI(){
+    private ResultTypes.ResultTypesRSSI getRSSI(){
         int wifi = getRSSIWifi();
         int level;
         if(wifi>0){

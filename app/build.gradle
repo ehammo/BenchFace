@@ -7,8 +7,8 @@ android {
         applicationId "cin.ufpe.br.main"
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 22
-        versionName "1.2.3"
+        versionCode 23
+        versionName "1.2.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
@@ -44,4 +44,5 @@ dependencies {
     implementation 'com.android.support:multidex:1.0.3'
     implementation project(':openCVLibrary310')
     implementation project(':mpOSAES128')
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }

@@ -61,18 +61,23 @@ public final class ProfileController {
             model = obj;
             bandwidthDown = "0";
             bandwidthUp = "0";
-            try {
-                if (profileNetwork == ProfileNetwork.LIGHT) {
-                    taskNetwork = new ProfileNetworkLight(persistNetworkResults(taskResultEvent), server);
-                } else if (profileNetwork == ProfileNetwork.DEFAULT) {
-                    taskNetwork = new ProfileNetworkDefault(persistNetworkResults(taskResultEvent), server);
-                } else if (profileNetwork == ProfileNetwork.FULL) {
-                    taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
+            if(server != null) {
+                try {
+                    if (profileNetwork == ProfileNetwork.LIGHT) {
+                        taskNetwork = new ProfileNetworkLight(persistNetworkResults(taskResultEvent), server);
+                    } else if (profileNetwork == ProfileNetwork.DEFAULT) {
+                        taskNetwork = new ProfileNetworkDefault(persistNetworkResults(taskResultEvent), server);
+                    } else if (profileNetwork == ProfileNetwork.FULL) {
+                        taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
+                    } else {
+                        taskNetwork = new ProfileNetworkFull(persistNetworkResults(taskResultEvent), server);
+                    }
+                    taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                } catch (Exception e) {
+                    Log.e("teste", "ProfileController: "+e.getMessage());
                 }
-            } catch (Exception e) {
-                Log.e("teste", e.getMessage());
             }
-            taskNetwork.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
             //testing.run();
         }
     };
@@ -113,13 +118,12 @@ public final class ProfileController {
 
     public void networkAnalysis(ServerContent server) throws MissedEventException, NetworkException {
         networkAnalysis(server, profileNetwork);
-
     }
 
     public void networkAnalysis(ServerContent server, ProfileNetwork profileNetwork) throws MissedEventException, NetworkException {
         Log.d("teste", "Vou executar as tarefas");
-        Log.d("teste", "Vou executar as tarefas");
-        Network network = Network();
+        this.server = server;
+        Network network = new Network();
         bandwidthDown=network.getBandwidthDownload();
         bandwidthUp=network.getBandwidthUpload();
         salvaBanco();
@@ -128,14 +132,14 @@ public final class ProfileController {
     }
 
     private String getBandwidthLabel(float f) {
-        return getBandwidthLabel(f, "WIFI");
+        return getBandwidthLabel(f, model.Tech);
     }
 
     private String getBandwidthLabel(float f, String tech) {
         String resp = "";
         if(tech.equalsIgnoreCase("WIFI")) {
-            Log.d("year", model.year);
-            if (model.year.equalsIgnoreCase("Potente") || model.year.equalsIgnoreCase("Intermediario_Avancado")) {
+            Log.d("year", "year: "+model.year);
+            if ("Potente".equalsIgnoreCase(model.year) || "Intermediario_Avancado".equalsIgnoreCase(model.year)) {
                 Log.d("year", "entrei");
                 if (f > 20) {
                     resp = "Livre";
@@ -166,6 +170,7 @@ public final class ProfileController {
     private void salvaBanco(){
         String date = getCurrentTimeStamp();
         model.Date = date;
+        model.Tech = "WIFI";
         String bandwidthLabel="";
         float down = Float.parseFloat(bandwidthDown);
         float up = Float.parseFloat(bandwidthUp);

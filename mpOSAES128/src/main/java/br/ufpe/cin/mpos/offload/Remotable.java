@@ -39,19 +39,23 @@ public @interface Remotable {
 
 	boolean status() default false;// see on log stats
 
-	boolean cripto() default true;
+	boolean cripto() default false;
 
 	enum Classifier {
-        J48, KNN, JRIP;
+        J48, KNN, JRIP, SVM;
 
 		public String toString() {
 			if (ordinal() == J48.ordinal()) {
-				return "j48.model";
+				return "J48.model";
             } else if (ordinal() == KNN.ordinal()) {
-                return "knn.model";
-            } else {
-                return "jrip.model";
-            }
+                return "IBK.model";
+            } else if (ordinal() == JRIP.ordinal()) {
+				return "JRIP.model";
+			} else if (ordinal() == SVM.ordinal()) {
+				return "SVM.model";
+			} else {
+				return "J48.model";
+			}
         }
 	}
 

@@ -1,6 +1,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+   
     <item
+        android:id="@+id/menu_action_reload"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/action_reload"
+        android:title="@string/action_reload"/>
+
+    <item
+        android:id="@+id/menu_action_export"
         android:icon="@android:drawable/ic_menu_upload"
         app:showAsAction="always"
         android:title="Export"/>
