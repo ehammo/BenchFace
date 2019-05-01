@@ -26,11 +26,12 @@
         android:layout_height="wrap_content"
         android:layout_above="@id/btnHide"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:layout_below="@+id/sp_execution"
         android:background="@android:color/black"
         android:contentDescription="@string/hideDescription"
         app:srcCompat="@android:color/background_light" />
+
+
 
     <TextView
         android:id="@+id/selecionarFoto"
@@ -38,7 +39,6 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/spinnerPhoto"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:layout_marginBottom="5dp"
         android:text="Selecione a foto" />
 
@@ -48,7 +48,6 @@
         android:layout_height="wrap_content"
         android:layout_alignEnd="@id/selecionarFoto"
         android:layout_alignParentBottom="true"
-        android:layout_alignRight="@id/selecionarFoto"
         />
 
     <TextView
@@ -56,7 +55,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/selecionarFoto"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:text="Selecione o treinamento" />
 
@@ -65,7 +63,6 @@
         android:layout_width="100sp"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@id/spinnerPhoto"
-        android:layout_alignLeft="@id/SelecionarAlgoritmo"
         android:layout_alignStart="@id/SelecionarAlgoritmo"
         />
 
@@ -73,7 +70,7 @@
         android:id="@+id/sp_execution"
         android:layout_width="100sp"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_below="@+id/textStatus"
         android:layout_marginBottom="8dp" />
 
@@ -83,7 +80,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/textTime"
         android:layout_alignBottom="@+id/textTime"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_marginBottom="8dp"
         android:text="@string/status"
         android:textSize="18sp" />
@@ -92,11 +89,19 @@
         android:id="@+id/textTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/imageView"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/imageView"
         android:layout_marginTop="8dp"
         android:text="@string/time_passed"
         android:textSize="18sp" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="invisible"
+        />
 
 </RelativeLayout>

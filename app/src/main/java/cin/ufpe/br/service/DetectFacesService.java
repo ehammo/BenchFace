@@ -14,9 +14,9 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import cin.ufpe.br.Interfaces.CloudletDetectFaces;
-import cin.ufpe.br.Interfaces.DynamicDetectFacesJ48;
-import cin.ufpe.br.Util.Util;
+import cin.ufpe.br.interfaces.CloudletDetectFaces;
+import cin.ufpe.br.interfaces.DynamicDetectFacesJ48;
+import cin.ufpe.br.util.Util;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
 

@@ -5,9 +5,7 @@ package cin.ufpe.br.main;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -24,6 +22,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,14 +42,17 @@ import br.ufc.mdcc.mpos.config.Inject;
 import br.ufc.mdcc.mpos.config.MposConfig;
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
 import br.ufpe.cin.mpos.profile.Model.Model;
-import cin.ufpe.br.Interfaces.CloudletDetectFaces;
-import cin.ufpe.br.Interfaces.DetectFaces;
-import cin.ufpe.br.Interfaces.DynamicDetectFacesJ48;
-import cin.ufpe.br.Interfaces.DynamicDetectFacesJRIP;
-import cin.ufpe.br.Interfaces.DynamicDetectFacesKNN;
-import cin.ufpe.br.Util.Data;
-import cin.ufpe.br.Util.ExportCsv;
-import cin.ufpe.br.Util.Util;
+import cin.ufpe.br.interfaces.CloudletDetectFaces;
+import cin.ufpe.br.interfaces.CloudletUpdateService;
+import cin.ufpe.br.interfaces.DetectFaces;
+import cin.ufpe.br.interfaces.DynamicDetectFacesJ48;
+import cin.ufpe.br.interfaces.DynamicDetectFacesJRIP;
+import cin.ufpe.br.interfaces.DynamicDetectFacesKNN;
+import cin.ufpe.br.interfaces.DynamicDetectFacesSVM;
+import cin.ufpe.br.service.UpdateService;
+import cin.ufpe.br.util.Data;
+import cin.ufpe.br.util.ExportCsv;
+import cin.ufpe.br.util.Util;
 import cin.ufpe.br.model.ToLoadCascadeModel;
 import cin.ufpe.br.service.CascadeService;
 import cin.ufpe.br.service.DetectFacesService;
@@ -61,8 +63,8 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 //code
 //openCV
 
-//@MposConfig(endpointSecondary = "172.22.73.150")
-@MposConfig
+@MposConfig(endpointSecondary = "192.168.2.102")
+//@MposConfig
 public class MainActivity extends Activity {
 
     private static final String TAG = "teste";
@@ -77,7 +79,8 @@ public class MainActivity extends Activity {
 
     private MainService mainTask;
     private DetectFaces detectFacesLocal = new DetectFacesService();
-
+    @Inject(UpdateService.class)
+    private CloudletUpdateService updateService;
     @Inject(DetectFacesService.class)
     private CloudletDetectFaces detectFacesCloudlet;
     @Inject(DetectFacesService.class)
@@ -86,6 +89,8 @@ public class MainActivity extends Activity {
     private DynamicDetectFacesKNN detectFacesDynamicKNN;
     @Inject(DetectFacesService.class)
     private DynamicDetectFacesJRIP detectFacesDynamicJRIP;
+    @Inject(DetectFacesService.class)
+    private DynamicDetectFacesSVM detectFacesDynamicSVM;
     //TODO: Make all csv-Related stuff write on Data
     //CSV-Related
     private int alg;
@@ -98,7 +103,8 @@ public class MainActivity extends Activity {
     private String timeText;
     private ImageView imageView;
     private Context mContext;
-    private ProgressDialog mProgressDialog;
+    //todo:Replace loading
+    private ProgressBar mProgressBar;
     //Others
     private int[] imageNumber = {1, 2, 3};
     private Bitmap originalImage;
@@ -115,71 +121,76 @@ public class MainActivity extends Activity {
     private int faces;
     private boolean benchmarking = false;
     private int benchCount = 1;
-    private TaskResultAdapter<Bitmap> taskAdapter = new TaskResultAdapter<Bitmap>() {
 
-        @Override
-        public void completedTask(Bitmap obj) {
-            if (obj != null) {
-                imagemCorteDesfoque = obj;
-                originalImageByte = Util.Bitmap2Byte(obj);
-                mProgressDialog.dismiss();
-                imageView.setVisibility(View.VISIBLE);
-                faces = mainTask.getNumFaces();
-                data.setFaces(faces);
-                changeCSV();
-                Log.d("benchCount", benchmarking + "");
-                if (benchmarking) {
-                    Log.d("benchCount", benchCount + "");
-                    if (benchCount == 30) {
-                        benchCount = 1;
-                        timeText = precision.format(TotalTimeBenchmarking) + "s";
-                        timeText.replace(",", ".");
-                        if (TotalTimeBenchmarking >= 60) {
-                            int min = (int) Math.floor(TotalTimeBenchmarking / 60);
-                            int sec = (int) Math.ceil(TotalTimeBenchmarking - (min * 60));
-                            mTextView.setText(min + "min e " + sec + "s");
+    private TaskResultAdapter<Bitmap> taskAdapter;
+    {
+        taskAdapter = new TaskResultAdapter<Bitmap>() {
+
+            @Override
+            public void completedTask(Bitmap obj) {
+                if (obj != null) {
+                    imagemCorteDesfoque = obj;
+                    originalImageByte = Util.Bitmap2Byte(obj);
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                    imageView.setVisibility(View.VISIBLE);
+                    faces = mainTask.getNumFaces();
+                    data.setFaces(faces);
+                    changeCSV();
+                    Log.d("benchCount", benchmarking + "");
+                    if (benchmarking) {
+                        Log.d("benchCount", benchCount + "");
+                        if (benchCount == 30) {
+                            benchCount = 1;
+                            timeText = precision.format(TotalTimeBenchmarking) + "s";
+                            timeText.replace(",", ".");
+                            if (TotalTimeBenchmarking >= 60) {
+                                int min = (int) Math.floor(TotalTimeBenchmarking / 60);
+                                int sec = (int) Math.ceil(TotalTimeBenchmarking - (min * 60));
+                                mTextView.setText(min + "min e " + sec + "s");
+                            } else {
+                                mTextView.setText(TotalTimeBenchmarking + "s");
+                            }
+                            String now = getCurrentTimeStamp();
+                            data.setName(id);
+                            data.setFaces(0);
+                            data.setAlgorithm(algorithm);
+                            data.setExecution(execution);
+                            data.setTotalTime(timeText);
+                            Model model = MposFramework.getInstance().getProfileController().getRawModel();
+                            data.setBandwidth(model.Bandwidth);
+                            data.setCPUNuvem(model.CPUNuvem);
+                            data.setCPUSmart(model.CPU);
+                            data.setSize("Todos");
+                            data.setTime(now);
+                            data.setResult();
+                            Log.i(TAG, data.getData());
+                            TotalTimeBenchmarking = (double) 0;
+                            id++;
+                            benchCount++;
+                            Log.d("benchCount", "IfCount: " + benchCount + "");
                         } else {
-                            mTextView.setText(TotalTimeBenchmarking + "s");
+                            benchCount++;
+                            Log.d("benchCount", "ElseCount: " + benchCount + "");
+                            method();
+                            //TODO:fix this
                         }
-                        String now = getCurrentTimeStamp();
-                        data.setName(id);
-                        data.setFaces(0);
-                        data.setAlgorithm(algorithm);
-                        data.setExecution(execution);
-                        data.setTotalTime(timeText);
-                        Model model = MposFramework.getInstance().getProfileController().getRawModel();
-                        data.setBandwidth(model.Bandwidth);
-                        data.setCPUNuvem(model.CPUNuvem);
-                        data.setCPUSmart(model.CPU);
-                        data.setSize("Todos");
-                        data.setTime(now);
-                        data.setResult();
-                        Log.i(TAG, data.getData());
-                        TotalTimeBenchmarking = (double) 0;
-                        id++;
-                        benchCount++;
-                        Log.d("benchCount", "IfCount: " + benchCount + "");
-                    } else {
-                        benchCount++;
-                        Log.d("benchCount", "ElseCount: " + benchCount + "");
-                        method();
-                        //TODO:fix this
                     }
+                } else if (config != 0) {
+                    Log.e("teste", "Erro de transmição config=" + config);
+                    try {
+                        runAPI(0);
+                    } catch (Exception e) {
+                        Log.e("teste", e.getMessage());
+                    }
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                } else {
+                    statusTextView.setText(getApplicationContext().getString(R.string.failed));
+                    mProgressBar.setVisibility(View.INVISIBLE);
                 }
-            } else if (config != 0) {
-                Log.e("teste", "Erro de transmição config=" + config);
-                try {
-                    runAPI(0);
-                } catch (Exception e) {
-                    Log.e("teste", e.getMessage());
-                }
-                mProgressDialog.dismiss();
-            } else {
-                statusTextView.setText(getApplicationContext().getString(R.string.failed));
-                mProgressDialog.dismiss();
             }
-        }
-    };
+        };
+    }
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -306,36 +317,32 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-            //TODO:organize thi in methods
+            //TODO:organize this in methods
             //TODO: create config and used to set all configurations
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
-            btn = (Button) findViewById(R.id.btnHide);
-            imageView = (ImageView) findViewById(R.id.imageView);
-            mTextView = (TextView) findViewById(R.id.textTime);
-            statusTextView = (TextView) findViewById(R.id.textStatus);
+            btn =  findViewById(R.id.btnHide);
+            imageView = findViewById(R.id.imageView);
+            mTextView = findViewById(R.id.textTime);
+            statusTextView = findViewById(R.id.textStatus);
             mContext = this;
             quit = false;
 
             data = new Data();
 
-            mProgressDialog = new ProgressDialog(this);
-            mProgressDialog.setMessage("Processing........");
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            mProgressDialog.setCancelable(false);
+            mProgressBar = findViewById(R.id.progressBar);
 
-            Spinner algSpinner = (Spinner) findViewById(R.id.spinnerAlg);
+            Spinner algSpinner = findViewById(R.id.spinnerAlg);
             ArrayAdapter<CharSequence> algAdapter = ArrayAdapter.createFromResource(this, R.array.algorithm_array, android.R.layout.simple_spinner_item);
             algAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             algSpinner.setAdapter(algAdapter);
 
-            Spinner photoSpinner = (Spinner) findViewById(R.id.spinnerPhoto);
+            Spinner photoSpinner = findViewById(R.id.spinnerPhoto);
             ArrayAdapter<CharSequence> photoAdapter = ArrayAdapter.createFromResource(this, R.array.photo_array, android.R.layout.simple_spinner_item);
             photoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             photoSpinner.setAdapter(photoAdapter);
 
-            Spinner executionSpinner = (Spinner) findViewById(R.id.sp_execution);
+            Spinner executionSpinner = findViewById(R.id.sp_execution);
             ArrayAdapter<CharSequence> executionAdapter = ArrayAdapter.createFromResource(this, R.array.execution_array, android.R.layout.simple_spinner_item);
             executionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             executionSpinner.setAdapter(executionAdapter);
@@ -351,7 +358,6 @@ public class MainActivity extends Activity {
 
                 }
             });
-
             algSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
@@ -396,7 +402,6 @@ public class MainActivity extends Activity {
 
                 }
             });
-
             executionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
@@ -449,6 +454,11 @@ public class MainActivity extends Activity {
                 mainTask = new MainService(originalImageByte, detectFacesDynamicJRIP, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
+            case 5:
+                execution = "SVMDynamic";
+                mainTask = new MainService(originalImageByte, detectFacesDynamicSVM, algorithm, taskAdapter);
+                mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
             }
 
         }
@@ -458,13 +468,13 @@ public class MainActivity extends Activity {
         if (quit) {
             MposFramework.getInstance().stop();
             Log.d(TAG, "middleware ended");
-            }
         }
+    }
 
     public void method() {
         if (benchmarking) {
             choosePicture(imageNumber[(benchCount - 1) / 10]);
-            mProgressDialog.show();
+            mProgressBar.setVisibility(View.VISIBLE);
             imageView.setVisibility(View.INVISIBLE);
             statusTextView.setText(String.format(Locale.getDefault(),
                     "[%d/30]\nProcessing", benchCount));
@@ -473,12 +483,12 @@ public class MainActivity extends Activity {
         } else {
             TimeStarted = System.nanoTime();
             imageView.setVisibility(View.INVISIBLE);
-            mProgressDialog.show();
+            mProgressBar.setVisibility(View.VISIBLE);
             mTextView.setText(R.string.time);
             statusTextView.setText(R.string.processing);
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
-            }
         }
+    }
 
     //TODO:fix decode looking at benchImage
     public void decodeSampledBitmapFromResource(Resources pRes, int pResId,
@@ -505,7 +515,6 @@ public class MainActivity extends Activity {
                         // First decode with inJustDecodeBounds=true to check dimensions
                         //setImageBitmap(originalImage, imageView);
                         imageView.setImageBitmap(originalImage);
-
                     }
                 });
                 }
@@ -520,26 +529,15 @@ public class MainActivity extends Activity {
 
         //Since the order that they appear is Neutral>Negative>Positive I change the content of each one
         //So The negative is my neutral, the neutral is my positive and at last the positive is my negative
-        builder.setNegativeButton("Just Quit", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                finish();
-                }
+        builder.setNegativeButton("Just Quit", (dialogInterface, i) -> finish());
+        builder.setNeutralButton("Yes", (dialogInterface, i) -> {
+            ExportCsv exportModule = new ExportCsv();
+            exportModule.exportCsv(data.getData());
+            finish();
         });
-        builder.setNeutralButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                ExportCsv exportModule = new ExportCsv();
-                exportModule.exportCsv(data.getData());
-                finish();
-            }
-        });
-        builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                quit = false;
-                dialogInterface.cancel();
-            }
+        builder.setPositiveButton("No", (dialogInterface, i) -> {
+            quit = false;
+            dialogInterface.cancel();
         });
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -551,7 +549,6 @@ public class MainActivity extends Activity {
         timeText = precision.format(TotalTime);
         statusTextView.setText(String.format(Locale.getDefault(), "%d faces", faces));
         imageView.setImageBitmap(imagemCorteDesfoque);
-        int value = (originalImage.getHeight() * originalImage.getWidth()) / 1000000;
 
         TotalTimeBenchmarking += TotalTime;
         mTextView.setText(String.format("%ss", timeText));
@@ -560,10 +557,12 @@ public class MainActivity extends Activity {
             double sec = TotalTime - (min * 60);
             mTextView.setText(String.format(Locale.getDefault(),
                     "%dmin e %ss", min, sec));
-            }
+        }
 
-        long download_time = MposFramework.getInstance().getEndpointController().rpcProfile.getDonwloadTime();
-        long upload_time = MposFramework.getInstance().getEndpointController().rpcProfile.getUploadTime();
+        long download_time = MposFramework.getInstance().getEndpointController()
+                .rpcProfile.getDonwloadTime();
+        long upload_time = MposFramework.getInstance().getEndpointController()
+                .rpcProfile.getUploadTime();
 
         data.setDownloadTime(download_time);
         data.setUploadTime(upload_time);
@@ -578,35 +577,39 @@ public class MainActivity extends Activity {
         data.setResult();
         Log.i(TAG, data.getData());
 
-        }
+    }
 
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-        }
+    }
 
     public boolean onOptionsItemSelected(MenuItem item) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setMessage("Want to export Csv file?").setTitle("Export");
-        //Since the order that they appear is Neutral>Negative>Positive I change the content of each one
-        //So The negative is my positive and the positive is my negative
-        builder.setNegativeButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
+        switch (item.getItemId()) {
+            case R.id.menu_action_reload:
+                mProgressBar.setVisibility(View.VISIBLE);
+                ReloadClassificationModelsTask reload = new
+                        ReloadClassificationModelsTask(mContext, updateService, success -> {
+                            if (success) {
+                                mProgressBar.setVisibility(View.INVISIBLE);
+                                Toast.makeText(mContext, "Updated with success", Toast.LENGTH_SHORT)
+                                        .show();
+                            } else {
+                                mProgressBar.setVisibility(View.INVISIBLE);
+                                Toast.makeText(mContext, "Failed to update", Toast.LENGTH_SHORT)
+                                        .show();
+                            }
+                        });
+                reload.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                break;
+
+            case R.id.menu_action_export:
                 ExportCsv exportModule = new ExportCsv();
                 exportModule.exportCsv(data.getData());
                 Toast.makeText(mContext, "Exported", Toast.LENGTH_LONG).show();
-            }
-        });
-        builder.setPositiveButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.cancel();
-            }
-        });
-        AlertDialog dialog = builder.create();
-        dialog.show();
-        return true;
+                break;
         }
+        return true;
+    }
 
 }

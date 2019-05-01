@@ -10,7 +10,7 @@ import org.opencv.core.Mat;
 import java.util.List;
 
 import br.ufc.mdcc.mpos.util.TaskResultAdapter;
-import cin.ufpe.br.Interfaces.DetectFaces;
+import cin.ufpe.br.interfaces.DetectFaces;
 import cin.ufpe.br.model.PropriedadesFace;
 
 /**

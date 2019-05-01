@@ -6,5 +6,6 @@
         <item>Dynamic - J48</item>
         <item>Dynamic - Knn</item>
         <item>Dynamic - JRip</item>
+        <item>Dynamic - SVM</item>
     </string-array>
 </resources>
