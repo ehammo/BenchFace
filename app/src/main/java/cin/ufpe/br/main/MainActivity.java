@@ -49,14 +49,14 @@ import cin.ufpe.br.interfaces.DynamicDetectFacesJ48;
 import cin.ufpe.br.interfaces.DynamicDetectFacesJRIP;
 import cin.ufpe.br.interfaces.DynamicDetectFacesKNN;
 import cin.ufpe.br.interfaces.DynamicDetectFacesSVM;
-import cin.ufpe.br.service.UpdateService;
-import cin.ufpe.br.util.Data;
-import cin.ufpe.br.util.ExportCsv;
-import cin.ufpe.br.util.Util;
 import cin.ufpe.br.model.ToLoadCascadeModel;
 import cin.ufpe.br.service.CascadeService;
 import cin.ufpe.br.service.DetectFacesService;
 import cin.ufpe.br.service.MainService;
+import cin.ufpe.br.service.UpdateService;
+import cin.ufpe.br.util.Data;
+import cin.ufpe.br.util.ExportCsv;
+import cin.ufpe.br.util.Util;
 
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 
@@ -91,7 +91,6 @@ public class MainActivity extends Activity {
     private DynamicDetectFacesJRIP detectFacesDynamicJRIP;
     @Inject(DetectFacesService.class)
     private DynamicDetectFacesSVM detectFacesDynamicSVM;
-    //TODO: Make all csv-Related stuff write on Data
     //CSV-Related
     private int alg;
     private String algorithm = "";
@@ -103,7 +102,6 @@ public class MainActivity extends Activity {
     private String timeText;
     private ImageView imageView;
     private Context mContext;
-    //todo:Replace loading
     private ProgressBar mProgressBar;
     //Others
     private int[] imageNumber = {1, 2, 3};
@@ -134,6 +132,7 @@ public class MainActivity extends Activity {
                     mProgressBar.setVisibility(View.INVISIBLE);
                     imageView.setVisibility(View.VISIBLE);
                     faces = mainTask.getNumFaces();
+                    data.setWasOffloaded(mainTask.getDynamicResult());
                     data.setFaces(faces);
                     changeCSV();
                     Log.d("benchCount", benchmarking + "");
@@ -438,7 +437,6 @@ public class MainActivity extends Activity {
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 break;
             case 2:
-                //TODO: add decision result in csv
                 execution = "J48Dynamic";
                 mainTask = new MainService(originalImageByte, detectFacesDynamicJ48, algorithm, taskAdapter);
                 mainTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);

@@ -52,7 +52,7 @@ public @interface Remotable {
             } else if (ordinal() == JRIP.ordinal()) {
 				return "JRIP.model";
 			} else if (ordinal() == SVM.ordinal()) {
-				return "SVM.model";
+				return "SMO.model";
 			} else {
 				return "J48.model";
 			}

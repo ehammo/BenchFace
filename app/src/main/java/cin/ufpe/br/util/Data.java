@@ -2,6 +2,7 @@ package cin.ufpe.br.util;
 
 public class Data {
 
+    private boolean wasOffloaded;
     private String result = "";
     private int name = 0;
     private int faces = 0;
@@ -16,14 +17,20 @@ public class Data {
     private String CPUNuvem = "";
     private String time = "";
 
-
+    public void setWasOffloaded(boolean wasOffloaded) {
+        this.wasOffloaded = wasOffloaded;
+    }
 
     public String getData() {
         return result;
     }
 
     public void setResult() {
-        result += "\"" + name + "\";\"" + time + "\";\"" + faces + "\";\"" + algorithm + "\";\"" + execution + "\";\"" + size + "\";\"" + totalTime + "\";\"" + uploadTime + "\";\"" + downloadTime + "\";\"" + bandwidth + "\";\"" + CPUSmart + "\";\"" + CPUNuvem + "\"";
+        result += "\"" + name + "\";\"" + time + "\";\"" +
+                faces + "\";\"" + algorithm + "\";\"" +
+                execution + "\";\"" + wasOffloaded + "\";\"" +
+                size + "\";\"" + totalTime + "\";\"" + uploadTime + "\";\"" +
+                downloadTime + "\";\"" + bandwidth + "\";\"" + CPUSmart + "\";\"" + CPUNuvem + "\"";
         result += "\n";
     }
 

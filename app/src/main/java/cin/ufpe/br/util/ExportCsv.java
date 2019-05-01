@@ -18,7 +18,7 @@ public class ExportCsv {
     private String TAG = "ExportCsv";
     private String columnString =
             "\"ID\";\"Time\";\"Quantity of faces\";"+
-            "\"Algorithm\";\"Execution\";\"Size (KBytes)\";"+
+                    "\"Algorithm\";\"Execution\";\"offloaded\";\"Size (KBytes)\";" +
             "\"Total Time (s)\";\"Upload Time\";\"Download Time\";"+
             "\"Bandwidth\";\"CPUSmart\";\"CPUNuvem\"";
 

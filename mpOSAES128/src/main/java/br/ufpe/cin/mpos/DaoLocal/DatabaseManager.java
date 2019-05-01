@@ -10,7 +10,7 @@ public class DatabaseManager extends SQLiteOpenHelper {
     public static final String TABELA = "AllProfiles";
     public static final String IDC = "_id";
     public static final String Tech = "TipoRede";
-    public static final String InputSize = "TamanhoDados(Kb)";
+    public static final String InputSize = "TamanhoDados_Kb";
     public static final String AppName = "Aplicativo";
     public static final String Battery = "BateriaSmartphone";
     public static final String year = "HardSmartphone";

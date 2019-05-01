@@ -4,11 +4,9 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import cin.ufpe.br.interfaces.CloudletUpdateService;
@@ -30,13 +28,14 @@ public class ReloadClassificationModelsTask extends AsyncTask<Void, Void, Void> 
     protected Void doInBackground(Void... voids) {
         Log.d("teste","reload start");
 
-        //todo:get_data_from_
+        //todo:get_data_from_db
         classificators = updateService.updateClassificators(new String[0]);
 
         if (classificators!=null) {
             for(String filename : classificators.keySet()) {
                 //save files on storage
                 try {
+                    Log.d("teste", "filename:" + filename);
                     FileOutputStream out = context.openFileOutput(filename, Context.MODE_PRIVATE);
                     byte[] file = classificators.get(filename);
                     if (file != null) out.write(file);
@@ -49,8 +48,6 @@ public class ReloadClassificationModelsTask extends AsyncTask<Void, Void, Void> 
 
             }
         }
-
-        //todo : save classificators
         Log.d("teste","offload end");
         return null;
     }

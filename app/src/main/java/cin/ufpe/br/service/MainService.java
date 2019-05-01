@@ -25,6 +25,8 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
     String cascadeClassifier;
     TaskResultAdapter<Bitmap> taskResultAdapter;
     Bitmap result;
+    boolean offload;
+
     private String TAG = "teste";
 
     public MainService(byte[] originalImage, DetectFaces detectFaces, String algorithm, TaskResultAdapter<Bitmap> taskAdapter) {
@@ -54,15 +56,19 @@ public final class MainService extends AsyncTask<Void, String, Bitmap> {
         List<PropriedadesFace> propsFaces=null;
 
         //obtem os dados de onde estão as faces (altura, largura, posição x e y)
-        PropriedadesFace b = serviceExtractFaces.detectarFaces(this.cascadeClassifier, this.originalImage);
-        Log.d("teste", "oioi");
-        faces = b.getFaces();
-        Bitmap ret = BitmapFactory.decodeByteArray(b.getImagemFinal(),0,b.getImagemFinal().length);
+        PropriedadesFace pf = serviceExtractFaces.detectarFaces(this.cascadeClassifier, this.originalImage);
+        offload = pf.offload;
+        faces = pf.getFaces();
+        Bitmap ret = BitmapFactory.decodeByteArray(pf.getImagemFinal(), 0, pf.getImagemFinal().length);
         return ret;
     }
 
     public int getNumFaces(){
         return faces;
+    }
+
+    public boolean getDynamicResult() {
+        return offload;
     }
 
 }

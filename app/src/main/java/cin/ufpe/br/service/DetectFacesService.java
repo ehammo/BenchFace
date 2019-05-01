@@ -16,9 +16,9 @@ import java.util.List;
 
 import cin.ufpe.br.interfaces.CloudletDetectFaces;
 import cin.ufpe.br.interfaces.DynamicDetectFacesJ48;
-import cin.ufpe.br.util.Util;
 import cin.ufpe.br.main.MainActivity;
 import cin.ufpe.br.model.PropriedadesFace;
+import cin.ufpe.br.util.Util;
 
 public class DetectFacesService implements CloudletDetectFaces, DynamicDetectFacesJ48 {
 	private static final String TAG = "teste";
@@ -50,6 +50,7 @@ public class DetectFacesService implements CloudletDetectFaces, DynamicDetectFac
 			PropriedadesFace p = new PropriedadesFace();
             p.setFaces(propsFaces.size());
             p.setImagemFinal(Util.Bitmap2Byte(imagemCorteDesfoque));
+            p.offload = false;
             return p;
         }catch(Exception e){
 			e.printStackTrace();
